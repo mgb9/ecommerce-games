@@ -4,9 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Funnel Fixer</title>
+    <script src="/ecommerce-games/wmg-shell.js"></script>
   </head>
   <body>
-    <div id="root"></div>
+    <wmg-shell game="Funnel Fixer" category="Funnel economics" accent="#C1D82F">
+      <div id="root"></div>
+    </wmg-shell>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      /* Bridge the WMG bar's Simpler-English toggle to this game's own toggle,
+         so the single control in the top bar drives the game. The game's React
+         logic is untouched; we just click its existing toggle when out of sync. */
+      (function () {
+        var KEY = "ff-plain";
+        function gameOn() { try { return localStorage.getItem(KEY) === "1"; } catch (e) { return false; } }
+        function findBtn() {
+          var root = document.getElementById("root"); if (!root) return null;
+          return Array.prototype.slice.call(root.querySelectorAll("button"))
+            .find(function (b) { return /simpler english/i.test(b.textContent || ""); });
+        }
+        function sync(want) {
+          var tries = 0;
+          (function attempt() {
+            var b = findBtn();
+            if (b) { if (gameOn() !== want) b.click(); return; }
+            if (tries++ < 40) setTimeout(attempt, 100);
+          })();
+        }
+        document.addEventListener("wmg:simplerchange", function (e) { sync(!!(e.detail && e.detail.simpler)); });
+      })();
+    </script>
   </body>
 </html>
