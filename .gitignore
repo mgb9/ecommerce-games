@@ -1,0 +1,13 @@
+node_modules/
+*/dist/
+*/node_modules/
+.DS_Store
+*.log
+*.docx
+*.pptx
+*.ppt
+*.pdf
+*.key
+*.zip
+*.mp4
+*.mov

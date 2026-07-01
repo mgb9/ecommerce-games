@@ -1,0 +1,15 @@
+import { describe, it, expect } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import App from "./App.jsx";
+
+// A build won't catch an engine symbol the UI references but forgot to
+// import — that's a runtime ReferenceError. Rendering the app exercises the
+// import wiring end-to-end.
+describe("App renders", () => {
+  it("mounts the intro/ticket screen without a missing-symbol error", () => {
+    const html = renderToStaticMarkup(<App />);
+    expect(html).toContain("Data");
+    expect(html).toContain("Find out what");
+    expect(html).toContain("Checkout");
+  });
+});

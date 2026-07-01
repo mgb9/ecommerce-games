@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WM956-15 · e-commerce learning games</title>
+<meta name="description" content="Four interactive e-commerce teaching games for WM956-15 Enterprise eCommerce Solutions." />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+  :root{ --ink:#14110D; --panel:#1F1A13; --panel2:#272015; --border:#3A3022; --text:#F0E9DC; --muted:#A99E8B; --amber:#F2A93B; --gold:#C9A06A; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--ink); color:var(--text); font-family:'Hanken Grotesk',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
+  .wrap{ max-width:1000px; margin:0 auto; padding:64px 22px 80px; }
+  .kicker{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:2px; color:var(--muted); }
+  h1{ font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:46px; line-height:1.05; letter-spacing:-1px; margin:10px 0 14px; }
+  h1 span{ color:var(--amber); }
+  .lede{ color:var(--muted); font-size:17px; line-height:1.6; max-width:680px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:36px; }
+  a.card{ display:block; text-decoration:none; color:var(--text); background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:22px; transition:border-color .15s, transform .15s, background .15s; }
+  a.card:hover{ border-color:var(--amber); transform:translateY(-3px); background:var(--panel2); }
+  .icon{ font-size:34px; }
+  .card h2{ font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:21px; margin:10px 0 4px; letter-spacing:-0.4px; }
+  .tag{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:1px; color:var(--gold); }
+  .card p{ color:var(--muted); font-size:13.5px; line-height:1.5; margin-top:9px; }
+  .los{ display:flex; gap:6px; flex-wrap:wrap; margin-top:14px; }
+  .lo{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--amber); border:1px solid #F2A93B55; border-radius:6px; padding:2px 7px; }
+  .go{ color:var(--amber); font-weight:700; font-size:13.5px; margin-top:14px; display:inline-flex; align-items:center; gap:6px; }
+  footer{ margin-top:44px; color:var(--muted); font-size:12.5px; line-height:1.6; border-top:1px solid var(--border); padding-top:18px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="kicker">WM956-15 · ENTERPRISE ECOMMERCE SOLUTIONS · WMG, UNIVERSITY OF WARWICK</div>
+    <h1>Four games for<br><span>real e-commerce judgement.</span></h1>
+    <p class="lede">An interactive suite for MSc students: diagnose, design, test and run a store under realistic constraints. Each game is a self-contained lab with a seeded engine, a plain-English glossary and a “Simpler English” toggle for ESL learners.</p>
+
+    <div class="grid">
+      <a class="card" href="./marketplace-tycoon/">
+        <div class="icon">🏪</div>
+        <div class="tag">STRATEGY SIMULATION</div>
+        <h2>Marketplace Tycoon</h2>
+        <p>Pick a client brief, choose the right platform stack, and run a store against four rivals over ten weeks. Highest cumulative profit wins.</p>
+        <div class="los"><span class="lo">LO1</span><span class="lo">LO3</span><span class="lo">LO4</span></div>
+        <div class="go">Play →</div>
+      </a>
+      <a class="card" href="./conversion-lab/">
+        <div class="icon">🧪</div>
+        <div class="tag">A/B TESTING &middot; WIREFRAMING</div>
+        <h2>Conversion Lab</h2>
+        <p>Wireframe a page for its context then prove it converts, run experiments with real statistical noise, and calibrate your intuition against the data.</p>
+        <div class="los"><span class="lo">LO2</span><span class="lo">LO3</span></div>
+        <div class="go">Play →</div>
+      </a>
+      <a class="card" href="./funnel-fixer/">
+        <div class="icon">🪜</div>
+        <div class="tag">FUNNEL ECONOMICS</div>
+        <h2>Funnel Fixer</h2>
+        <p>A leaky checkout funnel and a fixed budget. Diagnose where the money leaks with opportunity sizing and spend where the £ actually is.</p>
+        <div class="los"><span class="lo">LO1</span><span class="lo">LO3</span></div>
+        <div class="go">Play →</div>
+      </a>
+      <a class="card" href="./data-detective/">
+        <div class="icon">🔎</div>
+        <div class="tag">ROOT-CAUSE DIAGNOSIS</div>
+        <h2>Data Detective</h2>
+        <p>“Revenue’s down — find out why.” Segment an analytics dashboard to isolate real incidents, spot mix-shifts and masked faults, and reject red herrings.</p>
+        <div class="los"><span class="lo">LO3</span></div>
+        <div class="go">Play →</div>
+      </a>
+    </div>
+
+    <footer>
+      Built for teaching by Mark Bonnett (WMG, University of Warwick). Each game runs entirely in your browser — nothing is sent anywhere.
+    </footer>
+  </div>
+</body>
+</html>

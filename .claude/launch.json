@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "conversion-lab",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "Conversion Lab", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "funnel-fixer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "Funnel Fixer", "run", "dev", "--", "--port", "5174"],
+      "port": 5174
+    },
+    {
+      "name": "data-detective",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "Data Detective", "run", "dev", "--", "--port", "5176"],
+      "port": 5176
+    },
+    {
+      "name": "marketplace-tycoon",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "Marketplace Tycoon", "run", "dev", "--", "--port", "5177"],
+      "port": 5177
+    }
+  ]
+}
