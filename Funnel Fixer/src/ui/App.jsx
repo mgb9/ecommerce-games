@@ -12,7 +12,7 @@ const FONT_IMPORT = `
 const T = {
   ink: "#14110D", panel: "#1F1A13", panel2: "#272015", border: "#3A3022",
   text: "#F0E9DC", muted: "#A99E8B", pos: "#7DCB6A", neg: "#E2654E", amber: "#E6B450",
-  player: "#F2A93B", instructor: "#C9A06A", sel: "#2A2113", track: "#332a1d", faint: "#4a3f2d", onAccent: "#1a1206",
+  player: "#F2A93B", instructor: "#C9A06A", sel: "#2A2113", track: "#332a1d", faint: "#8f887d", onAccent: "#1a1206",
   display: "'Bricolage Grotesque', sans-serif", body: "'Hanken Grotesk', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;

@@ -12,7 +12,7 @@ const FONT_IMPORT = `
 const T = {
   ink: "#14110D", panel: "#1F1A13", panel2: "#272015", border: "#3A3022",
   text: "#F0E9DC", muted: "#A99E8B", pos: "#7DCB6A", neg: "#E2654E", amber: "#E6B450",
-  player: "#F2A93B", instructor: "#C9A06A", sel: "#2A2113", track: "#332a1d", faint: "#4a3f2d", onAccent: "#1a1206",
+  player: "#F2A93B", instructor: "#C9A06A", sel: "#2A2113", track: "#332a1d", faint: "#8f887d", onAccent: "#1a1206",
   display: "'Bricolage Grotesque', sans-serif", body: "'Hanken Grotesk', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;
@@ -312,7 +312,7 @@ function SegmentTable({ breakdown, summary }) {
   const groups = [];
   for (const c of TABLE_COLS) { const last = groups[groups.length - 1]; if (last && last.group === c.group) last.span++; else groups.push({ group: c.group, span: 1 }); }
   return (
-    <div style={{ marginTop: 12, overflowX: "auto" }}>
+    <div role="region" aria-label="Segment comparison table (scrollable)" tabIndex={0} style={{ marginTop: 12, overflowX: "auto" }}>
       <div style={{ fontSize: 11, color: T.muted, marginBottom: 6 }}>Comparison period vs current · click a column to sort. Δ is the change in <Term term="pp">percentage points (pp)</Term>. Only <b style={{ color: T.text }}>Conv. rate</b> is changed by the incident; the other columns are real detail that can mislead you.</div>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 720 }}>
         <thead>
@@ -452,7 +452,7 @@ function ReportPanel({ caseData, reportDim, onPivot, cmpWindow, curWindow, cmpNa
         <SectionTitle>{breakdown.isCrossTab ? breakdown.label : reportDim.label} — conversion rate</SectionTitle>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 12, color: T.muted }}>Secondary dimension</span>
-          <select value={secondary || ""} onChange={(e) => chooseSecondary(e.target.value || null)}
+          <select aria-label="Add a secondary dimension to cross-tab this report" value={secondary || ""} onChange={(e) => chooseSecondary(e.target.value || null)}
             style={{ background: T.panel2, color: secondary ? PLAYER : T.text, border: `1px solid ${secondary ? PLAYER : T.border}`, borderRadius: 8, padding: "7px 10px", fontFamily: T.body, fontSize: 12.5, fontWeight: 600, cursor: "pointer", outline: "none" }}>
             <option value="">None</option>
             {secondaryOptions.map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
@@ -489,11 +489,11 @@ function FunnelView({ caseData, cmpWindow, curWindow, cmpName }) {
   const funnel = useMemo(() => buildFunnel(caseData, filters, curWindow, cmpWindow), [caseData, JSON.stringify(filters), curWindow, cmpWindow]);
   const segSel = (val, set, exclude) => (
     <span style={{ display: "inline-flex", gap: 6 }}>
-      <select value={val.dim} onChange={(e) => set({ dim: e.target.value, seg: "" })} style={selStyle(val.dim)}>
+      <select aria-label="Filter dimension" value={val.dim} onChange={(e) => set({ dim: e.target.value, seg: "" })} style={selStyle(val.dim)}>
         <option value="">— dimension —</option>
         {DIMENSIONS.filter((d) => d.key !== exclude).map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
       </select>
-      <select value={val.seg} onChange={(e) => set({ ...val, seg: e.target.value })} disabled={!val.dim} style={{ ...selStyle(val.seg), opacity: val.dim ? 1 : 0.5 }}>
+      <select aria-label="Filter segment" value={val.seg} onChange={(e) => set({ ...val, seg: e.target.value })} disabled={!val.dim} style={{ ...selStyle(val.seg), opacity: val.dim ? 1 : 0.5 }}>
         <option value="">— segment —</option>
         {val.dim && DMAP[val.dim].segments.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
       </select>
@@ -650,7 +650,7 @@ function Diagnose({ caseData, diagnosis, setDiagnosis, onBack, onSubmit }) {
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 14 }}>
           <div>
             <div style={{ fontSize: 12, color: T.muted, marginBottom: 6 }}>Secondary dimension</div>
-            <select value={diagnosis.secondary || ""} onChange={(e) => setDiagnosis((d) => ({ ...d, secondary: e.target.value || null, segmentB: null }))}
+            <select aria-label="Secondary dimension for the diagnosis" value={diagnosis.secondary || ""} onChange={(e) => setDiagnosis((d) => ({ ...d, secondary: e.target.value || null, segmentB: null }))}
               style={{ width: "100%", background: T.panel2, color: diagnosis.secondary ? PLAYER : T.text, border: `1px solid ${diagnosis.secondary ? PLAYER : T.border}`, borderRadius: 8, padding: "9px 11px", fontFamily: T.body, fontSize: 13, fontWeight: 600, cursor: "pointer", outline: "none" }}>
               <option value="">No second dimension</option>
               {secOptions.map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
@@ -658,7 +658,7 @@ function Diagnose({ caseData, diagnosis, setDiagnosis, onBack, onSubmit }) {
           </div>
           <div>
             <div style={{ fontSize: 12, color: T.muted, marginBottom: 6 }}>…and which {secondaryDim ? secondaryDim.label.toLowerCase() : "segment"}?</div>
-            <select value={diagnosis.segmentB || ""} disabled={!diagnosis.secondary} onChange={(e) => setDiagnosis((d) => ({ ...d, segmentB: e.target.value || null }))}
+            <select aria-label="Secondary segment for the diagnosis" value={diagnosis.segmentB || ""} disabled={!diagnosis.secondary} onChange={(e) => setDiagnosis((d) => ({ ...d, segmentB: e.target.value || null }))}
               style={{ width: "100%", background: T.panel2, color: diagnosis.segmentB ? PLAYER : T.text, border: `1px solid ${diagnosis.segmentB ? PLAYER : T.border}`, borderRadius: 8, padding: "9px 11px", fontFamily: T.body, fontSize: 13, fontWeight: 600, cursor: diagnosis.secondary ? "pointer" : "not-allowed", opacity: diagnosis.secondary ? 1 : 0.5, outline: "none" }}>
               <option value="">{diagnosis.secondary ? "Pick a segment…" : "—"}</option>
               {secondaryDim && secondaryDim.segments.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}

@@ -21,7 +21,7 @@ const T = {
   ink: "#14110D", panel: "#1F1A13", panel2: "#272015", border: "#3A3022",
   text: "#F0E9DC", muted: "#A99E8B", pos: "#7DCB6A", neg: "#E2654E", amber: "#E6B450",
   player: "#F2A93B", instructor: "#C9A06A",
-  armA: "#9B8Fb0", armB: "#3FB6A8", sel: "#2A2113", track: "#332a1d", faint: "#4a3f2d", onAccent: "#1a1206",
+  armA: "#9B8Fb0", armB: "#3FB6A8", sel: "#2A2113", track: "#332a1d", faint: "#8f887d", onAccent: "#1a1206",
   display: "'Bricolage Grotesque', sans-serif", body: "'Hanken Grotesk', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;
@@ -1185,7 +1185,7 @@ function Summary({ records, cfg, restart }) {
 
       <div style={card()}>
         <SectionTitle>Every experiment, predicted vs actual</SectionTitle>
-        <div style={{ overflowX: "auto" }}>
+        <div role="region" aria-label="Experiment results table (scrollable)" tabIndex={0} style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
             <thead><tr style={{ color: T.muted, textAlign: "left" }}>{["Experiment", "Concept", "Your band", "Obs diff", "95% CI", "p", "Call", "✓"].map((h) => <th key={h} style={{ padding: "6px 8px", borderBottom: `1px solid ${T.border}`, fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>)}</tr></thead>
             <tbody>

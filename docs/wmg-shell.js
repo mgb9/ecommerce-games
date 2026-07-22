@@ -94,7 +94,8 @@
         '.gdot{width:12px;height:12px;border-radius:3px;flex:none;}' +
         '.gname{font-weight:900;font-size:16px;letter-spacing:-.2px;color:#fff;line-height:1.05;white-space:nowrap;}' +
         '.gcat{font-size:9px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;margin-top:2px;}' +
-        '.toggle{display:inline-flex;align-items:center;gap:9px;background:none;border:0;cursor:pointer;font-family:inherit;padding:0;}' +
+        '.toggle{display:inline-flex;align-items:center;gap:9px;background:none;border:0;cursor:pointer;font-family:inherit;padding:0;min-height:24px;}' +
+        '.toggle:focus-visible{outline:3px solid #FFD166;outline-offset:3px;border-radius:6px;}' +
         '.tlabel{font-size:12px;font-weight:700;letter-spacing:.4px;color:#fff;white-space:nowrap;}' +
         '.track{width:38px;height:22px;border-radius:999px;position:relative;transition:background .2s;flex:none;display:inline-block;}' +
         '.knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;}' +

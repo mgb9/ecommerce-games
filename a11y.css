@@ -1,0 +1,64 @@
+/* =============================================================================
+   Shared accessibility layer for the WM956-15 e-commerce games.
+   Loaded on every page (hub + four games) alongside wmg-shell.js.
+
+   Covers cross-cutting WCAG 2.2 AA items that are the same everywhere:
+     2.4.1 Bypass Blocks      — skip link to <main>
+     2.4.7 Focus Visible      — a focus indicator that works on BOTH the dark
+                                game canvases and the light hub cards
+     1.4.11 Non-text Contrast — focus indicator meets 3:1 on any background
+     2.3.3 / 2.2.2 Motion     — honour prefers-reduced-motion
+     Forced colours           — keep focus visible in Windows High Contrast
+   ============================================================================= */
+
+/* ---- Skip link (2.4.1) — visually hidden until focused ---- */
+.wmg-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  background: #211F25;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 0 0 8px 0;
+  font: 700 15px/1 'Lato', 'Helvetica Neue', Arial, sans-serif;
+  text-decoration: none;
+}
+.wmg-skip:focus { left: 0; }
+
+/* ---- Focus indicator (2.4.7, 1.4.11) ----
+   Dual ring: a dark outline plus a light halo. Whichever background the
+   control sits on — near-black game panels or pale hub cards — at least one
+   of the two rings clears 3:1, so focus is never lost. */
+:focus-visible {
+  outline: 3px solid #211F25 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px #FFD166 !important;
+  border-radius: 4px;
+}
+/* the shell's toggle lives in shadow DOM — reachable only via ::part */
+wmg-shell::part(toggle):focus-visible {
+  outline: 3px solid #FFD166 !important;
+  outline-offset: 3px !important;
+}
+
+/* ---- Reduced motion (2.3.3) ---- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Windows High Contrast / forced colours ---- */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid CanvasText !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ---- Respect user font scaling: never clip text at 200% zoom (1.4.4) ---- */
+html { -webkit-text-size-adjust: 100%; }

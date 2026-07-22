@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/ecommerce-games/a11y.css" />
   <script src="/ecommerce-games/wmg-shell.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -19,7 +20,9 @@
   </style>
 </head>
 <body>
+<a class="wmg-skip" href="#main">Skip to main content</a>
 <wmg-shell hub-href="https://mgb9.github.io/ecommerce-games/">
+<main id="main">
 
   <!-- hero -->
   <div style="padding:44px 6vw 48px;background:#211F25;">
@@ -38,27 +41,27 @@
   <!-- games grid -->
   <div style="padding:40px 6vw 56px;background:#f4f4f5;">
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:30px;">
-      <span style="font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#211F25;">Choose your lab</span>
+      <h2 style="font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#211F25;margin:0;">Choose your lab</h2>
       <span style="flex:1;height:2px;background:#211F25;opacity:.12;"></span>
-      <span style="font-size:13px;font-weight:700;color:#6D6E71;">4 games</span>
+      <span style="font-size:13px;font-weight:700;color:#616265;background:#f4f4f5;">4 games</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1300px;">
 
       <!-- card 1 blue -->
       <a class="card" href="https://mgb9.github.io/ecommerce-games/marketplace-tycoon/" target="_blank" rel="noopener" style="background:#CCEBF8;--sh:rgba(0,157,220,.7);">
-        <span style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#009DDC;opacity:.35;line-height:1;">01</span>
+        <span aria-hidden="true" style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#008ac2;line-height:1;">01</span>
         <div style="display:flex;align-items:center;gap:14px;">
           <span style="width:54px;height:54px;border-radius:14px;background:#009DDC;display:inline-flex;align-items:center;justify-content:center;font-size:27px;">🏪</span>
-          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#0a6f9c;">Strategy simulation</span>
+          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#05628c;">Strategy simulation</span>
         </div>
-        <div style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Marketplace Tycoon</div>
+        <h3 style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Marketplace Tycoon</h3>
         <p data-normal style="font-size:16px;line-height:1.55;color:#2c343a;margin:0;">Pick a client brief, choose the right platform stack, and run a store against four rivals over ten weeks. Highest cumulative profit wins.</p>
         <p data-simple-copy style="display:none;font-size:16px;line-height:1.55;color:#2c343a;margin:0;">Choose a client and the right tools. Run a store against four rivals for ten weeks. Most profit wins.</p>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;">
           <div data-lo style="display:flex;gap:6px;">
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#0a6f9c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO1</span>
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#0a6f9c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO3</span>
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#0a6f9c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO4</span>
+            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#05628c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO1</span>
+            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#05628c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO3</span>
+            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#05628c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO4</span>
           </div>
           <span style="display:inline-flex;align-items:center;gap:8px;background:#211F25;color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px;padding:11px 19px;border-radius:999px;">Play <span style="color:#009DDC;">→</span></span>
         </div>
@@ -66,18 +69,18 @@
 
       <!-- card 2 gold -->
       <a class="card" href="https://mgb9.github.io/ecommerce-games/conversion-lab/" target="_blank" rel="noopener" style="background:#FEEFD6;--sh:rgba(251,176,52,.7);">
-        <span style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#FBB034;opacity:.5;line-height:1;">02</span>
+        <span aria-hidden="true" style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#b27d25;line-height:1;">02</span>
         <div style="display:flex;align-items:center;gap:14px;">
           <span style="width:54px;height:54px;border-radius:14px;background:#FBB034;display:inline-flex;align-items:center;justify-content:center;font-size:27px;">🧪</span>
-          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#95651a;">A/B testing · Wireframing</span>
+          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#8a5d16;">A/B testing · Wireframing</span>
         </div>
-        <div style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Conversion Lab</div>
+        <h3 style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Conversion Lab</h3>
         <p data-normal style="font-size:16px;line-height:1.55;color:#2c343a;margin:0;">Wireframe a page for its context then prove it converts, run experiments with real statistical noise, and calibrate your intuition against the data.</p>
         <p data-simple-copy style="display:none;font-size:16px;line-height:1.55;color:#2c343a;margin:0;">Design a page, then test if it works. Run experiments with real statistical noise and check your guesses against the data.</p>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;">
           <div data-lo style="display:flex;gap:6px;">
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#95651a;border:1.5px solid rgba(149,101,26,.35);border-radius:5px;padding:3px 7px;">LO2</span>
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#95651a;border:1.5px solid rgba(149,101,26,.35);border-radius:5px;padding:3px 7px;">LO3</span>
+            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#8a5d16;border:1.5px solid rgba(149,101,26,.35);border-radius:5px;padding:3px 7px;">LO2</span>
+            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#8a5d16;border:1.5px solid rgba(149,101,26,.35);border-radius:5px;padding:3px 7px;">LO3</span>
           </div>
           <span style="display:inline-flex;align-items:center;gap:8px;background:#211F25;color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px;padding:11px 19px;border-radius:999px;">Play <span style="color:#FBB034;">→</span></span>
         </div>
@@ -85,18 +88,18 @@
 
       <!-- card 3 lime -->
       <a class="card" href="https://mgb9.github.io/ecommerce-games/funnel-fixer/" target="_blank" rel="noopener" style="background:#F3F7D5;--sh:rgba(193,216,47,.8);">
-        <span style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#a9be1f;opacity:.6;line-height:1;">03</span>
+        <span aria-hidden="true" style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#829218;line-height:1;">03</span>
         <div style="display:flex;align-items:center;gap:14px;">
           <span style="width:54px;height:54px;border-radius:14px;background:#C1D82F;display:inline-flex;align-items:center;justify-content:center;font-size:27px;">🪜</span>
-          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#6f7d18;">Funnel economics</span>
+          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#5f6b14;">Funnel economics</span>
         </div>
-        <div style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Funnel Fixer</div>
+        <h3 style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Funnel Fixer</h3>
         <p data-normal style="font-size:16px;line-height:1.55;color:#2c343a;margin:0;">A leaky checkout funnel and a fixed budget. Diagnose where the money leaks with opportunity sizing and spend where the £ actually is.</p>
         <p data-simple-copy style="display:none;font-size:16px;line-height:1.55;color:#2c343a;margin:0;">A checkout with a fixed budget loses money. Find where it leaks and spend where the money really is.</p>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;">
           <div data-lo style="display:flex;gap:6px;">
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#6f7d18;border:1.5px solid rgba(111,125,24,.35);border-radius:5px;padding:3px 7px;">LO1</span>
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#6f7d18;border:1.5px solid rgba(111,125,24,.35);border-radius:5px;padding:3px 7px;">LO3</span>
+            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#5f6b14;border:1.5px solid rgba(111,125,24,.35);border-radius:5px;padding:3px 7px;">LO1</span>
+            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#5f6b14;border:1.5px solid rgba(111,125,24,.35);border-radius:5px;padding:3px 7px;">LO3</span>
           </div>
           <span style="display:inline-flex;align-items:center;gap:8px;background:#211F25;color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px;padding:11px 19px;border-radius:999px;">Play <span style="color:#a9be1f;">→</span></span>
         </div>
@@ -104,12 +107,12 @@
 
       <!-- card 4 orange -->
       <a class="card" href="https://mgb9.github.io/ecommerce-games/data-detective/" target="_blank" rel="noopener" style="background:#FDE4D2;--sh:rgba(244,121,32,.7);">
-        <span style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#F47920;opacity:.45;line-height:1;">04</span>
+        <span aria-hidden="true" style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#cd661b;line-height:1;">04</span>
         <div style="display:flex;align-items:center;gap:14px;">
           <span style="width:54px;height:54px;border-radius:14px;background:#F47920;display:inline-flex;align-items:center;justify-content:center;font-size:27px;">🔎</span>
           <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#9c4b13;">Root-cause diagnosis</span>
         </div>
-        <div style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Data Detective</div>
+        <h3 style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Data Detective</h3>
         <p data-normal style="font-size:16px;line-height:1.55;color:#2c343a;margin:0;">“Revenue’s down — find out why.” Segment an analytics dashboard to isolate real incidents, spot mix-shifts and masked faults, and reject red herrings.</p>
         <p data-simple-copy style="display:none;font-size:16px;line-height:1.55;color:#2c343a;margin:0;">“Sales are down — find out why.” Break down a dashboard to find the real cause and ignore false leads.</p>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;">
@@ -123,6 +126,8 @@
     </div>
   </div>
 
+</main>
 </wmg-shell>
+<p style="margin:0;padding:14px 6vw;background:#211F25;font:400 13px/1.5 'Lato','Helvetica Neue',Arial,sans-serif;color:#c7c7ca;"><a href="/ecommerce-games/accessibility.html" style="color:#c7c7ca;text-decoration:underline;">Accessibility statement</a></p>
 </body>
 </html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accessibility statement · WM956-15 e-commerce learning games</title>
+  <meta name="description" content="Accessibility statement for the WM956-15 e-commerce learning games (WMG, University of Warwick)." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/ecommerce-games/a11y.css" />
+  <script src="/ecommerce-games/wmg-shell.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; background: #f4f4f5; color: #2c343a; }
+    .wrap { max-width: 78ch; margin: 0 auto; padding: 44px 6vw 72px; }
+    h1 { font-weight: 900; font-size: 40px; line-height: 1.1; letter-spacing: -1px; color: #211F25; margin: 0 0 6px; }
+    h2 { font-weight: 900; font-size: 22px; color: #211F25; margin: 34px 0 10px; letter-spacing: -.3px; }
+    h3 { font-weight: 900; font-size: 16px; color: #211F25; margin: 22px 0 6px; }
+    p, li { font-size: 16.5px; line-height: 1.62; }
+    ul { padding-left: 22px; }
+    li { margin-bottom: 7px; }
+    a { color: #0b5e86; text-decoration: underline; }
+    a:hover { text-decoration: none; }
+    .lede { font-size: 18.5px; color: #3a444b; }
+    .todo { background: #FDE4D2; border-left: 5px solid #9c4b13; padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 18px 0; font-size: 15.5px; }
+    .todo b { color: #7d3c0f; }
+    .meta { color: #55606a; font-size: 14.5px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0 4px; }
+    th, td { text-align: left; border-bottom: 1px solid #dcdce0; padding: 9px 10px; font-size: 15px; vertical-align: top; }
+    th { font-weight: 900; color: #211F25; }
+    code { background: #e7e7e9; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  </style>
+</head>
+<body>
+<a class="wmg-skip" href="#main">Skip to main content</a>
+<wmg-shell hub-href="https://mgb9.github.io/ecommerce-games/" module="Accessibility statement">
+<main id="main">
+  <div class="wrap">
+
+    <h1>Accessibility statement</h1>
+    <p class="lede">For the WM956-15 e-commerce learning games at
+      <a href="https://mgb9.github.io/ecommerce-games/">mgb9.github.io/ecommerce-games</a> — four browser-based
+      teaching simulations and their hub page.</p>
+
+    <div class="todo">
+      <b>Before this statement is published for students, the following must be completed by the module owner:</b>
+      the accessibility contact address, the enforcement/escalation route confirmed against
+      the University of Warwick’s central accessibility statement, and the dates below. These are marked
+      <code>[TO CONFIRM]</code> and must not be left as placeholders on a live public-sector service.
+    </div>
+
+    <h2>Using this website</h2>
+    <p>These games run entirely in your browser. We want as many people as possible to be able to use them.
+      You should be able to:</p>
+    <ul>
+      <li>navigate the hub and all four games using a keyboard alone;</li>
+      <li>see a clear focus indicator on every interactive control, on both the dark game screens and the light hub;</li>
+      <li>skip repeated page furniture using the “Skip to main content” link;</li>
+      <li>switch on <strong>Simpler English</strong> to replace idiomatic wording with plainer wording throughout;</li>
+      <li>open a plain-English definition for any specialist term shown with a dotted underline;</li>
+      <li>zoom to 200% and have text reflow without loss of content;</li>
+      <li>have animations reduced automatically if your device requests reduced motion.</li>
+    </ul>
+
+    <h2>How accessible this website is</h2>
+    <p>These games are <strong>partially compliant</strong> with the
+      <a href="https://www.w3.org/TR/WCAG22/">Web Content Accessibility Guidelines version 2.2 AA standard</a>,
+      because of the non-compliances listed below. They are interactive data-analysis simulations, and some of
+      their content — particularly charts and live simulation output — is not yet fully available to assistive
+      technology.</p>
+
+    <h2>Non-accessible content</h2>
+    <p>The content below is non-accessible for the following reasons.</p>
+
+    <h3>Non-compliance with the accessibility regulations</h3>
+    <table>
+      <thead><tr><th>Issue</th><th>WCAG criterion</th><th>Planned fix</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Charts in Marketplace Tycoon, Conversion Lab and Funnel Fixer are drawn as graphics with no text
+              alternative or accompanying data table, so their content is unavailable to screen-reader users.
+              (Data Detective’s segment reports are already real data tables.)</td>
+          <td>1.1.1 Non-text Content (A)</td>
+          <td>Add an accessible summary and a toggleable data table beneath each chart. <code>[TO CONFIRM date]</code></td>
+        </tr>
+        <tr>
+          <td>Chart series are distinguished by colour alone (for example control vs variant, and competitor
+              stores).</td>
+          <td>1.4.1 Use of Colour (A)</td>
+          <td>Add non-colour encoding (line style, direct labels) alongside the data tables. <code>[TO CONFIRM date]</code></td>
+        </tr>
+        <tr>
+          <td>Inside the games, many visual section headings are styled text rather than semantic headings, so
+              screen-reader users cannot navigate by heading.</td>
+          <td>1.3.1 Info and Relationships (A)</td>
+          <td>Convert in-game section titles to semantic headings. <code>[TO CONFIRM date]</code></td>
+        </tr>
+        <tr>
+          <td>Results that appear after an action — test verdicts, weekly simulation outcomes, diagnosis scoring —
+              are not announced to screen readers.</td>
+          <td>4.1.3 Status Messages (AA)</td>
+          <td>Add live regions to result panels. <code>[TO CONFIRM date]</code></td>
+        </tr>
+        <tr>
+          <td>Each game keeps its own header directly beneath the shared WMG bar, and both stick to the top of
+              the screen. When the page is scrolled they overlap, which can reduce the clickable area of the
+              bar’s “All&nbsp;games” link. The link remains operable, but the overlap should be removed.</td>
+          <td>2.5.8 Target Size (Minimum) (AA)</td>
+          <td>Rework the two stacked sticky headers so they do not overlap. <code>[TO CONFIRM date]</code></td>
+        </tr>
+        <tr>
+          <td>The glossary definition popovers open on click but are not exposed as expandable controls to
+              assistive technology.</td>
+          <td>4.1.2 Name, Role, Value (A)</td>
+          <td>Rebuild as proper disclosure buttons. <code>[TO CONFIRM date]</code></td>
+        </tr>
+        <tr>
+          <td>Some dense screens (the Data Detective dashboard and the Conversion Lab wireframe studio) have not
+              been verified for reflow at 320&nbsp;CSS&nbsp;pixels.</td>
+          <td>1.4.10 Reflow (AA)</td>
+          <td>Responsive audit and fixes on small viewports. <code>[TO CONFIRM date]</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Content not yet assessed</h3>
+    <ul>
+      <li>The games have <strong>not yet been tested with screen readers</strong> (NVDA, JAWS or VoiceOver), nor
+        with speech-recognition software. Automated and manual code-level checks only have been carried out
+        so far, and automated tools detect only a minority of accessibility problems.</li>
+      <li>No testing has been carried out with disabled users.</li>
+    </ul>
+
+    <h3>Third-party content</h3>
+    <ul>
+      <li>Web fonts are loaded from Google Fonts (<code>fonts.googleapis.com</code>). This means your IP address is
+        sent to Google when a page loads. No other data is transmitted: all game logic, scoring and saved
+        preferences stay in your browser.</li>
+    </ul>
+
+    <h2>What we have already fixed</h2>
+    <ul>
+      <li>Text and interface colours were measured against WCAG AA; seven failing colour pairs were corrected
+        (de-emphasised text on the game panels, and three category labels on the hub cards).</li>
+      <li>A visible focus indicator was added that meets the 3:1 non-text contrast requirement on both the dark
+        game screens and the light hub.</li>
+      <li>A “Skip to main content” link and a <code>&lt;main&gt;</code> landmark were added to every page.</li>
+      <li>Reduced-motion and Windows High Contrast support were added.</li>
+      <li>Hub headings were given correct semantics and decorative numerals were hidden from assistive technology.</li>
+    </ul>
+
+    <h2>Feedback and contact information</h2>
+    <p>If you need information from these games in a different format, or you find an accessibility problem not
+      listed here, please contact: <strong><code>[TO CONFIRM — accessibility contact address]</code></strong>.
+      We will consider your request and reply as soon as we can.</p>
+
+    <h2>Enforcement procedure</h2>
+    <p>The Equality and Human Rights Commission (EHRC) enforces the Public Sector Bodies (Websites and Mobile
+      Applications) (No. 2) Accessibility Regulations 2018. If you are not happy with how we respond to your
+      complaint, contact the <a href="https://www.equalityadvisoryservice.com/">Equality Advisory and Support
+      Service (EASS)</a>. <code>[TO CONFIRM — align with the University of Warwick’s central accessibility
+      statement and complaints route.]</code></p>
+
+    <h2>Preparation of this statement</h2>
+    <p class="meta">This statement was prepared on <strong>21 July 2026</strong>.
+      It has <strong>not yet been reviewed or approved</strong> by the University of Warwick.
+      <code>[TO CONFIRM — date of last review, and sign-off.]</code></p>
+    <p class="meta">These games were last tested on <strong>21 July 2026</strong> by the module author, using
+      automated checks (axe-core 4.10, WCAG 2.0/2.1/2.2 A and AA rule sets), programmatic colour-contrast
+      measurement of the full palette, and manual inspection of landmarks, headings, focus handling and
+      motion preferences. <strong>No assistive-technology testing has been carried out.</strong></p>
+
+    <p style="margin-top:30px;"><a href="https://mgb9.github.io/ecommerce-games/">← Back to the games hub</a></p>
+  </div>
+</main>
+</wmg-shell>
+</body>
+</html>
