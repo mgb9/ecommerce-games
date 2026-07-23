@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>WM956-15 · e-commerce learning games · WMG</title>
-  <meta name="description" content="Four interactive e-commerce teaching games for WM956-15 Enterprise eCommerce Solutions (WMG, University of Warwick)." />
+  <meta name="description" content="Four interactive e-commerce teaching labs for WM956-15 Enterprise eCommerce Solutions (WMG, University of Warwick)." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/ecommerce-games/a11y.css" />
   <script src="/ecommerce-games/wmg-shell.js"></script>
   <style>
@@ -15,119 +15,333 @@
     html, body { margin: 0; padding: 0; }
     body { font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; background: #211F25; color: #211F25; }
     a { text-decoration: none; color: inherit; }
-    .card { position: relative; display: block; border-radius: 16px; padding: 32px 32px 28px; transition: transform .18s, box-shadow .18s; }
-    .card:hover { transform: translateY(-6px); box-shadow: 0 22px 40px -20px var(--sh); }
+
+    /* ---- hero ---- */
+    .hero { display: grid; grid-template-columns: 1.55fr 1fr; gap: 44px; align-items: end; padding: 56px 6vw 50px; background: #211F25; }
+    .hero h1 { font-family: 'Fraunces', 'Lato', serif; font-weight: 700; font-size: 62px; line-height: 1.03; letter-spacing: -1.4px; color: #fff; margin: 0; max-width: 16ch; }
+    .hero .lede { font-size: 18px; line-height: 1.6; color: #d7d7d9; max-width: 60ch; margin: 22px 0 0; }
+    /* lighter tint of WMG red — #EE3124 is only 3.97:1 on the dark hero, small text needs 4.5:1 */
+    .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #FF5A4A; margin-bottom: 22px; }
+    .eyebrow::before { content: ''; width: 26px; height: 3px; background: #EE3124; transform: skewX(-20deg); }
+
+    .panel { background: linear-gradient(160deg, #2c2933, #211F25); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 24px 24px 22px; }
+    .panel-cap { font-size: 11px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; color: #9a9a9e; }
+    .panel-bar { height: 9px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; margin-bottom: 20px; }
+    .panel-bar > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #009DDC, #C1D82F); width: 0%; transition: width .4s; }
+    .panel-lo { display: flex; gap: 9px; align-items: flex-start; }
+    .panel-lo .tag { flex: none; font: 900 10px/1.7 'Lato', sans-serif; color: #211F25; border-radius: 5px; padding: 2px 6px; }
+    .panel-lo .txt { font-size: 12.5px; color: #c7c7ca; line-height: 1.4; }
+
+    /* ---- resume / complete banners ---- */
+    .banner { display: flex; align-items: center; gap: 18px; margin: 0 6vw; margin-top: -22px; position: relative; z-index: 5; background: #fff; border: 1px solid #e4e4e7; border-left: 6px solid #EE3124; border-radius: 14px; padding: 18px 24px; box-shadow: 0 18px 44px -26px rgba(0,0,0,.55); max-width: 1180px; }
+    .banner[hidden] { display: none; }
+    .banner .roundel { flex: none; width: 46px; height: 46px; border-radius: 50%; color: #211F25; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; }
+    .banner .cap { display: block; font-size: 11px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; color: #8a8a8e; margin-bottom: 3px; }
+    .banner .line { display: block; font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; color: #211F25; line-height: 1.1; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; background: #211F25; color: #fff; font-weight: 900; font-size: 14px; letter-spacing: .5px; padding: 12px 22px; border-radius: 999px; white-space: nowrap; }
+
+    /* ---- recommended path ---- */
+    .path-wrap { padding: 42px 6vw 56px; background: #f5f5f6; }
+    .path-head { display: flex; align-items: center; gap: 14px; margin-bottom: 30px; max-width: 1180px; }
+    .path-head h2 { font-weight: 900; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; color: #211F25; margin: 0; }
+    .path-head .rule { flex: 1; height: 2px; background: #211F25; opacity: .12; }
+    /* explicit background so axe resolves the contrast pair (it otherwise falls back to the dark body) */
+    .path-head .est { font-size: 13px; font-weight: 700; color: #494a4e; background: #f5f5f6; }
+    .path { list-style: none; margin: 0; padding: 0; max-width: 1180px; }
+    .step { position: relative; display: grid; grid-template-columns: 64px 1fr; gap: 22px; padding-bottom: 22px; }
+    .step-no { position: relative; display: flex; justify-content: center; }
+    .step-no .thread { position: absolute; top: 6px; bottom: -22px; width: 3px; background: repeating-linear-gradient(#d3d3d6 0 6px, transparent 6px 12px); }
+    .step:last-child .step-no .thread { display: none; }
+    .step-no .num { position: relative; z-index: 2; width: 52px; height: 52px; border-radius: 50%; background: #fff; border: 3px solid var(--c); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; color: var(--deep); box-shadow: 0 6px 16px -8px var(--glow); }
+    .card { position: relative; display: block; background: #fff; border-radius: 16px; border: 1px solid #e4e4e7; overflow: hidden; box-shadow: 0 10px 30px -22px rgba(0,0,0,.5); transition: transform .18s, box-shadow .18s; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 22px 44px -24px var(--glow); }
+    .card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--c); }
+    .card-inner { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center; padding: 24px 28px 24px 30px; }
+    .card .icon { width: 66px; height: 66px; border-radius: 16px; background: var(--tint); display: inline-flex; align-items: center; justify-content: center; font-size: 32px; }
+    .card .meta-top { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; flex-wrap: wrap; }
+    .card .cat { font-size: 11px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: var(--deep); }
+    .card .diff { font-size: 10px; font-weight: 900; letter-spacing: .8px; color: var(--deep); background: var(--tint); border-radius: 5px; padding: 3px 8px; }
+    .card .played-badge { font-size: 10px; font-weight: 900; letter-spacing: .8px; color: #2a7d2a; background: #e4f4e4; border-radius: 5px; padding: 3px 8px; }
+    .card .played-badge[hidden] { display: none; }
+    .card h3 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 29px; letter-spacing: -.4px; color: #211F25; margin: 0 0 7px; }
+    .card .desc { font-size: 15.5px; line-height: 1.5; color: #454b50; margin: 0; max-width: 62ch; }
+    .card .meta-bot { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+    .card .time { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #616265; }
+    .card .vsep { width: 1px; height: 14px; background: #d8d8db; }
+    .card .los { display: flex; gap: 5px; }
+    .card .lo { font-size: 10px; font-weight: 900; letter-spacing: 1px; color: var(--deep); border: 1.5px solid var(--bd); border-radius: 5px; padding: 3px 7px; }
+    .card .actions { display: flex; flex-direction: column; align-items: stretch; gap: 10px; min-width: 130px; }
+    /* the Play link stretches over the whole card; the mark button sits above it */
+    .card .play::after { content: ''; position: absolute; inset: 0; }
+    .card .play { justify-content: center; }
+    .card .mark { position: relative; z-index: 2; cursor: pointer; font-family: inherit; background: #fff; border: 1.5px solid #d8d8db; color: #616265; font-weight: 700; font-size: 12px; padding: 9px 14px; border-radius: 999px; }
+    .card .mark:hover { border-color: #616265; color: #211F25; }
+
+    .site-foot { margin: 0; padding: 16px 6vw; background: #211F25; font: 400 13px/1.5 'Lato', 'Helvetica Neue', Arial, sans-serif; color: #c7c7ca; }
+    .site-foot b { color: #fff; }
+    .site-foot a { color: #c7c7ca; text-decoration: underline; }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; align-items: start; padding-top: 44px; }
+      .hero h1 { font-size: 44px; letter-spacing: -1px; }
+    }
+    @media (max-width: 760px) {
+      .card-inner { grid-template-columns: 1fr; gap: 16px; }
+      .card .icon { width: 54px; height: 54px; font-size: 26px; }
+      .card .actions { flex-direction: row; align-items: center; }
+      .step { grid-template-columns: 48px 1fr; gap: 14px; }
+      .step-no .num { width: 44px; height: 44px; font-size: 18px; }
+      .banner { flex-wrap: wrap; }
+      .card .meta-bot { flex-wrap: wrap; }
+    }
   </style>
 </head>
 <body>
 <a class="wmg-skip" href="#main">Skip to main content</a>
-<wmg-shell hub-href="https://mgb9.github.io/ecommerce-games/">
+<wmg-shell hub-href="https://mgb9.github.io/ecommerce-games/" footer="off">
 <main id="main">
 
   <!-- hero -->
-  <div style="padding:44px 6vw 48px;background:#211F25;">
-    <h1 data-normal style="font-weight:900;font-size:64px;line-height:1.02;letter-spacing:-1.6px;color:#fff;margin:0;max-width:15ch;">Four games for <span style="color:#EE3124;">real e-commerce judgement.</span></h1>
-    <h1 data-simple-copy style="display:none;font-weight:900;font-size:64px;line-height:1.02;letter-spacing:-1.6px;color:#fff;margin:0;max-width:15ch;">Four games to learn <span style="color:#EE3124;">real e-commerce decisions.</span></h1>
-    <div style="width:130px;height:13px;background:#EE3124;transform:skewX(-20deg);margin:22px 0 24px 6px;"></div>
-    <p data-normal style="font-size:19px;line-height:1.58;color:#d7d7d9;max-width:66ch;margin:0;">An interactive suite for MSc students: diagnose, design, test and run a store under realistic constraints. Each game is a self-contained lab with a seeded engine, a plain-English glossary and a “Simpler English” toggle for ESL learners.</p>
-    <p data-simple-copy style="display:none;font-size:19px;line-height:1.58;color:#d7d7d9;max-width:66ch;margin:0;">Four games for MSc students. You diagnose, design, test and run an online store. Each game works on its own in your browser, with a plain-English glossary and a “Simpler English” button for ESL learners.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;">
-      <span style="font-size:12px;font-weight:700;letter-spacing:.5px;color:#c7c7ca;background:rgba(255,255,255,.07);border-radius:999px;padding:8px 15px;">◆ Seeded engine</span>
-      <span style="font-size:12px;font-weight:700;letter-spacing:.5px;color:#c7c7ca;background:rgba(255,255,255,.07);border-radius:999px;padding:8px 15px;">◆ Plain-English glossary</span>
-      <span style="font-size:12px;font-weight:700;letter-spacing:.5px;color:#c7c7ca;background:rgba(255,255,255,.07);border-radius:999px;padding:8px 15px;">◆ Runs fully in-browser</span>
+  <div class="hero">
+    <div>
+      <p class="eyebrow">Interactive learning suite</p>
+      <h1 data-normal>Four labs. One path to <span style="color:#EE3124;">real e-commerce judgement.</span></h1>
+      <h1 data-simple-copy style="display:none;">Four labs to learn <span style="color:#EE3124;">real e-commerce decisions.</span></h1>
+      <p class="lede" data-normal>Diagnose, design, test and run an online store under realistic constraints. Each lab is self-contained — a seeded engine, a plain-English glossary and a Simpler-English toggle for every learner.</p>
+      <p class="lede" data-simple-copy style="display:none;">Four labs for MSc students. You diagnose, design, test and run an online store. Each lab works on its own in your browser, with a plain-English glossary and a Simpler-English button.</p>
+    </div>
+
+    <!-- progress panel -->
+    <div class="panel">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
+        <h2 class="panel-cap" style="margin:0;">Your progress</h2>
+        <span role="status" style="font-family:'Fraunces',serif;font-weight:700;font-size:26px;color:#fff;line-height:1;"><span id="played-count">0</span><span style="font-size:15px;color:#7f8085;">/4</span></span>
+      </div>
+      <div class="panel-bar"><div id="progress-fill"></div></div>
+      <h2 class="panel-cap" style="margin:0 0 11px;">Learning outcomes</h2>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="panel-lo"><span class="tag" style="background:#009DDC;">LO1</span><span class="txt">Evaluate platforms &amp; business models</span></div>
+        <div class="panel-lo"><span class="tag" style="background:#FBB034;">LO2</span><span class="txt">Design &amp; wireframe for conversion</span></div>
+        <div class="panel-lo"><span class="tag" style="background:#C1D82F;">LO3</span><span class="txt">Analyse data to drive decisions</span></div>
+        <div class="panel-lo"><span class="tag" style="background:#F47920;">LO4</span><span class="txt">Operate a store under constraints</span></div>
+      </div>
     </div>
   </div>
 
-  <!-- games grid -->
-  <div style="padding:40px 6vw 56px;background:#f4f4f5;">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:30px;">
-      <h2 style="font-weight:900;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#211F25;margin:0;">Choose your lab</h2>
-      <span style="flex:1;height:2px;background:#211F25;opacity:.12;"></span>
-      <span style="font-size:13px;font-weight:700;color:#616265;background:#f4f4f5;">4 games</span>
+  <!-- resume banner -->
+  <a id="resume-banner" class="banner" href="#" target="_blank" rel="noopener" hidden>
+    <span class="roundel" id="resume-n" aria-hidden="true"></span>
+    <span style="flex:1;">
+      <span class="cap">Pick up where you left off</span>
+      <span class="line">Next up · <span id="resume-title"></span></span>
+    </span>
+    <span class="pill">Resume <span id="resume-arrow" aria-hidden="true">→</span></span>
+  </a>
+  <!-- suite complete banner -->
+  <div id="done-banner" class="banner" style="border-left-color:#C1D82F;" hidden>
+    <span class="roundel" style="background:#C1D82F;color:#211F25;font-family:'Lato',sans-serif;font-size:22px;font-weight:900;" aria-hidden="true">✓</span>
+    <span style="flex:1;">
+      <span class="cap">Suite complete</span>
+      <span class="line">All four labs played — replay any to sharpen your judgement.</span>
+    </span>
+  </div>
+
+  <!-- recommended path -->
+  <div class="path-wrap">
+    <div class="path-head">
+      <h2>Recommended path</h2>
+      <span class="rule"></span>
+      <span class="est">Start to finish · ~85 min</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1300px;">
 
-      <!-- card 1 blue -->
-      <a class="card" href="https://mgb9.github.io/ecommerce-games/marketplace-tycoon/" target="_blank" rel="noopener" style="background:#CCEBF8;--sh:rgba(0,157,220,.7);">
-        <span aria-hidden="true" style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#008ac2;line-height:1;">01</span>
-        <div style="display:flex;align-items:center;gap:14px;">
-          <span style="width:54px;height:54px;border-radius:14px;background:#009DDC;display:inline-flex;align-items:center;justify-content:center;font-size:27px;">🏪</span>
-          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#05628c;">Strategy simulation</span>
-        </div>
-        <h3 style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Marketplace Tycoon</h3>
-        <p data-normal style="font-size:16px;line-height:1.55;color:#2c343a;margin:0;">Pick a client brief, choose the right platform stack, and run a store against four rivals over ten weeks. Highest cumulative profit wins.</p>
-        <p data-simple-copy style="display:none;font-size:16px;line-height:1.55;color:#2c343a;margin:0;">Choose a client and the right tools. Run a store against four rivals for ten weeks. Most profit wins.</p>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;">
-          <div data-lo style="display:flex;gap:6px;">
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#05628c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO1</span>
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#05628c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO3</span>
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#05628c;border:1.5px solid rgba(10,111,156,.35);border-radius:5px;padding:3px 7px;">LO4</span>
+    <ol class="path">
+
+      <!-- 01 · Marketplace Tycoon -->
+      <li class="step" data-game="mt" style="--c:#009DDC;--deep:#05628c;--tint:#CCEBF8;--glow:rgba(0,157,220,.7);--bd:rgba(10,111,156,.35);">
+        <div class="step-no"><span class="thread"></span><span class="num" aria-hidden="true">01</span></div>
+        <div class="card">
+          <div class="card-inner">
+            <span class="icon" aria-hidden="true">🏪</span>
+            <div>
+              <div class="meta-top">
+                <span class="cat">Strategy simulation</span>
+                <span class="diff"><span aria-hidden="true">◆◆◆ </span>Advanced</span>
+                <span class="played-badge" hidden>✓ Played</span>
+              </div>
+              <h3>Marketplace Tycoon</h3>
+              <p class="desc" data-normal>Pick a client brief, choose the right platform stack, and run a store against four rivals over ten weeks. Highest cumulative profit wins.</p>
+              <p class="desc" data-simple-copy style="display:none;">Choose a client and the right tools. Run a store against four rivals for ten weeks. Most profit wins.</p>
+              <div class="meta-bot">
+                <span class="time">⏱ 25–35 min</span>
+                <span class="vsep"></span>
+                <span class="los"><span class="lo">LO1</span><span class="lo">LO3</span><span class="lo">LO4</span></span>
+              </div>
+            </div>
+            <div class="actions">
+              <a class="pill play" href="https://mgb9.github.io/ecommerce-games/marketplace-tycoon/" target="_blank" rel="noopener" aria-label="Play Marketplace Tycoon">Play <span style="color:#009DDC;" aria-hidden="true">→</span></a>
+              <button class="mark" type="button" aria-pressed="false">Mark as played</button>
+            </div>
           </div>
-          <span style="display:inline-flex;align-items:center;gap:8px;background:#211F25;color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px;padding:11px 19px;border-radius:999px;">Play <span style="color:#009DDC;">→</span></span>
         </div>
-      </a>
+      </li>
 
-      <!-- card 2 gold -->
-      <a class="card" href="https://mgb9.github.io/ecommerce-games/conversion-lab/" target="_blank" rel="noopener" style="background:#FEEFD6;--sh:rgba(251,176,52,.7);">
-        <span aria-hidden="true" style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#b27d25;line-height:1;">02</span>
-        <div style="display:flex;align-items:center;gap:14px;">
-          <span style="width:54px;height:54px;border-radius:14px;background:#FBB034;display:inline-flex;align-items:center;justify-content:center;font-size:27px;">🧪</span>
-          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#8a5d16;">A/B testing · Wireframing</span>
-        </div>
-        <h3 style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Conversion Lab</h3>
-        <p data-normal style="font-size:16px;line-height:1.55;color:#2c343a;margin:0;">Wireframe a page for its context then prove it converts, run experiments with real statistical noise, and calibrate your intuition against the data.</p>
-        <p data-simple-copy style="display:none;font-size:16px;line-height:1.55;color:#2c343a;margin:0;">Design a page, then test if it works. Run experiments with real statistical noise and check your guesses against the data.</p>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;">
-          <div data-lo style="display:flex;gap:6px;">
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#8a5d16;border:1.5px solid rgba(149,101,26,.35);border-radius:5px;padding:3px 7px;">LO2</span>
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#8a5d16;border:1.5px solid rgba(149,101,26,.35);border-radius:5px;padding:3px 7px;">LO3</span>
+      <!-- 02 · Conversion Lab -->
+      <li class="step" data-game="cl" style="--c:#FBB034;--deep:#8a5d16;--tint:#FEEFD6;--glow:rgba(251,176,52,.7);--bd:rgba(149,101,26,.35);">
+        <div class="step-no"><span class="thread"></span><span class="num" aria-hidden="true">02</span></div>
+        <div class="card">
+          <div class="card-inner">
+            <span class="icon" aria-hidden="true">🧪</span>
+            <div>
+              <div class="meta-top">
+                <span class="cat">A/B testing · Wireframing</span>
+                <span class="diff"><span aria-hidden="true">◆◆◇ </span>Intermediate</span>
+                <span class="played-badge" hidden>✓ Played</span>
+              </div>
+              <h3>Conversion Lab</h3>
+              <p class="desc" data-normal>Wireframe a page for its context then prove it converts — run experiments with real statistical noise and calibrate your intuition against the data.</p>
+              <p class="desc" data-simple-copy style="display:none;">Design a page, then test if it works. Run experiments with real statistical noise and check your guesses against the data.</p>
+              <div class="meta-bot">
+                <span class="time">⏱ 20–30 min</span>
+                <span class="vsep"></span>
+                <span class="los"><span class="lo">LO2</span><span class="lo">LO3</span></span>
+              </div>
+            </div>
+            <div class="actions">
+              <a class="pill play" href="https://mgb9.github.io/ecommerce-games/conversion-lab/" target="_blank" rel="noopener" aria-label="Play Conversion Lab">Play <span style="color:#FBB034;" aria-hidden="true">→</span></a>
+              <button class="mark" type="button" aria-pressed="false">Mark as played</button>
+            </div>
           </div>
-          <span style="display:inline-flex;align-items:center;gap:8px;background:#211F25;color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px;padding:11px 19px;border-radius:999px;">Play <span style="color:#FBB034;">→</span></span>
         </div>
-      </a>
+      </li>
 
-      <!-- card 3 lime -->
-      <a class="card" href="https://mgb9.github.io/ecommerce-games/funnel-fixer/" target="_blank" rel="noopener" style="background:#F3F7D5;--sh:rgba(193,216,47,.8);">
-        <span aria-hidden="true" style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#829218;line-height:1;">03</span>
-        <div style="display:flex;align-items:center;gap:14px;">
-          <span style="width:54px;height:54px;border-radius:14px;background:#C1D82F;display:inline-flex;align-items:center;justify-content:center;font-size:27px;">🪜</span>
-          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#5f6b14;">Funnel economics</span>
-        </div>
-        <h3 style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Funnel Fixer</h3>
-        <p data-normal style="font-size:16px;line-height:1.55;color:#2c343a;margin:0;">A leaky checkout funnel and a fixed budget. Diagnose where the money leaks with opportunity sizing and spend where the £ actually is.</p>
-        <p data-simple-copy style="display:none;font-size:16px;line-height:1.55;color:#2c343a;margin:0;">A checkout with a fixed budget loses money. Find where it leaks and spend where the money really is.</p>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;">
-          <div data-lo style="display:flex;gap:6px;">
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#5f6b14;border:1.5px solid rgba(111,125,24,.35);border-radius:5px;padding:3px 7px;">LO1</span>
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#5f6b14;border:1.5px solid rgba(111,125,24,.35);border-radius:5px;padding:3px 7px;">LO3</span>
+      <!-- 03 · Funnel Fixer -->
+      <li class="step" data-game="ff" style="--c:#C1D82F;--deep:#5f6b14;--tint:#F3F7D5;--glow:rgba(193,216,47,.8);--bd:rgba(111,125,24,.35);">
+        <div class="step-no"><span class="thread"></span><span class="num" aria-hidden="true">03</span></div>
+        <div class="card">
+          <div class="card-inner">
+            <span class="icon" aria-hidden="true">🪜</span>
+            <div>
+              <div class="meta-top">
+                <span class="cat">Funnel economics</span>
+                <span class="diff"><span aria-hidden="true">◆◆◇ </span>Intermediate</span>
+                <span class="played-badge" hidden>✓ Played</span>
+              </div>
+              <h3>Funnel Fixer</h3>
+              <p class="desc" data-normal>A leaky checkout funnel and a fixed budget. Diagnose where the money leaks with opportunity sizing, then spend where the £ actually is.</p>
+              <p class="desc" data-simple-copy style="display:none;">A checkout with a fixed budget loses money. Find where it leaks and spend where the money really is.</p>
+              <div class="meta-bot">
+                <span class="time">⏱ 15–20 min</span>
+                <span class="vsep"></span>
+                <span class="los"><span class="lo">LO1</span><span class="lo">LO3</span></span>
+              </div>
+            </div>
+            <div class="actions">
+              <a class="pill play" href="https://mgb9.github.io/ecommerce-games/funnel-fixer/" target="_blank" rel="noopener" aria-label="Play Funnel Fixer">Play <span style="color:#C1D82F;" aria-hidden="true">→</span></a>
+              <button class="mark" type="button" aria-pressed="false">Mark as played</button>
+            </div>
           </div>
-          <span style="display:inline-flex;align-items:center;gap:8px;background:#211F25;color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px;padding:11px 19px;border-radius:999px;">Play <span style="color:#a9be1f;">→</span></span>
         </div>
-      </a>
+      </li>
 
-      <!-- card 4 orange -->
-      <a class="card" href="https://mgb9.github.io/ecommerce-games/data-detective/" target="_blank" rel="noopener" style="background:#FDE4D2;--sh:rgba(244,121,32,.7);">
-        <span aria-hidden="true" style="position:absolute;top:22px;right:28px;font-weight:900;font-size:50px;color:#cd661b;line-height:1;">04</span>
-        <div style="display:flex;align-items:center;gap:14px;">
-          <span style="width:54px;height:54px;border-radius:14px;background:#F47920;display:inline-flex;align-items:center;justify-content:center;font-size:27px;">🔎</span>
-          <span style="font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#9c4b13;">Root-cause diagnosis</span>
-        </div>
-        <h3 style="font-weight:900;font-size:33px;letter-spacing:-.5px;color:#211F25;margin:18px 0 11px;">Data Detective</h3>
-        <p data-normal style="font-size:16px;line-height:1.55;color:#2c343a;margin:0;">“Revenue’s down — find out why.” Segment an analytics dashboard to isolate real incidents, spot mix-shifts and masked faults, and reject red herrings.</p>
-        <p data-simple-copy style="display:none;font-size:16px;line-height:1.55;color:#2c343a;margin:0;">“Sales are down — find out why.” Break down a dashboard to find the real cause and ignore false leads.</p>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;">
-          <div data-lo style="display:flex;gap:6px;">
-            <span style="font-size:10px;font-weight:900;letter-spacing:1px;color:#9c4b13;border:1.5px solid rgba(156,75,19,.35);border-radius:5px;padding:3px 7px;">LO3</span>
+      <!-- 04 · Data Detective -->
+      <li class="step" data-game="dd" style="--c:#F47920;--deep:#9c4b13;--tint:#FDE4D2;--glow:rgba(244,121,32,.7);--bd:rgba(156,75,19,.35);">
+        <div class="step-no"><span class="thread"></span><span class="num" aria-hidden="true">04</span></div>
+        <div class="card">
+          <div class="card-inner">
+            <span class="icon" aria-hidden="true">🔎</span>
+            <div>
+              <div class="meta-top">
+                <span class="cat">Root-cause diagnosis</span>
+                <span class="diff"><span aria-hidden="true">◆◇◇ </span>Beginner</span>
+                <span class="played-badge" hidden>✓ Played</span>
+              </div>
+              <h3>Data Detective</h3>
+              <p class="desc" data-normal>“Revenue’s down — find out why.” Segment an analytics dashboard to isolate real incidents, spot mix-shifts and masked faults, and reject red herrings.</p>
+              <p class="desc" data-simple-copy style="display:none;">“Sales are down — find out why.” Break down a dashboard to find the real cause and ignore false leads.</p>
+              <div class="meta-bot">
+                <span class="time">⏱ 10–15 min</span>
+                <span class="vsep"></span>
+                <span class="los"><span class="lo">LO3</span></span>
+              </div>
+            </div>
+            <div class="actions">
+              <a class="pill play" href="https://mgb9.github.io/ecommerce-games/data-detective/" target="_blank" rel="noopener" aria-label="Play Data Detective">Play <span style="color:#F47920;" aria-hidden="true">→</span></a>
+              <button class="mark" type="button" aria-pressed="false">Mark as played</button>
+            </div>
           </div>
-          <span style="display:inline-flex;align-items:center;gap:8px;background:#211F25;color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px;padding:11px 19px;border-radius:999px;">Play <span style="color:#F47920;">→</span></span>
         </div>
-      </a>
+      </li>
 
-    </div>
+    </ol>
   </div>
 
 </main>
 </wmg-shell>
-<p style="margin:0;padding:14px 6vw;background:#211F25;font:400 13px/1.5 'Lato','Helvetica Neue',Arial,sans-serif;color:#c7c7ca;"><a href="/ecommerce-games/accessibility.html" style="color:#c7c7ca;text-decoration:underline;">Accessibility statement</a></p>
+<p class="site-foot">Built for teaching by <b>Mark Bonnett</b> · WMG, University of Warwick · <a href="/ecommerce-games/accessibility.html">Accessibility statement</a></p>
+
+<script>
+(function () {
+  var KEY = 'wmg-games-progress';
+  var GAMES = [
+    { id: 'mt', n: '01', title: 'Marketplace Tycoon', color: '#009DDC', href: 'https://mgb9.github.io/ecommerce-games/marketplace-tycoon/' },
+    { id: 'cl', n: '02', title: 'Conversion Lab',     color: '#FBB034', href: 'https://mgb9.github.io/ecommerce-games/conversion-lab/' },
+    { id: 'ff', n: '03', title: 'Funnel Fixer',       color: '#C1D82F', href: 'https://mgb9.github.io/ecommerce-games/funnel-fixer/' },
+    { id: 'dd', n: '04', title: 'Data Detective',     color: '#F47920', href: 'https://mgb9.github.io/ecommerce-games/data-detective/' }
+  ];
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
+  }
+  function save(played) {
+    try { localStorage.setItem(KEY, JSON.stringify(played)); } catch (e) {}
+  }
+
+  var played = load();
+
+  function render() {
+    var count = 0;
+    GAMES.forEach(function (g) {
+      var step = document.querySelector('[data-game="' + g.id + '"]');
+      if (!step) return;
+      var on = !!played[g.id];
+      if (on) count++;
+      step.querySelector('.played-badge').hidden = !on;
+      var btn = step.querySelector('.mark');
+      btn.textContent = on ? '✓ Played — undo' : 'Mark as played';
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+
+    document.getElementById('played-count').textContent = count;
+    document.getElementById('progress-fill').style.width = (count / GAMES.length * 100) + '%';
+
+    var next = GAMES.filter(function (g) { return !played[g.id]; })[0];
+    var resume = document.getElementById('resume-banner');
+    var done = document.getElementById('done-banner');
+    var showResume = count > 0 && next;
+    resume.hidden = !showResume;
+    done.hidden = count !== GAMES.length;
+    if (showResume) {
+      resume.href = next.href;
+      resume.style.borderLeftColor = next.color;
+      var roundel = document.getElementById('resume-n');
+      roundel.textContent = next.n;
+      roundel.style.background = next.color;
+      document.getElementById('resume-title').textContent = next.title;
+      document.getElementById('resume-arrow').style.color = next.color;
+    }
+  }
+
+  document.querySelectorAll('.step').forEach(function (step) {
+    var id = step.getAttribute('data-game');
+    step.querySelector('.mark').addEventListener('click', function () {
+      played[id] = !played[id];
+      save(played);
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
 </body>
 </html>

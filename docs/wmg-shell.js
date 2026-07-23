@@ -21,17 +21,22 @@
      across the page (hide/show), sets <html data-wmg-simpler="on|off">, persists the
      choice in localStorage, and dispatches a "wmg:simplerchange" event on document
      with detail { simpler:boolean } so games can react programmatically.
+
+   Visual note (2026 refresh):
+     The game name is set in Fraunces to echo the hub's display headings, and sits
+     over an accent underline. Purely presentational — the markup, attributes and
+     Simpler-English behaviour are unchanged, so this is a drop-in replacement.
    ============================================================================= */
 (function () {
   if (customElements.get('wmg-shell')) return;
 
-  var LATO = 'https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap';
+  var FONTS = 'https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap';
   var STORE_KEY = 'wmg-simpler';
 
   function ensureFont() {
     if (document.querySelector('link[data-wmg-font]')) return;
     var l = document.createElement('link');
-    l.rel = 'stylesheet'; l.href = LATO; l.setAttribute('data-wmg-font', '');
+    l.rel = 'stylesheet'; l.href = FONTS; l.setAttribute('data-wmg-font', '');
     document.head.appendChild(l);
   }
 
@@ -90,24 +95,25 @@
         '.mod{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#c7c7ca;' +
           'border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:6px 13px;white-space:nowrap;}' +
         '.right{display:flex;align-items:center;gap:24px;}' +
-        '.game{display:flex;align-items:center;gap:11px;}' +
-        '.gdot{width:12px;height:12px;border-radius:3px;flex:none;}' +
-        '.gname{font-weight:900;font-size:16px;letter-spacing:-.2px;color:#fff;line-height:1.05;white-space:nowrap;}' +
-        '.gcat{font-size:9px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;margin-top:2px;}' +
+        '.game{display:flex;align-items:center;gap:13px;}' +
+        '.gdot{width:14px;height:14px;border-radius:4px;flex:none;box-shadow:0 0 0 4px rgba(255,255,255,.06);}' +
+        '.gname{font-family:"Fraunces","Lato",serif;font-weight:700;font-size:20px;letter-spacing:-.3px;color:#fff;' +
+          'line-height:1.02;white-space:nowrap;padding-bottom:3px;box-shadow:inset 0 -3px 0 var(--gaccent);}' +
+        '.gcat{font-size:9px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;margin-top:4px;}' +
         '.toggle{display:inline-flex;align-items:center;gap:9px;background:none;border:0;cursor:pointer;font-family:inherit;padding:0;min-height:24px;}' +
         '.toggle:focus-visible{outline:3px solid #FFD166;outline-offset:3px;border-radius:6px;}' +
         '.tlabel{font-size:12px;font-weight:700;letter-spacing:.4px;color:#fff;white-space:nowrap;}' +
         '.track{width:38px;height:22px;border-radius:999px;position:relative;transition:background .2s;flex:none;display:inline-block;}' +
         '.knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;}' +
         '.foot{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;' +
-          'padding:26px 6vw;background:#211F25;}' +
+          'padding:26px 6vw;background:#211F25;border-top:3px solid var(--gaccent);}' +
         '.foot .a{font-size:13.5px;color:#c7c7ca;}' +
         '.foot .a b{color:#fff;}' +
         '.foot .b{font-size:12px;color:#8d8d91;}' +
-        '@media(max-width:820px){.mod,.desc,.gcat{display:none;}.tlabel{display:none;}.right{gap:14px;}}' +
+        '@media(max-width:820px){.mod,.desc,.gcat{display:none;}.tlabel{display:none;}.right{gap:14px;}.gname{font-size:17px;}}' +
         '</style>' +
 
-        '<header class="bar">' +
+        '<header class="bar" style="--gaccent:' + accent + '">' +
           '<div class="left">' +
             '<a class="mark" href="' + hub + '" aria-label="WMG home">' +
               '<span class="dots"><span style="background:#C1D82F"></span><span style="background:#EE3124"></span>' +
@@ -121,7 +127,7 @@
           '<div class="right">' +
             (isGame
               ? '<span class="game"><span class="gdot" style="background:' + accent + '"></span>' +
-                  '<span><span class="gname">' + game + '</span>' +
+                  '<span><span class="gname" style="--gaccent:' + accent + '">' + game + '</span>' +
                   (category ? '<span class="gcat" style="display:block;color:' + accent + '">' + category + '</span>' : '') +
                   '</span></span>'
               : '') +
@@ -137,7 +143,7 @@
         '<slot></slot>' +
 
         (showFooter
-          ? '<footer class="foot">' +
+          ? '<footer class="foot" style="--gaccent:' + (isGame ? accent : '#EE3124') + '">' +
               '<div class="a">Built for teaching by <b>Mark Bonnett</b> · WMG, University of Warwick</div>' +
               '<div class="b">Each game runs entirely in your browser — nothing is sent anywhere.</div>' +
             '</footer>'
