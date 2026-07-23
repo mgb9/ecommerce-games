@@ -7,13 +7,13 @@ import {
 } from "../engine/engine.js";
 
 const FONT_IMPORT = `
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 `;
 const T = {
-  ink: "#14110D", panel: "#1F1A13", panel2: "#272015", border: "#3A3022",
-  text: "#F0E9DC", muted: "#A99E8B", pos: "#7DCB6A", neg: "#E2654E", amber: "#E6B450",
-  player: "#F2A93B", instructor: "#C9A06A", sel: "#2A2113", track: "#332a1d", faint: "#8f887d", onAccent: "#1a1206",
-  display: "'Bricolage Grotesque', sans-serif", body: "'Hanken Grotesk', sans-serif", mono: "'JetBrains Mono', monospace",
+  ink: "#171519", panel: "#211F25", panel2: "#2A2731", border: "#3B3843",
+  text: "#F5F4F6", muted: "#A5A3AB", pos: "#7DCB6A", neg: "#E2654E", amber: "#FBB034",
+  player: "#C1D82F", instructor: "#C4A578", sel: "#2C2933", track: "#343039", faint: "#8D8B93", onAccent: "#211F25",
+  display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;
 
@@ -24,7 +24,7 @@ function Term({ term, children }) {
   return (
     <span style={{ position: "relative", display: "inline-block" }}>
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
-      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: "#0F0C08", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>}
+      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: "#131118", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>}
     </span>
   );
 }
@@ -130,8 +130,8 @@ export default function App() {
       <style>{FONT_IMPORT + `
         * { box-sizing: border-box; }
         input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
-        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #14110D; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #14110D; }
+        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; box-shadow:0 0 0 3px var(--accent-soft); }
+        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; }
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
@@ -160,10 +160,10 @@ function Header({ phase, state, cfg, records, plain, togglePlain, onToggleInstru
   const show = phase !== "intro";
   const spent = records.reduce((a, r) => a + r.spend, 0);
   return (
-    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#17130D", position: "sticky", top: 0, zIndex: 30 }}>
+    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181E", position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 22, letterSpacing: -0.5 }}>Funnel <span style={{ color: PLAYER }}>Fixer</span></span>
+          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Funnel <span style={{ color: PLAYER }}>Fixer</span></span>
           <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>Chrichton · <Term term="cro">CRO</Term> diagnosis</span>
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
@@ -185,7 +185,7 @@ function Stat({ label, value, accent }) {
 function Intro({ onStart, cfg }) {
   return (
     <div className="rise" style={{ maxWidth: 760, margin: "44px auto 0" }}>
-      <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
         <PT rich={<>The funnel is leaking.<br /><span style={{ color: PLAYER }}>Where do you spend?</span></>}
             plain={<>Your checkout funnel is losing customers.<br /><span style={{ color: PLAYER }}>Choose where to invest.</span></>} />
       </h1>
@@ -236,13 +236,13 @@ function FunnelViz({ rates, sessions, leaksArr, bottleneckKey, showLeaks, predKe
             {leak && (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 11, color: T.muted, fontFamily: T.mono, padding: "1px 0" }}>
                 <span style={{ color: leak.rate >= leak.bench ? T.pos : T.amber }}>↓ {pct(leak.rate, 0)}</span>
-                <span style={{ opacity: 0.7 }}>bench {pct(leak.bench, 0)}</span>
+                <span style={{ color: T.muted }}>bench {pct(leak.bench, 0)}</span>
                 <span style={{ color: leak.gap > 0 ? T.neg : T.pos }}>{pp(leak.rate - leak.bench, 0)}</span>
                 {showLeaks && leak.leak > 0 && <span style={{ color: isBott ? T.neg : T.muted, fontWeight: 700 }}>· {gbpK(leak.leak)} leak/qtr</span>}
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "center" }}>
-              <div className="fbar" style={{ width: `${widthPct(v.count)}%`, minWidth: 120, background: i === 0 ? "#2a2418" : isBott ? "#33201a" : T.panel2, border: `1.5px solid ${border}`, borderRadius: 10, padding: compact ? "7px 14px" : "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <div className="fbar" style={{ width: `${widthPct(v.count)}%`, minWidth: 120, background: i === 0 ? "#2E2B35" : isBott ? "#33201a" : T.panel2, border: `1.5px solid ${border}`, borderRadius: 10, padding: compact ? "7px 14px" : "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                 <span style={{ fontWeight: 700, fontSize: compact ? 12.5 : 13.5, whiteSpace: "nowrap" }}>{v.label}{isBott && <span style={{ color: T.neg, fontSize: 11, marginLeft: 6 }}>● bottleneck</span>}</span>
                 <span style={{ fontFamily: T.mono, fontSize: compact ? 12 : 13, color: T.text }}>{Math.round(v.count).toLocaleString()}</span>
               </div>
@@ -262,7 +262,7 @@ function Diagnose({ state, cfg, leaksArr, bottleneck, predLeak, setPredLeak, pre
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>QUARTER {state.quarter}</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Diagnose the funnel</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Diagnose the funnel</h2>
       </div>
       <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.55, marginTop: 8, maxWidth: 820 }}>
         Here's where Chrichton stands against benchmark. Before you see the £ sizing, back your read: which stage is the biggest <b style={{ color: T.text }}>money</b> leak, and which single fix has the best <Term term="roi">ROI</Term>?
@@ -307,9 +307,9 @@ function Allocate({ state, cfg, leaksArr, bottleneck, predLeak, chosen, toggleCh
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>QUARTER {state.quarter}</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Allocate the budget</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Allocate the budget</h2>
       </div>
-      <div style={{ marginTop: 10, background: predHit ? "#1f2e18" : "#2e2418", border: `1px solid ${predHit ? T.pos : T.amber}55`, borderRadius: 11, padding: "12px 15px", fontSize: 13.5, lineHeight: 1.5 }}>
+      <div style={{ marginTop: 10, background: predHit ? "#1f2e18" : "#2A2731", border: `1px solid ${predHit ? T.pos : T.amber}55`, borderRadius: 11, padding: "12px 15px", fontSize: 13.5, lineHeight: 1.5 }}>
         {predHit ? "✓" : "✗"} The biggest <Term term="opportunitysizing">money leak</Term> is <b style={{ color: T.neg }}>{bottleneck.label}</b> ({gbpK(bottleneck.leak)}/quarter) — you predicted <b>{STAGES.find((s) => s.key === predLeak)?.label}</b>. Notice it's not always the biggest % gap.
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.1fr)", gap: 18, marginTop: 14 }}>
@@ -357,7 +357,7 @@ function ResultView({ result, cfg, record, bestActual, onNext, lastQuarter }) {
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>QUARTER {record.quarter} RESULT</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{dPurch >= 0 ? `+${Math.round(dPurch)}` : Math.round(dPurch)} purchases this quarter</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{dPurch >= 0 ? `+${Math.round(dPurch)}` : Math.round(dPurch)} purchases this quarter</h2>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18, marginTop: 14 }}>
@@ -406,7 +406,7 @@ function ResultView({ result, cfg, record, bestActual, onNext, lastQuarter }) {
 }
 function ScoreChip({ ok, label, you, truth }) {
   return (
-    <div style={{ background: ok ? "#1f2e18" : "#2e2418", border: `1px solid ${ok ? T.pos : T.amber}55`, borderRadius: 10, padding: "9px 11px" }}>
+    <div style={{ background: ok ? "#1f2e18" : "#2A2731", border: `1px solid ${ok ? T.pos : T.amber}55`, borderRadius: 10, padding: "9px 11px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: T.muted, marginBottom: 3 }}><span>{label}</span><span style={{ color: ok ? T.pos : T.amber, fontWeight: 700 }}>{ok ? "✓" : "✗"}</span></div>
       <div style={{ fontSize: 12 }}>You: <b>{you}</b></div>
       {!ok && <div style={{ fontSize: 11.5, color: T.muted }}>Actual: {truth}</div>}
@@ -429,7 +429,7 @@ function EndView({ records, state, cfg, restart }) {
     <div className="rise" style={{ marginTop: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>CHRICHTON · SEED {cfg.seed}</div>
-        <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{gbp(state.cumProfit)} cumulative profit</h1>
+        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{gbp(state.cumProfit)} cumulative profit</h1>
         <div style={{ color: T.muted }}>Over {records.length} quarters · biggest-leak called <b style={{ color: PLAYER }}>{leakHits}/{records.length}</b> · best-ROI bet <b style={{ color: PLAYER }}>{roiHits}/{records.length}</b></div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 18 }}>
@@ -485,10 +485,10 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1A1610", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
+      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1D1B21", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
         <div style={{ padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 19, color: A }}>⚙ Instructor</span>
+            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
             <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>
           </div>
           <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.5, marginTop: 0 }}>Economic settings apply to the next quarter resolved; starting rates and seed apply on a <b style={{ color: T.text }}>new game</b>. A shared seed gives the cohort an identical run.</p>

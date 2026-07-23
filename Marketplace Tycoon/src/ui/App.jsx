@@ -11,13 +11,13 @@ import {
 } from "../engine/engine.js";
 import { evaluatePlatforms, rationaleFor, fitOf, CRITERIA } from "../engine/platformfit.js";
 const FONT_IMPORT = `
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 `;
 const T = {
-  ink: "#14110D", panel: "#1F1A13", panel2: "#272015", border: "#3A3022",
-  text: "#F0E9DC", muted: "#A99E8B", pos: "#7DCB6A", neg: "#E2654E", platform: "#C9A06A",
-  sel: "#2A2113", track: "#332a1d", faint: "#8f887d", onAccent: "#1a1206", amber: "#F2A93B",
-  display: "'Bricolage Grotesque', sans-serif", body: "'Hanken Grotesk', sans-serif", mono: "'JetBrains Mono', monospace",
+  ink: "#171519", panel: "#211F25", panel2: "#2A2731", border: "#3B3843",
+  text: "#F5F4F6", muted: "#A5A3AB", pos: "#7DCB6A", neg: "#E2654E", platform: "#C9A06A",
+  sel: "#2C2933", track: "#343039", faint: "#8D8B93", onAccent: "#211F25", amber: "#009DDC", gold: "#FBB034",
+  display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 
 function Term({ term, children }) {
@@ -29,7 +29,7 @@ function Term({ term, children }) {
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
       {open && (
         <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 210, fontWeight: 400,
-          background: "#0F0C08", border: `1px solid ${T.platform}66`, borderRadius: 8, padding: "8px 10px", fontSize: 11.5, color: T.text, lineHeight: 1.45, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>
+          background: "#131118", border: `1px solid ${T.platform}66`, borderRadius: 8, padding: "8px 10px", fontSize: 11.5, color: T.text, lineHeight: 1.45, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>
       )}
     </span>
   );
@@ -154,8 +154,8 @@ export default function App() {
         * { box-sizing: border-box; }
         input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
         input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%;
-          cursor:pointer; background:var(--accent); border:2px solid #14110D; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #14110D; }
+          cursor:pointer; background:var(--accent); border:2px solid #171519; box-shadow:0 0 0 3px var(--accent-soft); }
+        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; }
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
@@ -182,12 +182,12 @@ export default function App() {
 function Header({ round, phase, player, rank, cfg, plain, togglePlain, onToggleInstructor }) {
   const feeRaised = cfg.commissionRate > DEFAULT_CFG.commissionRate + 1e-6;
   const showStats = phase === "play" || phase === "result" || phase === "end";
-  const cashColor = player.insolvent || player.cash < 0 ? T.neg : player.cash < cfg.startingCash * 0.3 ? "#E6B450" : T.pos;
+  const cashColor = player.insolvent || player.cash < 0 ? T.neg : player.cash < cfg.startingCash * 0.3 ? "#FBB034" : T.pos;
   return (
-    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#17130D", position: "sticky", top: 0, zIndex: 30 }}>
+    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181E", position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 22, letterSpacing: -0.5 }}>Marketplace <span style={{ color: PLAYER_COLOR }}>Tycoon</span></span>
+          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Marketplace <span style={{ color: PLAYER_COLOR }}>Tycoon</span></span>
           <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>{showStats ? SC(cfg).icon + " " + SC(cfg).short : "e-commerce strategy lab"}</span>
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
@@ -218,7 +218,7 @@ function PlatformPill({ id }) {
 function Intro({ name, setName, onNext, cfg }) {
   return (
     <div className="rise" style={{ maxWidth: 720, margin: "44px auto 0" }}>
-      <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
         <PT rich={<>Pick a client.<br />Build the store.<br /><span style={{ color: PLAYER_COLOR }}>Ten weeks to win.</span></>}
             plain={<>Choose a client.<br />Set up the store.<br /><span style={{ color: PLAYER_COLOR }}>Run it for ten weeks.</span></>} />
       </h1>
@@ -243,7 +243,7 @@ function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
   return (
     <div className="rise" style={{ maxWidth: 980, margin: "32px auto 0" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 30, letterSpacing: -0.5, margin: 0 }}>Choose your client brief</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 30, letterSpacing: -0.5, margin: 0 }}>Choose your client brief</h2>
         <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 14 }}>← back</button>
       </div>
       <p style={{ color: T.muted, fontSize: 15, lineHeight: 1.55, marginTop: 8 }}>
@@ -280,7 +280,7 @@ function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
 }
 
 /* ---- PLATFORM-FIT EVALUATION (LO1) -------------------------- */
-const VERDICT_COL = { "Strong fit": T.pos, "Workable": T.amber, "Poor fit": T.neg };
+const VERDICT_COL = { "Strong fit": T.pos, "Workable": T.gold, "Poor fit": T.neg };
 function FitChip({ verdict, fit }) {
   const c = VERDICT_COL[verdict] || T.muted;
   return (
@@ -321,7 +321,7 @@ function PlatformFitPanel({ scenario, evalr, platform }) {
           <div style={{ fontSize: 13, lineHeight: 1.55, color: T.text, marginBottom: 8 }}>
             <b style={{ color: PLAYER_COLOR }}>★ {recRow.name}</b> is the strongest fit. {rationaleFor(recRow, scenario)}
           </div>
-          <div style={{ fontSize: 12.5, lineHeight: 1.5, color: matched ? T.pos : T.amber, borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
+          <div style={{ fontSize: 12.5, lineHeight: 1.5, color: matched ? T.pos : T.gold, borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
             {matched
               ? <>✓ Your pick matches the strongest fit for this brief.</>
               : <>Your pick — <b style={{ color: T.text }}>{f.row.name}</b> ({f.row.verdict}, ranked {f.rank}/{f.total}) — isn't the top fit here. There's no single right answer, but be ready to justify it in your report.</>}
@@ -338,7 +338,7 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
   return (
     <div className="rise" style={{ maxWidth: 980, margin: "32px auto 0" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Set up your store — {scenario.icon} {scenario.short}</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Set up your store — {scenario.icon} {scenario.short}</h2>
         <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 14 }}>← back</button>
       </div>
 
@@ -416,10 +416,10 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1A1610", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
+      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1D1B21", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
         <div style={{ padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 19, color: A }}>⚙ Instructor</span>
+            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
             <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>
           </div>
           <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.5, marginTop: 0 }}>Changes apply to the <b style={{ color: T.text }}>next week resolved</b>. The brief sets base economics; these tune the market around it.</p>
@@ -482,7 +482,7 @@ function ToggleRow({ label, on, onToggle, accent }) {
   return (
     <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 13, fontWeight: 500 }}>
       <span>{label}</span>
-      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#14110D", transition: "left .15s" }} /></span>
+      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#171519", transition: "left .15s" }} /></span>
     </div>
   );
 }
@@ -521,14 +521,14 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
           <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>Your move — Week {round}</span>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: T.mono, fontSize: 11, color: T.platform }}>{platform.short} · {ful.short}</span>
         </div>
-        <div style={{ background: "#211c14", borderRadius: 9, padding: "8px 11px", marginBottom: 14, fontSize: 11.5, color: T.muted, lineHeight: 1.45 }}>
+        <div style={{ background: "#24222B", borderRadius: 9, padding: "8px 11px", marginBottom: 14, fontSize: 11.5, color: T.muted, lineHeight: 1.45 }}>
           {sc.icon} <b style={{ color: T.text }}>{sc.name}:</b> {sc.teach}
         </div>
 
-        {ev && <Banner bg="#2a2412" bd={`${T.platform}66`}><b>{ev.icon} This week: {ev.title}</b><div style={{ fontSize: 12, color: T.muted, marginTop: 3, lineHeight: 1.45 }}>{ev.desc}</div></Banner>}
-        {player.insolvent && <Banner bg="#3a1f16" bd={T.neg}>💀 You're <Term term="insolvent">insolvent</Term> — out of cash. Keep trading if you like, but this is where real stores die. Cut spend, rebuild margin.</Banner>}
-        {mat < 1 && <Banner bg="#241d12" bd={`${T.platform}44`}>🏗 {platform.short} is {Math.round(mat * 100)}% built — paying {gbp(platform.fixedCost)}/wk in full while the edge ramps in (full power by week {platform.rampWeeks}).</Banner>}
-        {hiked && <Banner bg="#3a1f16" bd={`${T.neg}66`}>⚡ Platform pricing changed — now {gbp(platform.fixedCost)}/wk{platform.txnFee ? ` + ${(platform.txnFee * 100).toFixed(1)}%` : ""}. You're locked in.</Banner>}
+        {ev && <Banner bg="#2A2731" bd={`${T.platform}66`}><b>{ev.icon} This week: {ev.title}</b><div style={{ fontSize: 12, color: T.muted, marginTop: 3, lineHeight: 1.45 }}>{ev.desc}</div></Banner>}
+        {player.insolvent && <Banner bg="#3B1F26" bd={T.neg}>💀 You're <Term term="insolvent">insolvent</Term> — out of cash. Keep trading if you like, but this is where real stores die. Cut spend, rebuild margin.</Banner>}
+        {mat < 1 && <Banner bg="#26232C" bd={`${T.platform}44`}>🏗 {platform.short} is {Math.round(mat * 100)}% built — paying {gbp(platform.fixedCost)}/wk in full while the edge ramps in (full power by week {platform.rampWeeks}).</Banner>}
+        {hiked && <Banner bg="#3B1F26" bd={`${T.neg}66`}>⚡ Platform pricing changed — now {gbp(platform.fixedCost)}/wk{platform.txnFee ? ` + ${(platform.txnFee * 100).toFixed(1)}%` : ""}. You're locked in.</Banner>}
 
         <Slider label="Price" accent={PLAYER_COLOR} value={d.price} min={sc.priceMin} max={sc.priceMax} step={1} fmt={gbp} hint="A lower price wins more sales — but every £1 off comes straight out of your already small profit margin." onChange={(v) => setPlayerDecision({ price: v })} />
         <Slider label="Ad spend" accent={PLAYER_COLOR} value={d.ad} min={0} max={2500} step={50} fmt={gbp} hint={`Buys visibility (an auction). This brief is ${sc.adResponse >= 1.1 ? "ad-responsive" : sc.adResponse <= 0.8 ? "research-led — ads do less" : "moderately ad-responsive"}.`} onChange={(v) => setPlayerDecision({ ad: v })} />
@@ -546,7 +546,7 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
           <MiniStat label={<Term term="contribution">Contribution / unit</Term>} value={gbp(unitMargin)} sub={<><Term term="cogs">COGS</Term> {gbp(unitCostTotal)} + fees</>} accent={unitMargin > 0 ? T.pos : T.neg} />
           <MiniStat label="Break-even volume" value={isFinite(breakEvenUnits) ? `${Math.ceil(breakEvenUnits)} units` : "—"} sub={<>covers ad + <Term term="cro">CRO</Term> + platform</>} accent={T.platform} />
           <MiniStat label={<Term term="regulars">Returning regulars</Term>} value={Math.round(player.loyalBase).toLocaleString()} sub="uncontested recurring demand" accent={PLAYER_COLOR} />
-          <MiniStat label={<Term term="workingcapital">Cash available</Term>} value={gbp(availCash)} sub={committed > 0 ? `${gbp(committed)} committed to CRO` : "your runway"} accent={availCash < 0 ? T.neg : availCash < cfg.startingCash * 0.3 ? "#E6B450" : T.pos} />
+          <MiniStat label={<Term term="workingcapital">Cash available</Term>} value={gbp(availCash)} sub={committed > 0 ? `${gbp(committed)} committed to CRO` : "your runway"} accent={availCash < 0 ? T.neg : availCash < cfg.startingCash * 0.3 ? "#FBB034" : T.pos} />
         </div>
 
         <div style={{ marginTop: 16, background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>
@@ -619,7 +619,7 @@ function CROPanel({ player, sc, croConv, availCash, onDeploy, onTest }) {
   );
 }
 const croBtn = (disabled, primary) => ({
-  background: disabled ? "#2a241a" : primary ? PLAYER_COLOR : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text,
+  background: disabled ? "#2A2731" : primary ? PLAYER_COLOR : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text,
   border: `1px solid ${primary ? (disabled ? T.border : PLAYER_COLOR) : T.border}`, borderRadius: 7, padding: "5px 8px",
   fontFamily: T.body, fontWeight: 600, fontSize: 11, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap",
 });
@@ -676,9 +676,9 @@ function ResultView({ stores, ranked, log, round, nextWeek, player, cfg, predict
         <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13, color: T.muted }}><span>Cash after the week</span><span style={{ fontFamily: T.mono, color: r.cashAfter < 0 ? T.neg : T.muted }}>{gbp(r.cashAfter)}</span></div>
 
         <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "10px 12px", fontSize: 12.5, lineHeight: 1.5 }}>♥ Of {Math.round(r.keptSales)} kept sales, <b style={{ color: PLAYER_COLOR }}>{Math.round(r.returningServed)}</b> were returning regulars. You now hold <b style={{ color: PLAYER_COLOR }}>{Math.round(player.loyalBase)}</b>. Site conversion ran at <b style={{ color: T.pos }}>×{r.croConv.toFixed(3)}</b>.</div>
-        {pred && <div style={{ marginTop: 10, background: pred.hit ? "#1f2e18" : "#2e2418", borderRadius: 10, padding: "10px 12px", fontSize: 12.5, border: `1px solid ${pred.hit ? T.pos : T.platform}44` }}>{pred.hit ? "✓" : "✗"} You predicted <b>#{pred.predicted}</b>, finished <b>#{pred.actual}</b> this week.</div>}
-        {r.returnedUnits > 8 && <div style={{ marginTop: 10, background: "#2e2418", border: `1px solid ${T.neg}44`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>↩ <Term term="returns">Returns</Term> cost you {Math.round(r.returnedUnits)} sales plus {gbp(r.returnHandling)} handling. Trust & checkout CRO reduce them.</div>}
-        {r.lostSales > 5 && <div style={{ marginTop: 10, background: "#3a1f16", border: `1px solid ${T.neg}55`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>⚠ Stocked out — <b>{Math.round(r.lostSales)}</b> couldn't buy. Lost sales now, churned regulars later.</div>}
+        {pred && <div style={{ marginTop: 10, background: pred.hit ? "#1D2C20" : "#2E2B34", borderRadius: 10, padding: "10px 12px", fontSize: 12.5, border: `1px solid ${pred.hit ? T.pos : T.platform}44` }}>{pred.hit ? "✓" : "✗"} You predicted <b>#{pred.predicted}</b>, finished <b>#{pred.actual}</b> this week.</div>}
+        {r.returnedUnits > 8 && <div style={{ marginTop: 10, background: "#2E2B34", border: `1px solid ${T.neg}44`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>↩ <Term term="returns">Returns</Term> cost you {Math.round(r.returnedUnits)} sales plus {gbp(r.returnHandling)} handling. Trust & checkout CRO reduce them.</div>}
+        {r.lostSales > 5 && <div style={{ marginTop: 10, background: "#3B1F26", border: `1px solid ${T.neg}55`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>⚠ Stocked out — <b>{Math.round(r.lostSales)}</b> couldn't buy. Lost sales now, churned regulars later.</div>}
       </div>
 
       <div style={card()}>
@@ -716,7 +716,7 @@ function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
     <div className="rise" style={{ marginTop: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>{sc.icon} {sc.name.toUpperCase()} · SEED {cfg.seed}</div>
-        <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{winner.isPlayer ? "You won the marketplace 🏆" : `${winner.name} took it`}</h1>
+        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{winner.isPlayer ? "You won the marketplace 🏆" : `${winner.name} took it`}</h1>
         <div style={{ color: T.muted }}>You finished <b style={{ color: PLAYER_COLOR }}>#{playerRank}</b> on {PMAP[player.platformId].name} with {gbp(player.cumProfit)} profit{player.insolvent ? <span style={{ color: T.neg }}> — but traded insolvent</span> : <> and {gbp(player.cash)} cash</>}.</div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 18 }}>

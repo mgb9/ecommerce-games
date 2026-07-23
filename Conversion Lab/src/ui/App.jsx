@@ -15,14 +15,14 @@ import {
 const metricOf = (exp) => exp.metricLabel || "conversion rate";
 
 const FONT_IMPORT = `
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 `;
 const T = {
-  ink: "#14110D", panel: "#1F1A13", panel2: "#272015", border: "#3A3022",
-  text: "#F0E9DC", muted: "#A99E8B", pos: "#7DCB6A", neg: "#E2654E", amber: "#E6B450",
-  player: "#F2A93B", instructor: "#C9A06A",
-  armA: "#9B8Fb0", armB: "#3FB6A8", sel: "#2A2113", track: "#332a1d", faint: "#8f887d", onAccent: "#1a1206",
-  display: "'Bricolage Grotesque', sans-serif", body: "'Hanken Grotesk', sans-serif", mono: "'JetBrains Mono', monospace",
+  ink: "#171519", panel: "#211F25", panel2: "#2A2731", border: "#3B3843",
+  text: "#F5F4F6", muted: "#A5A3AB", pos: "#7DCB6A", neg: "#E2654E", amber: "#D99A26",
+  player: "#FBB034", instructor: "#C9A06A",
+  armA: "#9B8Fb0", armB: "#3FB6A8", sel: "#2C2933", track: "#343039", faint: "#8D8B93", onAccent: "#211F25",
+  display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;
 
@@ -36,7 +36,7 @@ function Term({ term, children }) {
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
       {open && (
         <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 230, fontWeight: 400,
-          background: "#0F0C08", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>
+          background: "#131118", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>
       )}
     </span>
   );
@@ -192,8 +192,8 @@ export default function App() {
         * { box-sizing: border-box; }
         input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
         input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%;
-          cursor:pointer; background:var(--accent); border:2px solid #14110D; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #14110D; }
+          cursor:pointer; background:var(--accent); border:2px solid #171519; box-shadow:0 0 0 3px var(--accent-soft); }
+        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; }
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
@@ -239,10 +239,10 @@ function Header({ phase, expIdx, cfg, qIdx, qScore, plain, togglePlain, onToggle
   const isWireframe = phase === "wireframe";
   const isLab = phase !== "intro" && !isQuiz && !isWireframe;
   return (
-    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#17130D", position: "sticky", top: 0, zIndex: 30 }}>
+    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181E", position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 22, letterSpacing: -0.5 }}>Conversion <span style={{ color: PLAYER }}>Lab</span></span>
+          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Conversion <span style={{ color: PLAYER }}>Lab</span></span>
           <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>{isQuiz ? "Which Test Won?" : "Chrichton · A/B testing simulator"}</span>
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
@@ -269,7 +269,7 @@ function Stat({ label, value, accent }) {
 function Intro({ onStart, onQuiz, onWireframe, cfg }) {
   return (
     <div className="rise" style={{ maxWidth: 760, margin: "44px auto 0" }}>
-      <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
         <PT rich={<>Two versions of a page.<br /><span style={{ color: PLAYER }}>Only the data decides.</span></>}
             plain={<>Two versions of one web page.<br /><span style={{ color: PLAYER }}>Let the data decide which is better.</span></>} />
       </h1>
@@ -406,7 +406,7 @@ function WireframeStudio({ cfg, onExit }) {
     return (
       <div className="rise" style={{ maxWidth: 900, margin: "26px auto 0" }}>
         {backBtn}
-        <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 34, letterSpacing: -0.7, margin: "14px 0 4px" }}>
+        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 34, letterSpacing: -0.7, margin: "14px 0 4px" }}>
           <PT rich={<>Design for the <span style={{ color: PLAYER }}>context</span>, not the template.</>}
               plain={<>Design for the <span style={{ color: PLAYER }}>audience</span>, not a fixed template.</>} />
         </h1>
@@ -441,7 +441,7 @@ function WireframeStudio({ cfg, onExit }) {
     return (
       <div className="rise" style={{ maxWidth: 760, margin: "26px auto 0" }}>
         <button onClick={() => setStep("build")} style={{ ...btn("transparent"), color: T.muted, border: `1px solid ${T.border}`, padding: "7px 13px", fontSize: 13 }}>← Edit the design</button>
-        <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 30, letterSpacing: -0.6, margin: "14px 0 4px" }}>Commit your hypothesis</h1>
+        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 30, letterSpacing: -0.6, margin: "14px 0 4px" }}>Commit your hypothesis</h1>
         <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.55, margin: "0 0 18px" }}>
           A design is a hypothesis. Before you see any data, commit what you're measuring, how big an effect you expect,
           and how much traffic you'll spend — then the test is an honest verdict, not a fishing trip. <b style={{ color: T.text }}>The predicted rate stays hidden until you run it.</b>
@@ -547,7 +547,7 @@ function WireframeStudio({ cfg, onExit }) {
         <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14, position: "sticky", top: 78 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
             <span style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: 1.2, color: T.muted }}>DESIGN REVIEW</span>
-            <span style={{ width: 30, height: 30, borderRadius: 8, background: GRADE_COL[review.grade], color: T.onAccent, fontFamily: T.display, fontWeight: 800, fontSize: 17, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{review.grade}</span>
+            <span style={{ width: 30, height: 30, borderRadius: 8, background: GRADE_COL[review.grade], color: T.onAccent, fontFamily: T.display, fontWeight: 700, fontSize: 17, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{review.grade}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, marginBottom: 10 }}>
             <span style={{ color: T.muted }}>Est. load time</span>
@@ -588,7 +588,7 @@ function WireframeVerdict({ res, exp, review, hypo, brief, cfg, onRefine, onNewB
   return (
     <div className="rise" style={{ maxWidth: 840, margin: "28px auto 0" }}>
       <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: 1.5, color: T.muted, marginBottom: 6 }}>WIREFRAME · {brief.name.toUpperCase()}</div>
-      <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 32, letterSpacing: -0.6, margin: "0 0 12px", color: hCol }}>{headline}</h1>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 32, letterSpacing: -0.6, margin: "0 0 12px", color: hCol }}>{headline}</h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginBottom: 16 }}>
         <MiniStat label="Current page" value={pct(res.arms.A.rate)} accent={T.armA} />
@@ -651,37 +651,37 @@ function MiniTag({ label }) {
 /* ---- MOCK CHRICHTON PAGES ----------------------------------- */
 function MockPage({ kind, variant }) {
   const isB = variant === "B";
-  const frame = { background: "#FBF7EF", color: "#23201A", borderRadius: 12, border: `1px solid ${T.border}`, overflow: "hidden", fontFamily: T.body, position: "relative" };
-  const priceRow = <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "0 14px" }}><span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 20 }}>£24.99</span><span style={{ color: "#8a8270", fontSize: 12, textDecoration: "line-through" }}>£32.00</span></div>;
+  const frame = { background: "#FAFAFB", color: "#26242B", borderRadius: 12, border: `1px solid ${T.border}`, overflow: "hidden", fontFamily: T.body, position: "relative" };
+  const priceRow = <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "0 14px" }}><span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 20 }}>£24.99</span><span style={{ color: "#85838C", fontSize: 12, textDecoration: "line-through" }}>£32.00</span></div>;
   const title = <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, padding: "10px 14px 4px" }}>Heritage Terracotta Planter</div>;
-  const banner = (text, bg) => <div style={{ background: bg, color: "#1c1a14", fontSize: 11.5, fontWeight: 700, textAlign: "center", padding: "6px 0", letterSpacing: 0.2 }}>{text}</div>;
+  const banner = (text, bg) => <div style={{ background: bg, color: "#211F25", fontSize: 11.5, fontWeight: 700, textAlign: "center", padding: "6px 0", letterSpacing: 0.2 }}>{text}</div>;
 
   const heroBox = (label, bg) => <div style={{ height: 120, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>{label}</div>;
   const cta = (color, textColor) => <div style={{ margin: "10px 14px 14px", background: color, color: textColor, textAlign: "center", padding: "11px 0", borderRadius: 9, fontWeight: 700, fontSize: 14 }}>Add to cart</div>;
 
   let body;
   if (kind === "cta") {
-    body = <>{title}{priceRow}{heroBox("🪴", "#EDE6D6")}{isB ? cta("#2E9E5B", "#fff") : cta("#C9C3B4", "#4a463c")}</>;
+    body = <>{title}{priceRow}{heroBox("🪴", "#ECEBEE")}{isB ? cta("#2E9E5B", "#fff") : cta("#C7C6CC", "#46444C")}</>;
   } else if (kind === "imgbg") {
-    body = <>{title}{priceRow}{heroBox("🪴", isB ? "#F3E7CE" : "#FFFFFF")}<div style={{ color: "#8a8270", fontSize: 10.5, padding: "0 14px 2px", textAlign: "center" }}>{isB ? "warm off-white" : "white"} background</div>{cta("#2E9E5B", "#fff")}</>;
+    body = <>{title}{priceRow}{heroBox("🪴", isB ? "#F1EFF3" : "#FFFFFF")}<div style={{ color: "#85838C", fontSize: 10.5, padding: "0 14px 2px", textAlign: "center" }}>{isB ? "warm off-white" : "white"} background</div>{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "scarcity") {
-    body = <>{title}{priceRow}{isB && <div style={{ margin: "8px 14px 0", display: "inline-block", background: "#F3D9CE", color: "#9c3a1c", fontSize: 11.5, fontWeight: 700, padding: "4px 9px", borderRadius: 6 }}>🔥 Only 3 left in stock</div>}{heroBox("🪴", "#EDE6D6")}{cta("#2E9E5B", "#fff")}</>;
+    body = <>{title}{priceRow}{isB && <div style={{ margin: "8px 14px 0", display: "inline-block", background: "#F3D9CE", color: "#9c3a1c", fontSize: 11.5, fontWeight: 700, padding: "4px 9px", borderRadius: 6 }}>🔥 Only 3 left in stock</div>}{heroBox("🪴", "#ECEBEE")}{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "social") {
-    body = <>{title}{priceRow}{isB && <div style={{ padding: "6px 14px 0", color: "#3a7d4f", fontSize: 12, fontWeight: 600 }}>👥 327 gardeners bought this</div>}{heroBox("🪴", "#EDE6D6")}{cta("#2E9E5B", "#fff")}</>;
+    body = <>{title}{priceRow}{isB && <div style={{ padding: "6px 14px 0", color: "#3a7d4f", fontSize: 12, fontWeight: 600 }}>👥 327 gardeners bought this</div>}{heroBox("🪴", "#ECEBEE")}{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "shipping") {
-    body = <>{isB && banner("🚚 FREE shipping on all orders", "#F6C667")}{title}{priceRow}{heroBox("🪴", "#EDE6D6")}{!isB && <div style={{ color: "#8a8270", fontSize: 11.5, padding: "0 14px" }}>+ £3.50 shipping</div>}{cta("#2E9E5B", "#fff")}</>;
+    body = <>{isB && banner("🚚 FREE shipping on all orders", "#F6C667")}{title}{priceRow}{heroBox("🪴", "#ECEBEE")}{!isB && <div style={{ color: "#85838C", fontSize: 11.5, padding: "0 14px" }}>+ £3.50 shipping</div>}{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "checkout") {
     const steps = isB
-      ? <div style={{ padding: "12px 14px", fontSize: 12, color: "#4a463c" }}><b>One-page checkout</b><div style={{ marginTop: 6, display: "grid", gap: 5 }}>{["Email & delivery", "Payment", "Place order"].map((s) => <div key={s} style={{ background: "#EDE6D6", borderRadius: 6, padding: "6px 8px" }}>{s}</div>)}</div></div>
-      : <div style={{ padding: "12px 14px", fontSize: 12, color: "#4a463c" }}><b>Step 1 of 3</b><div style={{ marginTop: 6, display: "flex", gap: 5 }}>{[1, 2, 3].map((s) => <div key={s} style={{ flex: 1, background: s === 1 ? "#C9C3B4" : "#EDE6D6", borderRadius: 6, padding: "10px 0", textAlign: "center" }}>{s}</div>)}</div><div style={{ marginTop: 8, background: "#EDE6D6", borderRadius: 6, padding: "8px" }}>Your details</div></div>;
+      ? <div style={{ padding: "12px 14px", fontSize: 12, color: "#46444C" }}><b>One-page checkout</b><div style={{ marginTop: 6, display: "grid", gap: 5 }}>{["Email & delivery", "Payment", "Place order"].map((s) => <div key={s} style={{ background: "#ECEBEE", borderRadius: 6, padding: "6px 8px" }}>{s}</div>)}</div></div>
+      : <div style={{ padding: "12px 14px", fontSize: 12, color: "#46444C" }}><b>Step 1 of 3</b><div style={{ marginTop: 6, display: "flex", gap: 5 }}>{[1, 2, 3].map((s) => <div key={s} style={{ flex: 1, background: s === 1 ? "#C7C6CC" : "#ECEBEE", borderRadius: 6, padding: "10px 0", textAlign: "center" }}>{s}</div>)}</div><div style={{ marginTop: 8, background: "#ECEBEE", borderRadius: 6, padding: "8px" }}>Your details</div></div>;
     body = <>{title}{priceRow}{steps}{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "promo") {
     body = isB
-      ? <>{banner("🔥 SPRING SALE — up to 30% OFF", "#F6C667")}<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, padding: "10px 14px" }}>{["🪴", "🌷", "🌿"].map((e, i) => <div key={i} style={{ background: "#EDE6D6", borderRadius: 6, height: 46, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{e}</div>)}</div>{cta("#2E9E5B", "#fff")}</>
+      ? <>{banner("🔥 SPRING SALE — up to 30% OFF", "#F6C667")}<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, padding: "10px 14px" }}>{["🪴", "🌷", "🌿"].map((e, i) => <div key={i} style={{ background: "#ECEBEE", borderRadius: 6, height: 46, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{e}</div>)}</div>{cta("#2E9E5B", "#fff")}</>
       : <>{heroBox("🌿", "#E7EFE0")}<div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13.5, padding: "10px 14px 0" }}>Heritage plants, grown with care since 1962</div>{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "subject") {
     const subj = isB ? "You won't believe what's inside… 😱" : "Your spring planting guide + 10% off";
-    body = <div style={{ padding: "12px 14px" }}><div style={{ fontSize: 11, color: "#8a8270", marginBottom: 6 }}>Inbox · Chrichton</div><div style={{ background: "#FFFFFF", border: "1px solid #E3DECF", borderRadius: 8, padding: "10px 12px" }}><div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Chrichton Garden Co.</div><div style={{ fontSize: 12.5, color: "#23201A" }}>{subj}</div><div style={{ fontSize: 11, color: "#8a8270", marginTop: 4 }}>Spring is here — time to plant…</div></div></div>;
+    body = <div style={{ padding: "12px 14px" }}><div style={{ fontSize: 11, color: "#85838C", marginBottom: 6 }}>Inbox · Chrichton</div><div style={{ background: "#FFFFFF", border: "1px solid #E3E1E7", borderRadius: 8, padding: "10px 12px" }}><div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Chrichton Garden Co.</div><div style={{ fontSize: 12.5, color: "#26242B" }}>{subj}</div><div style={{ fontSize: 11, color: "#85838C", marginTop: 4 }}>Spring is here — time to plant…</div></div></div>;
   }
   return (
     <div style={frame}>
@@ -699,7 +699,7 @@ function Bench({ exp, base, cfg, predWinner, setPredWinner, predBand, setPredBan
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>EXPERIMENT {base.n}</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>{base.title}</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>{base.title}</h2>
         <Chip>{base.principle}</Chip>
       </div>
       <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.55, marginTop: 8, maxWidth: 860 }}>{base.context}</p>
@@ -768,7 +768,7 @@ function Running({ exp, base, cfg, result, animN, total, liveStat, animComplete,
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 24, letterSpacing: -0.5, margin: 0 }}>Running — {base.title}</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 24, letterSpacing: -0.5, margin: 0 }}>Running — {base.title}</h2>
         <span style={{ fontFamily: T.mono, color: T.muted, fontSize: 13 }}>{(animN * 2).toLocaleString()} / {(total * 2).toLocaleString()} visitors</span>
       </div>
 
@@ -815,7 +815,7 @@ function Running({ exp, base, cfg, result, animN, total, liveStat, animComplete,
       <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 12 }}>
         {!animComplete && !canStop && <div style={{ textAlign: "center", color: T.muted, fontSize: 13, fontFamily: T.mono }}>collecting data… {Math.round((animN / total) * 100)}%</div>}
         {canStop && (
-          <div style={{ background: "#2e2418", border: `1px solid ${T.amber}55`, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+          <div style={{ background: "#2A2731", border: `1px solid ${T.amber}55`, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
             <div style={{ fontSize: 13, marginBottom: 10 }}>You said you'd run to <b>{plannedN.toLocaleString()}</b> per arm. Stop early at <b>{animN.toLocaleString()}</b>?</div>
             <button onClick={() => onCall(verdict === "none" ? "more" : verdict)} style={{ ...btn(T.amber), padding: "10px 18px" }}>⏹ Stop & call it now</button>
           </div>
@@ -866,7 +866,7 @@ function Verdict({ exp, base, cfg, result, decisionN, record, predBand, call, on
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>VERDICT · EXPERIMENT {base.n}</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{base.title}</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{base.title}</h2>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 14 }}>
@@ -911,7 +911,7 @@ function Verdict({ exp, base, cfg, result, decisionN, record, predBand, call, on
           <ScoreCard ok={bandOk} title="Effect-size prediction" you={BANDS.find((b) => b.id === predBand)?.label} truth={tBand.label} />
           <ScoreCard ok={callOk} title="Your final call" you={callLabels[call]} truth={callTruthHint(s, truthDiff)} />
         </div>
-        <div style={{ marginTop: 14, background: tBand.id === "none" && s.significant ? "#3a1f16" : T.panel2, border: `1px solid ${tBand.id === "none" && s.significant ? T.neg + "55" : T.border}`, borderRadius: 11, padding: "14px 16px" }}>
+        <div style={{ marginTop: 14, background: tBand.id === "none" && s.significant ? "#3A1D1F" : T.panel2, border: `1px solid ${tBand.id === "none" && s.significant ? T.neg + "55" : T.border}`, borderRadius: 11, padding: "14px 16px" }}>
           <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: PLAYER, marginBottom: 5 }}>🎓 {base.concept}</div>
           <div style={{ fontSize: 13, lineHeight: 1.55 }}>{base.lesson}</div>
           {result.firstSignificantN != null && result.firstSignificantN < result.arms.A.n && !exp.segments && (
@@ -931,7 +931,7 @@ function RevealRow({ label, value, color }) {
 }
 function ScoreCard({ ok, title, you, truth }) {
   return (
-    <div style={{ background: ok ? "#1f2e18" : "#2e2418", border: `1px solid ${ok ? T.pos : T.amber}55`, borderRadius: 11, padding: "13px 15px" }}>
+    <div style={{ background: ok ? "#1E2B1E" : "#2A2731", border: `1px solid ${ok ? T.pos : T.amber}55`, borderRadius: 11, padding: "13px 15px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
         <span style={{ fontSize: 12.5, color: T.muted }}>{title}</span>
         <span style={{ color: ok ? T.pos : T.amber, fontWeight: 700, fontSize: 13 }}>{ok ? "✓ correct" : "✗ off"}</span>
@@ -962,7 +962,7 @@ function ProfitNote({ exp, s }) {
   const pb = profitPerThousand(exp, s.rB, "B");
   const bWorse = pb < pa;
   return (
-    <div style={{ marginTop: 12, background: bWorse ? "#3a1f16" : "#1f2e18", border: `1px solid ${bWorse ? T.neg : T.pos}55`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
+    <div style={{ marginTop: 12, background: bWorse ? "#3A1D1F" : "#1E2B1E", border: `1px solid ${bWorse ? T.neg : T.pos}55`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
       💷 <b>Business impact / 1,000 visitors:</b> A makes <b style={{ color: T.text }}>{gbp(pa)}</b>, B makes <b style={{ color: bWorse ? T.neg : T.pos }}>{gbp(pb)}</b>.
       {bWorse ? " B converts more, but the free shipping makes it LESS profitable — a test that wins on clicks but loses money." : " B wins on both conversion and profit here."}
     </div>
@@ -974,7 +974,7 @@ function GuardrailNote({ exp, s }) {
   const gb = guardrailPerThousand(exp, s.rB, "B");
   const bWorse = gb < ga;
   return (
-    <div style={{ marginTop: 12, background: bWorse ? "#3a1f16" : "#1f2e18", border: `1px solid ${bWorse ? T.neg : T.pos}55`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
+    <div style={{ marginTop: 12, background: bWorse ? "#3A1D1F" : "#1E2B1E", border: `1px solid ${bWorse ? T.neg : T.pos}55`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
       🚧 <b><Term term="guardrail">Guardrail</Term> — {exp.guardrail.label}:</b> A delivers <b style={{ color: T.text }}>{ga.toFixed(1)}</b>, B delivers <b style={{ color: bWorse ? T.neg : T.pos }}>{gb.toFixed(1)}</b>.
       {bWorse ? ` B won the test metric but the guardrail moved the wrong way (${Math.round((1 - gb / ga) * 100)}% fewer). ` : " B held up on the guardrail too. "}
       <span style={{ color: T.muted }}>{exp.guardrail.note}</span>
@@ -1013,7 +1013,7 @@ function QuizRound({ item, idx, total, onComplete }) {
     <div className="rise" style={{ marginTop: 22, maxWidth: 980, marginLeft: "auto", marginRight: "auto" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>QUESTION {idx + 1} / {total}</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{item.title}</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{item.title}</h2>
       </div>
       <p style={{ color: T.muted, fontSize: 15, lineHeight: 1.5, marginTop: 6 }}>{item.question}</p>
 
@@ -1029,7 +1029,7 @@ function QuizRound({ item, idx, total, onComplete }) {
                 <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15 }}>{side === "a" ? item.a : item.b}</span>
               </div>
               <div style={{ padding: "0 16px 16px" }}><QuizMock kind={item.mock} side={side} /></div>
-              {stage === "reveal" && <div style={{ background: isWin ? "#1f2e18" : "#241d12", color: isWin ? T.pos : T.muted, fontFamily: T.mono, fontWeight: 700, fontSize: 12, textAlign: "center", padding: "7px 0" }}>{isWin ? "✓ this won" : (item.answer === "none" || item.answer === "depends") ? "—" : ""}</div>}
+              {stage === "reveal" && <div style={{ background: isWin ? "#1E2B1E" : "#26242B", color: isWin ? T.pos : T.muted, fontFamily: T.mono, fontWeight: 700, fontSize: 12, textAlign: "center", padding: "7px 0" }}>{isWin ? "✓ this won" : (item.answer === "none" || item.answer === "depends") ? "—" : ""}</div>}
             </div>
           );
         })}
@@ -1080,7 +1080,7 @@ function QuizRound({ item, idx, total, onComplete }) {
       {stage === "reveal" && (
         <div className="rise" style={{ ...card(), marginTop: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-            <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 18, color: points > 0 ? T.pos : points < 0 ? T.neg : T.muted }}>{points > 0 ? "+" : ""}{points} {Math.abs(points) === 1 ? "point" : "points"}</span>
+            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, color: points > 0 ? T.pos : points < 0 ? T.neg : T.muted }}>{points > 0 ? "+" : ""}{points} {Math.abs(points) === 1 ? "point" : "points"}</span>
             <Chip>{item.stack} · CRO Stack</Chip>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 8, marginBottom: 12 }}>
@@ -1121,7 +1121,7 @@ function QuizDone({ results, total, onReplay, onLab }) {
   return (
     <div className="rise" style={{ marginTop: 28, maxWidth: 760, marginLeft: "auto", marginRight: "auto", textAlign: "center" }}>
       <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>WHICH TEST WON?</div>
-      <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 40, margin: "8px 0" }}>You scored <span style={{ color: pts >= 0 ? PLAYER : T.neg }}>{pts}</span><span style={{ color: T.muted, fontSize: 24 }}> / {maxPts}</span></h1>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 40, margin: "8px 0" }}>You scored <span style={{ color: pts >= 0 ? PLAYER : T.neg }}>{pts}</span><span style={{ color: T.muted, fontSize: 24 }}> / {maxPts}</span></h1>
       <p style={{ color: T.muted, fontSize: 15.5, lineHeight: 1.6 }}>{verdict}</p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginTop: 18 }}>
         <MiniStat label="Direction" value={`${dirHits}/${total}`} accent={T.pos} />
@@ -1148,25 +1148,25 @@ function QuizDone({ results, total, onReplay, onLab }) {
 /* Compact A/B mocks for the quiz cards. */
 function QuizMock({ kind, side }) {
   const isB = side === "b";
-  const box = (children, h = 96) => <div style={{ height: h, background: "#FBF7EF", borderRadius: 10, color: "#23201A", fontFamily: T.body, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, overflow: "hidden", padding: 8 }}>{children}</div>;
+  const box = (children, h = 96) => <div style={{ height: h, background: "#FAFAFB", borderRadius: 10, color: "#26242B", fontFamily: T.body, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, overflow: "hidden", padding: 8 }}>{children}</div>;
   const btnBox = (bg, txt, color = "#fff") => <div style={{ background: bg, color, fontWeight: 700, fontSize: 13, padding: "9px 16px", borderRadius: 8 }}>{txt}</div>;
   const bar = (w = "100%") => <div style={{ width: w, height: 9, background: "#E3E8DD", borderRadius: 4 }} />;
   switch (kind) {
-    case "guest": return box(isB ? btnBox("#2E9E5B", "Continue as guest") : btnBox("#C9C3B4", "Create an account", "#4a463c"));
+    case "guest": return box(isB ? btnBox("#2E9E5B", "Continue as guest") : btnBox("#C7C6CC", "Create an account", "#46444C"));
     case "fields": return box(<div style={{ display: "flex", flexDirection: "column", gap: 5, width: "70%" }}>{Array.from({ length: isB ? 4 : 8 }).map((_, i) => bar())}</div>, 110);
-    case "guarantee": return box(isB ? <div style={{ background: "#E3F0E4", color: "#2E5A3E", fontWeight: 700, padding: "8px 12px", borderRadius: 8, fontSize: 12.5 }}>✅ 30-day money-back</div> : <span style={{ color: "#8a8270", fontSize: 12 }}>no guarantee</span>);
+    case "guarantee": return box(isB ? <div style={{ background: "#E3F0E4", color: "#2E5A3E", fontWeight: 700, padding: "8px 12px", borderRadius: 8, fontSize: 12.5 }}>✅ 30-day money-back</div> : <span style={{ color: "#85838C", fontSize: 12 }}>no guarantee</span>);
     case "columns": return box(isB
       ? <div style={{ display: "flex", gap: 8, width: "80%" }}>{[0, 1].map((c) => <div key={c} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5 }}>{bar()}{bar()}{bar()}</div>)}</div>
       : <div style={{ display: "flex", flexDirection: "column", gap: 5, width: "55%" }}>{bar()}{bar()}{bar()}</div>, 96);
-    case "reviews": return box(isB ? <div style={{ textAlign: "center" }}><div style={{ color: "#E8902E", fontSize: 18 }}>★★★★☆</div><div style={{ fontSize: 11, color: "#8a8270" }}>412 reviews</div></div> : <span style={{ color: "#8a8270", fontSize: 12 }}>reviews hidden</span>);
+    case "reviews": return box(isB ? <div style={{ textAlign: "center" }}><div style={{ color: "#E8902E", fontSize: 18 }}>★★★★☆</div><div style={{ fontSize: 11, color: "#85838C" }}>412 reviews</div></div> : <span style={{ color: "#85838C", fontSize: 12 }}>reviews hidden</span>);
     case "sticky": return box(<div style={{ position: "relative", width: 64, height: 84, background: "#E3E8DD", borderRadius: 8, overflow: "hidden" }}><div style={{ fontSize: 22, textAlign: "center", marginTop: 16 }}>🪴</div>{isB && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#2E9E5B", color: "#fff", fontSize: 8, fontWeight: 700, textAlign: "center", padding: "4px 0" }}>Add to cart</div>}</div>);
     case "video": return box(<div style={{ fontSize: 34 }}>{isB ? "▶️" : "🖼️"}</div>);
-    case "popup": return box(isB ? <div style={{ position: "relative", width: "85%", height: 70, background: "#E3E8DD", borderRadius: 8 }}><div style={{ position: "absolute", inset: "14px 18px", background: "#fff", border: "1px solid #C9C3B4", borderRadius: 6, fontSize: 10.5, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 4 }}>✉️ 10% off — before you go!</div></div> : <div style={{ width: "85%", height: 70, background: "#E3E8DD", borderRadius: 8 }} />);
+    case "popup": return box(isB ? <div style={{ position: "relative", width: "85%", height: 70, background: "#E3E8DD", borderRadius: 8 }}><div style={{ position: "absolute", inset: "14px 18px", background: "#fff", border: "1px solid #C7C6CC", borderRadius: 6, fontSize: 10.5, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 4 }}>✉️ 10% off — before you go!</div></div> : <div style={{ width: "85%", height: 70, background: "#E3E8DD", borderRadius: 8 }} />);
     case "decoy": return box(<div style={{ display: "flex", gap: 5 }}>{Array.from({ length: isB ? 4 : 3 }).map((_, i) => <div key={i} style={{ width: 26, height: 50, background: "#E3E8DD", borderRadius: 5, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 4, fontFamily: T.mono, fontSize: 9, fontWeight: 700 }}>£{[9, 19, 29, 39][i]}</div>)}</div>);
     case "personalise": return box(<div style={{ textAlign: "center" }}><div style={{ fontSize: 11, fontWeight: 700, marginBottom: 5 }}>{isB ? "✨ Recommended for you" : "Bestsellers"}</div><div style={{ display: "flex", gap: 5, justifyContent: "center" }}>{["🪴", "🌷", "🌿"].map((e, i) => <div key={i} style={{ width: 30, height: 34, background: "#E3E8DD", borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>{e}</div>)}</div></div>);
     case "microcopy": return box(<div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}><div style={{ width: 54, height: 40, background: "#E3E8DD", borderRadius: 6 }} />{btnBox("#2E9E5B", isB ? "Add to basket" : "Add to cart")}</div>);
-    case "coupon": return box(<div style={{ width: "74%", display: "flex", flexDirection: "column", gap: 5 }}>{bar()}{bar()}{isB && <div style={{ display: "flex", alignItems: "center", gap: 5, border: "1px dashed #B7AE99", borderRadius: 5, padding: "4px 6px", fontSize: 9.5, color: "#6E6552" }}>🎟️ Got a promo code?</div>}{bar()}<div style={{ background: "#2E9E5B", height: 12, borderRadius: 4, marginTop: 2 }} /></div>);
-    default: return box(<span style={{ color: "#8a8270", fontSize: 12 }}>{isB ? "Variant B" : "Variant A"}</span>);
+    case "coupon": return box(<div style={{ width: "74%", display: "flex", flexDirection: "column", gap: 5 }}>{bar()}{bar()}{isB && <div style={{ display: "flex", alignItems: "center", gap: 5, border: "1px dashed #B2AFB8", borderRadius: 5, padding: "4px 6px", fontSize: 9.5, color: "#6A6872" }}>🎟️ Got a promo code?</div>}{bar()}<div style={{ background: "#2E9E5B", height: 12, borderRadius: 4, marginTop: 2 }} /></div>);
+    default: return box(<span style={{ color: "#85838C", fontSize: 12 }}>{isB ? "Variant B" : "Variant A"}</span>);
   }
 }
 
@@ -1179,7 +1179,7 @@ function Summary({ records, cfg, restart }) {
     <div className="rise" style={{ marginTop: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>CHRICHTON · SEED {cfg.seed}</div>
-        <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 36, margin: "6px 0", letterSpacing: -0.5 }}>Your calibration report</h1>
+        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 36, margin: "6px 0", letterSpacing: -0.5 }}>Your calibration report</h1>
         <div style={{ color: T.muted }}>Effect-size band <b style={{ color: PLAYER }}>{bandHits}/{ordered.length}</b> · final call <b style={{ color: PLAYER }}>{callHits}/{ordered.length}</b> correct.</div>
       </div>
 
@@ -1250,10 +1250,10 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1A1610", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
+      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1D1B21", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
         <div style={{ padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 19, color: A }}>⚙ Instructor</span>
+            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
             <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>
           </div>
           <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.5, marginTop: 0 }}>Changes apply to the <b style={{ color: T.text }}>next test run</b>. A shared seed gives the whole cohort an identical run — so the debrief is about <b style={{ color: T.text }}>decisions</b>, not luck.</p>
@@ -1346,7 +1346,7 @@ function ToggleRow({ label, on, onToggle, accent }) {
   return (
     <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 13, fontWeight: 500 }}>
       <span>{label}</span>
-      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#14110D", transition: "left .15s" }} /></span>
+      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#171519", transition: "left .15s" }} /></span>
     </div>
   );
 }
@@ -1366,5 +1366,5 @@ const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid 
 const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20 });
 const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 11, padding: "13px 22px", fontFamily: T.body, fontWeight: 700, fontSize: 15, cursor: "pointer", letterSpacing: 0.2 });
 const pillBtn = (on) => ({ flex: 1, padding: "10px 8px", borderRadius: 9, cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, border: `1.5px solid ${on ? PLAYER : T.border}`, background: on ? PLAYER : "transparent", color: on ? T.onAccent : T.text });
-const croBtn = (disabled, primary) => ({ background: disabled ? "#2a241a" : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text, border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 8, padding: "8px 12px", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap" });
+const croBtn = (disabled, primary) => ({ background: disabled ? "#2A2731" : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text, border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 8, padding: "8px 12px", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap" });
 const td = () => ({ padding: "7px 8px", borderBottom: `1px solid ${T.border}` });

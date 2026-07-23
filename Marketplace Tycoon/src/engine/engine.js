@@ -170,7 +170,7 @@ const GLOSSARY = {
 };
 
 const KEEP_BASE = 0.78, STOCKOUT_KEEP_PEN = 0.30, LOYAL_FRAC_MAX = 0.30;
-const PLAYER_COLOR = "#F2A93B";
+const PLAYER_COLOR = "#009DDC";
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const gbp = (n) => "£" + Math.round(n).toLocaleString("en-GB");
 

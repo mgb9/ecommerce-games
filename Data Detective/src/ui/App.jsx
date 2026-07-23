@@ -7,16 +7,16 @@ import {
 } from "../engine/engine.js";
 
 const FONT_IMPORT = `
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 `;
 const T = {
-  ink: "#14110D", panel: "#1F1A13", panel2: "#272015", border: "#3A3022",
-  text: "#F0E9DC", muted: "#A99E8B", pos: "#7DCB6A", neg: "#E2654E", amber: "#E6B450",
-  player: "#F2A93B", instructor: "#C9A06A", sel: "#2A2113", track: "#332a1d", faint: "#8f887d", onAccent: "#1a1206",
-  display: "'Bricolage Grotesque', sans-serif", body: "'Hanken Grotesk', sans-serif", mono: "'JetBrains Mono', monospace",
+  ink: "#171519", panel: "#211F25", panel2: "#2A2731", border: "#3B3843",
+  text: "#F5F4F6", muted: "#A5A3AB", pos: "#7DCB6A", neg: "#E2654E", amber: "#FBB034",
+  player: "#F47920", instructor: "#BFA98C", sel: "#2C2933", track: "#343039", faint: "#8D8B93", onAccent: "#211F25",
+  display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;
-const SEG_COLORS = ["#F2A93B", "#3FB6A8", "#E2654E", "#9B8Fb0", "#7DCB6A", "#C9A06A"];
+const SEG_COLORS = ["#FBB034", "#3FB6A8", "#E2654E", "#9B8Fb0", "#7DCB6A", "#C9A06A"];
 
 function Term({ term, children }) {
   const [open, setOpen] = useState(false);
@@ -25,7 +25,7 @@ function Term({ term, children }) {
   return (
     <span style={{ position: "relative", display: "inline-block" }}>
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
-      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: "#0F0C08", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>}
+      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: "#131118", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>}
     </span>
   );
 }
@@ -121,8 +121,8 @@ export default function App() {
       <style>{FONT_IMPORT + `
         * { box-sizing: border-box; }
         input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
-        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #14110D; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #14110D; }
+        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; box-shadow:0 0 0 3px var(--accent-soft); }
+        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; }
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
@@ -156,10 +156,10 @@ function Header({ phase, caseData, reportsViewed, pivotsUsed, plain, togglePlain
   const show = phase !== "intro";
   const wide = phase === "investigate";
   return (
-    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#17130D", position: "sticky", top: 0, zIndex: 30 }}>
+    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181D", position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{ maxWidth: wide ? 1380 : 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 22, letterSpacing: -0.5 }}>Data <span style={{ color: PLAYER }}>Detective</span></span>
+          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Data <span style={{ color: PLAYER }}>Detective</span></span>
           <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>Chrichton · root-cause diagnosis</span>
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
@@ -183,7 +183,7 @@ function Intro({ caseData, cfg, caseIndex, onSelectCase, onStart }) {
   const t = caseData.ticket;
   return (
     <div className="rise" style={{ maxWidth: 720, margin: "44px auto 0" }}>
-      <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 44, lineHeight: 1.08, letterSpacing: -1, margin: 0 }}>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 44, lineHeight: 1.08, letterSpacing: -1, margin: 0 }}>
         <PT rich={<>Something's wrong with the numbers.<br /><span style={{ color: PLAYER }}>Find out what.</span></>}
             plain={<>A number has changed.<br /><span style={{ color: PLAYER }}>Find out why.</span></>} />
       </h1>
@@ -206,7 +206,7 @@ function Intro({ caseData, cfg, caseIndex, onSelectCase, onStart }) {
         ))}
       </div>
 
-      <div style={{ marginTop: 14, background: "#0F0C08", border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px" }}>
+      <div style={{ marginTop: 14, background: "#131118", border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", color: T.muted, fontSize: 12, fontFamily: T.mono, marginBottom: 8 }}>
           <span>{t.channel}</span><span>{t.from}</span>
         </div>
@@ -583,7 +583,7 @@ function Investigate({ caseData, metric, setMetric, activeReport, openReport, on
   return (
     <div style={{ marginTop: 18 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 24, letterSpacing: -0.5, margin: 0 }}>Analytics</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 24, letterSpacing: -0.5, margin: 0 }}>Analytics</h2>
         <div style={{ fontSize: 12, color: T.muted, fontFamily: T.mono }}>{reportsViewed.length} reports · {pivotsUsed.length} pivots checked</div>
       </div>
       {activeReport !== "realtime" && <div style={{ marginTop: 12 }}><DateRangeBar curWindow={curWindow} setCurWindow={setCurWindow} cmpWindow={cmpWindow} cmpMode={cmpMode} setCmpMode={setCmpMode} /></div>}
@@ -622,7 +622,7 @@ function Diagnose({ caseData, diagnosis, setDiagnosis, onBack, onSubmit }) {
   return (
     <div className="rise" style={{ marginTop: 22, maxWidth: 920, marginLeft: "auto", marginRight: "auto" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <h2 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>Submit your diagnosis</h2>
+        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>Submit your diagnosis</h2>
         <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 14 }}>← back to the dashboard</button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18, marginTop: 14 }}>
@@ -686,7 +686,7 @@ function Reveal({ caseData, diagnosis, result, reportsViewed, pivotsUsed, onRest
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ textAlign: "center", marginBottom: 18 }}>
         <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>CASE {caseData.n} — SOLVED</div>
-        <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{result.fieldsCorrect}/4 correct</h1>
+        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{result.fieldsCorrect}/4 correct</h1>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18 }}>
         <div style={card()}>
@@ -704,7 +704,7 @@ function Reveal({ caseData, diagnosis, result, reportsViewed, pivotsUsed, onRest
             <div style={{ fontSize: 11.5, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 7 }}>Timeline events, now revealed</div>
             {caseData.events.map((e, i) => (
               <div key={i} style={{ display: "flex", gap: 8, alignItems: "baseline", fontSize: 12.5, marginBottom: 5 }}>
-                <span style={{ fontFamily: T.mono, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: e.real ? "#1f2e18" : "#2e2418", color: e.real ? T.pos : T.amber }}>{e.real ? "REAL CAUSE" : "RED HERRING"}</span>
+                <span style={{ fontFamily: T.mono, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: e.real ? "#1f2e18" : "#2A2731", color: e.real ? T.pos : T.amber }}>{e.real ? "REAL CAUSE" : "RED HERRING"}</span>
                 <span>{e.label}</span>
               </div>
             ))}
@@ -735,10 +735,10 @@ function InstructorPanel({ cfg, onApply, onClose }) {
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 330, maxWidth: "92vw", background: "#1A1610", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
+      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 330, maxWidth: "92vw", background: "#1D1B21", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
         <div style={{ padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <span style={{ fontFamily: T.display, fontWeight: 800, fontSize: 19, color: A }}>⚙ Instructor</span>
+            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
             <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>
           </div>
           <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.5, marginTop: 0 }}>Applies to a <b style={{ color: T.text }}>new case</b> — a shared seed gives a cohort an identical dashboard.</p>
