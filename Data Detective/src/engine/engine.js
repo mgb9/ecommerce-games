@@ -681,6 +681,11 @@ const GLOSSARY = {
   cro: "Conversion rate optimisation (CRO) — the practice of increasing the share of visitors who complete the goal, by testing and improving the site.",
   mixshift: "When the sitewide rate changes only because the MIX of traffic changed — more low-converting or fewer high-converting visitors — even though no single group's own rate moved. A Simpson's-paradox effect: check whether any segment's rate actually fell before blaming the site.",
   masking: "When a favourable change in one place (for example a surge of high-converting returning customers) hides a real problem elsewhere, so the sitewide number looks calm while a segment is badly broken. A flat topline does not prove nothing is wrong.",
+  selfreferral: "When your own checkout's payment provider (PayPal, SagePay, a bank) appears as a traffic source. The customer left the site to pay, and their return was counted as a NEW session 'referred' by the gateway — so the gateway steals conversion credit from the channel that really earned the sale.",
+  exclusionlist: "The referral exclusion list tells Analytics which domains must never count as referrers — above all your own payment gateways. Without it, every checkout round-trip restarts the session and distorts attribution. In older Analytics you had to configure this by hand.",
+  testtraffic: "Sessions and orders created by developers or test systems — sandbox payment environments, staging servers, office IP addresses — that were never real customers. They must be filtered out of the live data; if they are not, revenue and conversion figures include transactions that never happened.",
+  aov: "Average order value — revenue ÷ transactions. A powerful sanity check: if a 'channel' shows an AOV of £5,000 in consumer electronics retail, you are probably not looking at real customers.",
+  pla: "Product Listing Ads — Google Shopping image ads that link straight to a product page. In this data a landing-page URL ending ?ref=PLA marks a Shopping ad click.",
 };
 
 export {

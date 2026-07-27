@@ -5,6 +5,7 @@ import {
   generateCase, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod, summariseSegments, summariseTopline, scoreDiagnosis, avgRange,
   gbp, pct, pp, dayShort, dayLong,
 } from "../engine/engine.js";
+import FieldCase from "./FieldCase.jsx";
 
 const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
@@ -103,7 +104,13 @@ export default function App() {
     setPhase("intro"); setActiveReport("home"); setLog([]); setDiagnosis(initialDiagnosis()); setResult(null); setMetric("conversionRate");
     setCurWindow([TOTAL_DAYS - 7, TOTAL_DAYS - 1]); setCmpMode("first");
   }
-  function selectCase(idx) { regenerate(cfg, idx); }
+  // idx === CASES.length selects the field-data case (real 2015 exports),
+  // which manages its own phases/state — nothing to regenerate.
+  function selectCase(idx) {
+    if (idx >= CASES.length) { setCaseIndex(idx); setPhase("intro"); return; }
+    regenerate(cfg, idx);
+  }
+  const isField = caseIndex >= CASES.length;
   function openReport(key) { setActiveReport(key); if (key !== "home") setLog((l) => (l.includes(key) ? l : [...l, key])); }
   function logPivot(primary, sec) { if (sec) setLog((l) => { const t = `${primary}×${sec}`; return l.includes(t) ? l : [...l, t]; }); }
   function submitDiagnosis() {
@@ -129,23 +136,29 @@ export default function App() {
         .recharts-cartesian-axis-tick text{ fill:${T.muted}; font-family:${T.mono}; font-size:11px; }
       `}</style>
 
-      <Header phase={phase} caseData={caseData} reportsViewed={reportsViewed} pivotsUsed={pivotsUsed} plain={plain} togglePlain={togglePlain} onToggleInstructor={() => setShowInstructor((v) => !v)} />
+      {isField ? (
+        <FieldCase plain={plain} togglePlain={togglePlain} onExit={() => selectCase(0)} />
+      ) : (
+        <>
+          <Header phase={phase} caseData={caseData} reportsViewed={reportsViewed} pivotsUsed={pivotsUsed} plain={plain} togglePlain={togglePlain} onToggleInstructor={() => setShowInstructor((v) => !v)} />
 
-      <div style={{ maxWidth: phase === "investigate" ? 1380 : 1180, margin: "0 auto", padding: "0 20px 64px" }}>
-        {phase === "intro" && <Intro caseData={caseData} cfg={cfg} caseIndex={caseIndex} onSelectCase={selectCase} onStart={() => { setPhase("investigate"); setActiveReport("home"); }} />}
-        {phase === "investigate" && (
-          <Investigate caseData={caseData} metric={metric} setMetric={setMetric} activeReport={activeReport} openReport={openReport}
-            onPivot={logPivot} reportsViewed={reportsViewed} pivotsUsed={pivotsUsed} onDiagnose={() => setPhase("diagnose")}
-            curWindow={curWindow} setCurWindow={setCurWindow} cmpWindow={cmpWindow} cmpMode={cmpMode} setCmpMode={setCmpMode} />
-        )}
-        {phase === "diagnose" && (
-          <Diagnose caseData={caseData} diagnosis={diagnosis} setDiagnosis={setDiagnosis}
-            onBack={() => setPhase("investigate")} onSubmit={submitDiagnosis} />
-        )}
-        {phase === "reveal" && result && <Reveal caseData={caseData} diagnosis={diagnosis} result={result} reportsViewed={reportsViewed} pivotsUsed={pivotsUsed} onRestart={() => regenerate(cfg)} />}
-      </div>
+          <div style={{ maxWidth: phase === "investigate" ? 1380 : 1180, margin: "0 auto", padding: "0 20px 64px" }}>
+            {phase === "intro" && <Intro caseData={caseData} cfg={cfg} caseIndex={caseIndex} onSelectCase={selectCase} onStart={() => { setPhase("investigate"); setActiveReport("home"); }} />}
+            {phase === "investigate" && (
+              <Investigate caseData={caseData} metric={metric} setMetric={setMetric} activeReport={activeReport} openReport={openReport}
+                onPivot={logPivot} reportsViewed={reportsViewed} pivotsUsed={pivotsUsed} onDiagnose={() => setPhase("diagnose")}
+                curWindow={curWindow} setCurWindow={setCurWindow} cmpWindow={cmpWindow} cmpMode={cmpMode} setCmpMode={setCmpMode} />
+            )}
+            {phase === "diagnose" && (
+              <Diagnose caseData={caseData} diagnosis={diagnosis} setDiagnosis={setDiagnosis}
+                onBack={() => setPhase("investigate")} onSubmit={submitDiagnosis} />
+            )}
+            {phase === "reveal" && result && <Reveal caseData={caseData} diagnosis={diagnosis} result={result} reportsViewed={reportsViewed} pivotsUsed={pivotsUsed} onRestart={() => regenerate(cfg)} />}
+          </div>
 
-      {showInstructor && <InstructorPanel cfg={cfg} onApply={regenerate} onClose={() => setShowInstructor(false)} />}
+          {showInstructor && <InstructorPanel cfg={cfg} onApply={regenerate} onClose={() => setShowInstructor(false)} />}
+        </>
+      )}
     </div>
    </PlainCtx.Provider>
   );
@@ -178,7 +191,7 @@ function Stat({ label, value, accent }) {
 }
 
 /* ---- INTRO / TICKET --------------------------------------------- */
-const DIFFICULTY_COLOR = { Standard: T.pos, Advanced: T.neg, Expert: T.amber };
+const DIFFICULTY_COLOR = { Standard: T.pos, Advanced: T.neg, Expert: T.amber, "Field data": T.instructor };
 function Intro({ caseData, cfg, caseIndex, onSelectCase, onStart }) {
   const t = caseData.ticket;
   return (
@@ -204,6 +217,10 @@ function Intro({ caseData, cfg, caseIndex, onSelectCase, onStart }) {
             Case {c.n} · {c.difficulty}
           </button>
         ))}
+        <button onClick={() => onSelectCase(CASES.length)} title="Real Google Analytics exports from a real 2015 retailer — audit them" style={{ ...pillBtn(false), display: "flex", alignItems: "center", gap: 7 }}>
+          <span style={{ width: 7, height: 7, borderRadius: 7, background: DIFFICULTY_COLOR["Field data"] }} />
+          Case 5 · Field data
+        </button>
       </div>
 
       <div style={{ marginTop: 14, background: "#131118", border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px" }}>
@@ -215,7 +232,7 @@ function Intro({ caseData, cfg, caseIndex, onSelectCase, onStart }) {
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 22, flexWrap: "wrap" }}>
         <button onClick={onStart} style={btn(PLAYER)}>Open the dashboard →</button>
-        <span style={{ color: T.muted, fontSize: 13 }}>Case {caseData.n} of {CASES.length} · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
+        <span style={{ color: T.muted, fontSize: 13 }}>Case {caseData.n} of {CASES.length + 1} · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
       </div>
     </div>
   );
@@ -768,3 +785,8 @@ const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onA
 const pillBtn = (on) => ({ padding: "8px 13px", borderRadius: 9, cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, border: `1.5px solid ${on ? PLAYER : T.border}`, background: on ? PLAYER : "transparent", color: on ? T.onAccent : T.text });
 const pickRow = (on) => ({ cursor: "pointer", color: T.text, background: on ? T.sel : T.panel2, border: `1.5px solid ${on ? PLAYER : T.border}`, borderRadius: 10, padding: "9px 12px", fontSize: 13, fontWeight: 600 });
 const selStyle = (filled) => ({ background: T.panel2, color: filled ? PLAYER : T.text, border: `1px solid ${filled ? PLAYER : T.border}`, borderRadius: 8, padding: "6px 9px", fontFamily: T.body, fontSize: 12.5, fontWeight: 600, cursor: "pointer", outline: "none" });
+
+// Shared with FieldCase.jsx (case 5), which builds its own screens from the
+// same visual language. The circular import is safe: FieldCase only touches
+// these bindings at render time, long after both modules have initialised.
+export { T, PLAYER, card, btn, pillBtn, pickRow, tipStyle, SectionTitle, Term, TermsHint, LOBadges, PT, Stat, PlainToggle };
