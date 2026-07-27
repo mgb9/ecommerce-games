@@ -13,12 +13,23 @@ import { evaluatePlatforms, rationaleFor, fitOf, CRITERIA } from "../engine/plat
 const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 `;
+/* Light WMG redesign (2026-07): page #F5F5F6, white cards, shared red
+   primary #EE3124, dark #211F25 header band. Text tokens are AA on light
+   surfaces; *Fill tokens are for bars/dots/lines only, never small text.
+   The player's STORE identity stays MT blue: #009DDC for lines/graphics
+   (PLAYER_COLOR in the engine), #0272A0 where it colours text. */
 const T = {
-  ink: "#171519", panel: "#211F25", panel2: "#2A2731", border: "#3B3843",
-  text: "#F5F4F6", muted: "#A5A3AB", pos: "#7DCB6A", neg: "#E2654E", platform: "#C9A06A",
-  sel: "#2C2933", track: "#343039", faint: "#8D8B93", onAccent: "#211F25", amber: "#009DDC", gold: "#FBB034",
+  ink: "#F5F5F6", panel: "#FFFFFF", panel2: "#F4F3F5", border: "#E4E4E7",
+  text: "#211F25", body2: "#454B50", muted: "#616265", faint: "#8A8A8E",
+  pos: "#2F7D33", neg: "#B3271E", platform: "#8A6D45",
+  posFill: "#3A9E3A", negFill: "#E2654E", amberFill: "#FBB034",
+  player: "#EE3124", playerText: "#D6261B", youText: "#0272A0",
+  sel: "#FDEBE9", track: "#E7E6E9", onAccent: "#FFFFFF", amber: "#946A11", gold: "#946A11",
+  hdrBg: "#211F25", hdrText: "#F5F4F6", hdrMuted: "#9A9A9E", hdrBorder: "#3B3843",
+  shadow: "0 12px 30px -26px rgba(0,0,0,0.5)",
   display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
 };
+const PLAYER = T.player;
 
 function Term({ term, children }) {
   const [open, setOpen] = useState(false);
@@ -29,7 +40,7 @@ function Term({ term, children }) {
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
       {open && (
         <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 210, fontWeight: 400,
-          background: "#131118", border: `1px solid ${T.platform}66`, borderRadius: 8, padding: "8px 10px", fontSize: 11.5, color: T.text, lineHeight: 1.45, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>
+          background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "8px 10px", fontSize: 11.5, color: T.hdrText, lineHeight: 1.45, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>
       )}
     </span>
   );
@@ -75,7 +86,7 @@ function LOBadges({ los }) {
 function PlainToggle({ plain, toggle }) {
   return (
     <button onClick={toggle} title="Swap stylised wording for simpler, literal English"
-      style={{ background: plain ? T.amber : T.panel2, border: `1px solid ${plain ? T.amber : T.border}`, color: plain ? T.onAccent : T.text, borderRadius: 9, padding: "7px 11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+      style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
       <span style={{ fontSize: 15 }}>🗣️</span> Simpler English
     </button>
   );
@@ -154,8 +165,8 @@ export default function App() {
         * { box-sizing: border-box; }
         input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
         input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%;
-          cursor:pointer; background:var(--accent); border:2px solid #171519; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; }
+          cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; box-shadow:0 0 0 3px var(--accent-soft); }
+        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; }
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
@@ -182,24 +193,24 @@ export default function App() {
 function Header({ round, phase, player, rank, cfg, plain, togglePlain, onToggleInstructor }) {
   const feeRaised = cfg.commissionRate > DEFAULT_CFG.commissionRate + 1e-6;
   const showStats = phase === "play" || phase === "result" || phase === "end";
-  const cashColor = player.insolvent || player.cash < 0 ? T.neg : player.cash < cfg.startingCash * 0.3 ? "#FBB034" : T.pos;
+  const cashColor = player.insolvent || player.cash < 0 ? "#FF5A4A" : player.cash < cfg.startingCash * 0.3 ? "#FBB034" : "#7DCB6A";
   return (
-    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181E", position: "sticky", top: 0, zIndex: 30 }}>
+    <div style={{ background: T.hdrBg, color: T.hdrText, position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Marketplace <span style={{ color: PLAYER_COLOR }}>Tycoon</span></span>
-          <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>{showStats ? SC(cfg).icon + " " + SC(cfg).short : "e-commerce strategy lab"}</span>
+          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Marketplace <span style={{ color: PLAYER }}>Tycoon</span></span>
+          <span style={{ color: T.hdrMuted, fontSize: 13, fontFamily: T.mono }}>{showStats ? SC(cfg).icon + " " + SC(cfg).short : "e-commerce strategy lab"}</span>
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
           {showStats && <>
             <Stat label="WEEK" value={`${round}/${cfg.maxRounds}`} />
-            <Stat label="PROFIT" value={gbp(player.cumProfit)} accent={player.cumProfit >= 0 ? T.pos : T.neg} />
+            <Stat label="PROFIT" value={gbp(player.cumProfit)} accent={player.cumProfit >= 0 ? "#7DCB6A" : "#FF5A4A"} />
             <Stat label="CASH" value={gbp(player.cash)} accent={cashColor} />
             <Stat label="RANK" value={`#${rank}`} accent={PLAYER_COLOR} />
-            <Stat label="FEE" value={`${Math.round(cfg.commissionRate * 100)}%`} accent={feeRaised ? T.neg : T.platform} />
+            <Stat label="FEE" value={`${Math.round(cfg.commissionRate * 100)}%`} accent={feeRaised ? "#FF5A4A" : "#C4A578"} />
           </>}
           <PlainToggle plain={plain} toggle={togglePlain} />
-          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: T.panel2, border: `1px solid ${T.border}`, color: T.platform, borderRadius: 9, padding: "7px 11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 15 }}>⚙</span> Instructor
           </button>
         </div>
@@ -207,32 +218,41 @@ function Header({ round, phase, player, rank, cfg, plain, togglePlain, onToggleI
     </div>
   );
 }
+// Header-only: values sit on the dark band, so accents use the bright palette.
 function Stat({ label, value, accent }) {
-  return <div style={{ textAlign: "right" }}><div style={{ color: T.muted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.text, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
+  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
 }
 function PlatformPill({ id }) {
   const p = PMAP[id]; if (!p) return null;
   return <span style={{ fontFamily: T.mono, fontSize: 10, color: T.muted, border: `1px solid ${T.border}`, borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" }}>{p.short}</span>;
 }
 
+function Eyebrow({ children, title }) {
+  return (
+    <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
+      <span aria-hidden="true" style={{ width: 26, height: 3, background: PLAYER, borderRadius: 3 }} />
+      <span style={{ color: T.playerText, fontSize: 13, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
+    </div>
+  );
+}
 function Intro({ name, setName, onNext, cfg }) {
   return (
-    <div className="rise" style={{ maxWidth: 720, margin: "44px auto 0" }}>
-      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
-        <PT rich={<>Pick a client.<br />Build the store.<br /><span style={{ color: PLAYER_COLOR }}>Ten weeks to win.</span></>}
-            plain={<>Choose a client.<br />Set up the store.<br /><span style={{ color: PLAYER_COLOR }}>Run it for ten weeks.</span></>} />
+    <div className="rise" style={{ maxWidth: 820, margin: "48px auto 0" }}>
+      <Eyebrow title={`${LOS.LO1.full}\n${LOS.LO3.full}\n${LOS.LO4.full}`}>Strategy simulation · LO1 · LO3 · LO4</Eyebrow>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 50, lineHeight: 1.04, letterSpacing: -1.2, margin: "16px 0 0" }}>
+        <PT rich={<>Pick a client. Build the store.<br /><span style={{ color: PLAYER }}>Ten weeks to win.</span></>}
+            plain={<>Choose a client. Set up the store.<br /><span style={{ color: PLAYER }}>Run it for ten weeks.</span></>} />
       </h1>
-      <p style={{ color: T.muted, fontSize: 16, lineHeight: 1.6, marginTop: 18 }}>
+      <p style={{ color: T.body2, fontSize: 17.5, lineHeight: 1.6, marginTop: 18 }}>
         Choose a <b style={{ color: T.text }}>client brief</b>, a <b style={{ color: T.text }}>storefront platform</b> and a{" "}
         <b style={{ color: T.text }}>fulfilment model</b>, then run the store: set price, ad spend and stock, and invest in{" "}
         <Term term="cro">conversion optimization</Term> each week. Win loyal regulars, manage cash and returns, survive
         seasonal shocks, and outlast four rivals. The right strategy depends on the brief.
       </p>
       <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 22, flexWrap: "wrap" }}>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your store…" style={{ flex: 1, minWidth: 220, background: T.panel, border: `1px solid ${T.border}`, color: T.text, borderRadius: 10, padding: "13px 15px", fontSize: 15, fontFamily: T.body, outline: "none" }} />
-        <button onClick={onNext} style={btn(PLAYER_COLOR)}>Choose your client brief →</button>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your store…" style={{ flex: 1, minWidth: 220, background: T.panel, border: `1.5px solid ${T.border}`, color: T.text, borderRadius: 12, padding: "14px 16px", fontSize: 16, fontFamily: T.body, outline: "none" }} />
+        <button onClick={onNext} style={btn(PLAYER)}>Choose your client brief →</button>
       </div>
-      <LOBadges los={["LO1", "LO3", "LO4"]} />
       <TermsHint />
     </div>
   );
@@ -257,7 +277,7 @@ function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
             <button key={s.id} onClick={() => setSelected(s.id)} style={{ ...pickCard(on), borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>{s.icon} {s.name}</span>
-                {on && <span style={{ color: PLAYER_COLOR, fontSize: 18 }}>✓</span>}
+                {on && <span style={{ color: T.playerText, fontSize: 18 }}>✓</span>}
               </div>
               <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.45, margin: "2px 0 8px" }}>{s.brief}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
@@ -273,7 +293,7 @@ function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
       </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 20, flexWrap: "wrap" }}>
         <div style={{ color: T.muted, fontSize: 13.5 }}>Briefing the team on <b style={{ color: T.text }}>{sel.name}</b>.</div>
-        <button onClick={onNext} style={btn(PLAYER_COLOR)}>Set up your store →</button>
+        <button onClick={onNext} style={btn(PLAYER)}>Set up your store →</button>
       </div>
     </div>
   );
@@ -319,7 +339,7 @@ function PlatformFitPanel({ scenario, evalr, platform }) {
         <div>
           <div style={{ fontFamily: T.mono, fontSize: 10.5, letterSpacing: 1, color: T.muted, marginBottom: 8 }}>THE VERDICT</div>
           <div style={{ fontSize: 13, lineHeight: 1.55, color: T.text, marginBottom: 8 }}>
-            <b style={{ color: PLAYER_COLOR }}>★ {recRow.name}</b> is the strongest fit. {rationaleFor(recRow, scenario)}
+            <b style={{ color: T.youText }}>★ {recRow.name}</b> is the strongest fit. {rationaleFor(recRow, scenario)}
           </div>
           <div style={{ fontSize: 12.5, lineHeight: 1.5, color: matched ? T.pos : T.gold, borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
             {matched
@@ -350,11 +370,11 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
           return (
             <button key={base.id} onClick={() => setPlatform(base.id)} style={{ ...pickCard(on), borderRadius: 14, padding: 15 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{base.name}</span>{on && <span style={{ color: PLAYER_COLOR }}>✓</span>}
+                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{base.name}</span>{on && <span style={{ color: T.playerText }}>✓</span>}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "6px 0 2px" }}>
                 <FitChip verdict={f.verdict} fit={f.fit} />
-                {rec && <span title="Strongest fit for this brief" style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: 0.5, color: PLAYER_COLOR, border: `1px solid ${PLAYER_COLOR}66`, borderRadius: 5, padding: "1px 5px" }}>★ BEST FIT</span>}
+                {rec && <span title="Strongest fit for this brief" style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: 0.5, color: T.youText, border: `1px solid ${T.youText}66`, borderRadius: 5, padding: "1px 5px" }}>★ BEST FIT</span>}
               </div>
               <p style={{ color: T.muted, fontSize: 12, lineHeight: 1.4, margin: "5px 0 9px" }}>{base.blurb}</p>
               <SpecRow label="Cost / week" value={gbp(p.fixedCost) + (p.txnFee ? ` + ${(p.txnFee * 100).toFixed(p.txnFee * 100 % 1 ? 1 : 0)}%` : "")} />
@@ -377,7 +397,7 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
               return (
                 <button key={f.id} onClick={() => setFulfil(f.id)} style={{ ...pickCard(on), borderRadius: 14, padding: 15 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{f.icon} {f.short}</span>{on && <span style={{ color: PLAYER_COLOR }}>✓</span>}
+                    <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{f.icon} {f.short}</span>{on && <span style={{ color: T.playerText }}>✓</span>}
                   </div>
                   <p style={{ color: T.muted, fontSize: 12, lineHeight: 1.4, margin: "5px 0 9px" }}>{f.blurb}</p>
                   <SpecRow label="Cost / unit" value={f.perUnitCost ? gbp(f.perUnitCost) : (f.marginCut ? `${Math.round(f.marginCut * 100)}% cut` : "£0")} />
@@ -395,7 +415,7 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
       )}
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 22 }}>
-        <button onClick={onLaunch} style={btn(PLAYER_COLOR)}>Launch store →</button>
+        <button onClick={onLaunch} style={btn(PLAYER)}>Launch store →</button>
       </div>
     </div>
   );
@@ -415,8 +435,8 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
   const hikeFixed = (c, ids, mult) => { const platforms = { ...c.platforms }; ids.forEach((id) => { platforms[id] = { ...platforms[id], fixedCost: Math.round(PMAP[id].fixedCost * mult) }; }); return { ...c, platforms }; };
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1D1B21", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#00000066", zIndex: 40 }} />
+      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: T.panel, borderLeft: `1px solid ${T.border}`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #00000030" }}>
         <div style={{ padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
@@ -482,7 +502,7 @@ function ToggleRow({ label, on, onToggle, accent }) {
   return (
     <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 13, fontWeight: 500 }}>
       <span>{label}</span>
-      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#171519", transition: "left .15s" }} /></span>
+      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#FFFFFF", boxShadow: "0 1px 3px #00000040", transition: "left .15s" }} /></span>
     </div>
   );
 }
@@ -521,23 +541,23 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
           <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>Your move — Week {round}</span>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: T.mono, fontSize: 11, color: T.platform }}>{platform.short} · {ful.short}</span>
         </div>
-        <div style={{ background: "#24222B", borderRadius: 9, padding: "8px 11px", marginBottom: 14, fontSize: 11.5, color: T.muted, lineHeight: 1.45 }}>
+        <div style={{ background: T.panel2, borderRadius: 9, padding: "8px 11px", marginBottom: 14, fontSize: 11.5, color: T.muted, lineHeight: 1.45 }}>
           {sc.icon} <b style={{ color: T.text }}>{sc.name}:</b> {sc.teach}
         </div>
 
-        {ev && <Banner bg="#2A2731" bd={`${T.platform}66`}><b>{ev.icon} This week: {ev.title}</b><div style={{ fontSize: 12, color: T.muted, marginTop: 3, lineHeight: 1.45 }}>{ev.desc}</div></Banner>}
-        {player.insolvent && <Banner bg="#3B1F26" bd={T.neg}>💀 You're <Term term="insolvent">insolvent</Term> — out of cash. Keep trading if you like, but this is where real stores die. Cut spend, rebuild margin.</Banner>}
-        {mat < 1 && <Banner bg="#26232C" bd={`${T.platform}44`}>🏗 {platform.short} is {Math.round(mat * 100)}% built — paying {gbp(platform.fixedCost)}/wk in full while the edge ramps in (full power by week {platform.rampWeeks}).</Banner>}
-        {hiked && <Banner bg="#3B1F26" bd={`${T.neg}66`}>⚡ Platform pricing changed — now {gbp(platform.fixedCost)}/wk{platform.txnFee ? ` + ${(platform.txnFee * 100).toFixed(1)}%` : ""}. You're locked in.</Banner>}
+        {ev && <Banner bg="#F5EFE3" bd={`${T.platform}66`}><b>{ev.icon} This week: {ev.title}</b><div style={{ fontSize: 12, color: T.muted, marginTop: 3, lineHeight: 1.45 }}>{ev.desc}</div></Banner>}
+        {player.insolvent && <Banner bg="#FBE9E7" bd={T.negFill}>💀 You're <Term term="insolvent">insolvent</Term> — out of cash. Keep trading if you like, but this is where real stores die. Cut spend, rebuild margin.</Banner>}
+        {mat < 1 && <Banner bg="#F5EFE3" bd={`${T.platform}44`}>🏗 {platform.short} is {Math.round(mat * 100)}% built — paying {gbp(platform.fixedCost)}/wk in full while the edge ramps in (full power by week {platform.rampWeeks}).</Banner>}
+        {hiked && <Banner bg="#FBE9E7" bd={`${T.negFill}`}>⚡ Platform pricing changed — now {gbp(platform.fixedCost)}/wk{platform.txnFee ? ` + ${(platform.txnFee * 100).toFixed(1)}%` : ""}. You're locked in.</Banner>}
 
-        <Slider label="Price" accent={PLAYER_COLOR} value={d.price} min={sc.priceMin} max={sc.priceMax} step={1} fmt={gbp} hint="A lower price wins more sales — but every £1 off comes straight out of your already small profit margin." onChange={(v) => setPlayerDecision({ price: v })} />
-        <Slider label="Ad spend" accent={PLAYER_COLOR} value={d.ad} min={0} max={2500} step={50} fmt={gbp} hint={`Buys visibility (an auction). This brief is ${sc.adResponse >= 1.1 ? "ad-responsive" : sc.adResponse <= 0.8 ? "research-led — ads do less" : "moderately ad-responsive"}.`} onChange={(v) => setPlayerDecision({ ad: v })} />
+        <Slider label="Price" accent={PLAYER} value={d.price} min={sc.priceMin} max={sc.priceMax} step={1} fmt={gbp} hint="A lower price wins more sales — but every £1 off comes straight out of your already small profit margin." onChange={(v) => setPlayerDecision({ price: v })} />
+        <Slider label="Ad spend" accent={PLAYER} value={d.ad} min={0} max={2500} step={50} fmt={gbp} hint={`Buys visibility (an auction). This brief is ${sc.adResponse >= 1.1 ? "ad-responsive" : sc.adResponse <= 0.8 ? "research-led — ads do less" : "moderately ad-responsive"}.`} onChange={(v) => setPlayerDecision({ ad: v })} />
         {ful.infiniteStock ? (
           <div style={{ marginBottom: 16, fontSize: 12.5, color: T.muted, background: T.panel2, borderRadius: 9, padding: "10px 12px" }}>
             ♾ <b style={{ color: T.text }}>Unlimited inventory</b> — {sc.digital ? "digital goods never stock out." : "your dropship supplier holds the stock."} No stocking decision this week.
           </div>
         ) : (
-          <Slider label={<>Units stocked <Term term="newsvendor">(stocking)</Term></>} accent={PLAYER_COLOR} value={d.stock} min={0} max={Math.round(sc.demandBase * 1.4)} step={25} fmt={(n) => n.toLocaleString()} hint={sc.holdingPerUnit >= 1.5 ? "Unsold units spoil, so ordering too much is very costly here. Match your stock to expected demand." : "Too few and you stock out; too much and you eat holding costs."} onChange={(v) => setPlayerDecision({ stock: v })} />
+          <Slider label={<>Units stocked <Term term="newsvendor">(stocking)</Term></>} accent={PLAYER} value={d.stock} min={0} max={Math.round(sc.demandBase * 1.4)} step={25} fmt={(n) => n.toLocaleString()} hint={sc.holdingPerUnit >= 1.5 ? "Unsold units spoil, so ordering too much is very costly here. Match your stock to expected demand." : "Too few and you stock out; too much and you eat holding costs."} onChange={(v) => setPlayerDecision({ stock: v })} />
         )}
 
         <CROPanel player={player} sc={sc} croConv={croConv} availCash={availCash} onDeploy={croDeploy} onTest={croTest} />
@@ -545,18 +565,18 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
           <MiniStat label={<Term term="contribution">Contribution / unit</Term>} value={gbp(unitMargin)} sub={<><Term term="cogs">COGS</Term> {gbp(unitCostTotal)} + fees</>} accent={unitMargin > 0 ? T.pos : T.neg} />
           <MiniStat label="Break-even volume" value={isFinite(breakEvenUnits) ? `${Math.ceil(breakEvenUnits)} units` : "—"} sub={<>covers ad + <Term term="cro">CRO</Term> + platform</>} accent={T.platform} />
-          <MiniStat label={<Term term="regulars">Returning regulars</Term>} value={Math.round(player.loyalBase).toLocaleString()} sub="uncontested recurring demand" accent={PLAYER_COLOR} />
+          <MiniStat label={<Term term="regulars">Returning regulars</Term>} value={Math.round(player.loyalBase).toLocaleString()} sub="uncontested recurring demand" accent={T.youText} />
           <MiniStat label={<Term term="workingcapital">Cash available</Term>} value={gbp(availCash)} sub={committed > 0 ? `${gbp(committed)} committed to CRO` : "your runway"} accent={availCash < 0 ? T.neg : availCash < cfg.startingCash * 0.3 ? "#FBB034" : T.pos} />
         </div>
 
         <div style={{ marginTop: 16, background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>
           <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 9 }}>Before you sell — where will you rank this week?</div>
           <div style={{ display: "flex", gap: 6 }}>
-            {[1, 2, 3, 4, 5].map((n) => <button key={n} onClick={() => setPrediction(n)} style={{ flex: 1, padding: "9px 0", borderRadius: 8, cursor: "pointer", fontFamily: T.mono, fontWeight: 700, fontSize: 13, border: `1px solid ${prediction === n ? PLAYER_COLOR : T.border}`, background: prediction === n ? PLAYER_COLOR : "transparent", color: prediction === n ? T.onAccent : T.text }}>#{n}</button>)}
+            {[1, 2, 3, 4, 5].map((n) => <button key={n} onClick={() => setPrediction(n)} style={{ flex: 1, padding: "9px 0", borderRadius: 8, cursor: "pointer", fontFamily: T.mono, fontWeight: 700, fontSize: 13, border: `1px solid ${prediction === n ? PLAYER : T.border}`, background: prediction === n ? PLAYER : "transparent", color: prediction === n ? T.onAccent : T.text }}>#{n}</button>)}
           </div>
         </div>
 
-        <button onClick={sellWeek} disabled={prediction == null} style={{ ...btn(PLAYER_COLOR), width: "100%", marginTop: 16, opacity: prediction == null ? 0.45 : 1, cursor: prediction == null ? "not-allowed" : "pointer" }}>{prediction == null ? "Predict your rank to continue" : "Run the week ▸"}</button>
+        <button onClick={sellWeek} disabled={prediction == null} style={{ ...btn(PLAYER), width: "100%", marginTop: 16, opacity: prediction == null ? 0.45 : 1, cursor: prediction == null ? "not-allowed" : "pointer" }}>{prediction == null ? "Predict your rank to continue" : "Run the week ▸"}</button>
       </div>
 
       <div style={card()}>
@@ -598,7 +618,7 @@ function CROPanel({ player, sc, croConv, availCash, onDeploy, onTest }) {
             <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5 }}>
               <span style={{ width: 116, flexShrink: 0 }}>
                 <span>{l.icon} {l.name}</span>
-                <span style={{ display: "block", marginTop: 2, letterSpacing: 1, color: PLAYER_COLOR, fontSize: 11 }}>{"●".repeat(tier)}<span style={{ color: T.faint }}>{"○".repeat(3 - tier)}</span></span>
+                <span style={{ display: "block", marginTop: 2, letterSpacing: 1, color: T.youText, fontSize: 11 }}>{"●".repeat(tier)}<span style={{ color: T.faint }}>{"○".repeat(3 - tier)}</span></span>
               </span>
               {maxed ? (
                 <span style={{ color: T.muted, fontFamily: T.mono, fontSize: 11 }}>maxed</span>
@@ -619,8 +639,8 @@ function CROPanel({ player, sc, croConv, availCash, onDeploy, onTest }) {
   );
 }
 const croBtn = (disabled, primary) => ({
-  background: disabled ? "#2A2731" : primary ? PLAYER_COLOR : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text,
-  border: `1px solid ${primary ? (disabled ? T.border : PLAYER_COLOR) : T.border}`, borderRadius: 7, padding: "5px 8px",
+  background: disabled ? T.panel2 : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text,
+  border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 7, padding: "5px 8px",
   fontFamily: T.body, fontWeight: 600, fontSize: 11, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap",
 });
 
@@ -628,12 +648,12 @@ function StoreRow({ s, pos, firstRound, sc, round }) {
   const share = s.last ? s.last.share : 0;
   const cv = croConvOf(s.isPlayer ? s.cro : botCro(s.id, round), s.isPlayer, s.croLifts, sc);
   return (
-    <div style={{ background: s.isPlayer ? T.sel : T.panel2, border: `1px solid ${s.isPlayer ? PLAYER_COLOR + "55" : T.border}`, borderRadius: 11, padding: "11px 13px" }}>
+    <div style={{ background: s.isPlayer ? "#E7F4FB" : T.panel2, border: `1px solid ${s.isPlayer ? PLAYER_COLOR : T.border}`, borderRadius: 11, padding: "11px 13px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <span style={{ fontFamily: T.mono, color: T.muted, fontSize: 12, width: 16 }}>{pos}</span>
           <span style={{ width: 9, height: 9, borderRadius: 9, background: s.color, flexShrink: 0 }} />
-          <span style={{ fontWeight: 700, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}{s.isPlayer && <span style={{ color: PLAYER_COLOR }}> (you)</span>}</span>
+          <span style={{ fontWeight: 700, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
           <PlatformPill id={s.platformId} />
           {s.insolvent && <span style={{ fontSize: 10 }}>💀</span>}
         </div>
@@ -675,10 +695,10 @@ function ResultView({ stores, ranked, log, round, nextWeek, player, cfg, predict
         <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0 2px", fontSize: 16, fontWeight: 700 }}><span>Weekly profit</span><span style={{ fontFamily: T.mono, color: r.profit >= 0 ? T.pos : T.neg }}>{gbp(r.profit)}</span></div>
         <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13, color: T.muted }}><span>Cash after the week</span><span style={{ fontFamily: T.mono, color: r.cashAfter < 0 ? T.neg : T.muted }}>{gbp(r.cashAfter)}</span></div>
 
-        <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "10px 12px", fontSize: 12.5, lineHeight: 1.5 }}>♥ Of {Math.round(r.keptSales)} kept sales, <b style={{ color: PLAYER_COLOR }}>{Math.round(r.returningServed)}</b> were returning regulars. You now hold <b style={{ color: PLAYER_COLOR }}>{Math.round(player.loyalBase)}</b>. Site conversion ran at <b style={{ color: T.pos }}>×{r.croConv.toFixed(3)}</b>.</div>
-        {pred && <div style={{ marginTop: 10, background: pred.hit ? "#1D2C20" : "#2E2B34", borderRadius: 10, padding: "10px 12px", fontSize: 12.5, border: `1px solid ${pred.hit ? T.pos : T.platform}44` }}>{pred.hit ? "✓" : "✗"} You predicted <b>#{pred.predicted}</b>, finished <b>#{pred.actual}</b> this week.</div>}
-        {r.returnedUnits > 8 && <div style={{ marginTop: 10, background: "#2E2B34", border: `1px solid ${T.neg}44`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>↩ <Term term="returns">Returns</Term> cost you {Math.round(r.returnedUnits)} sales plus {gbp(r.returnHandling)} handling. Trust & checkout CRO reduce them.</div>}
-        {r.lostSales > 5 && <div style={{ marginTop: 10, background: "#3B1F26", border: `1px solid ${T.neg}55`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>⚠ Stocked out — <b>{Math.round(r.lostSales)}</b> couldn't buy. Lost sales now, churned regulars later.</div>}
+        <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "10px 12px", fontSize: 12.5, lineHeight: 1.5 }}>♥ Of {Math.round(r.keptSales)} kept sales, <b style={{ color: T.youText }}>{Math.round(r.returningServed)}</b> were returning regulars. You now hold <b style={{ color: T.youText }}>{Math.round(player.loyalBase)}</b>. Site conversion ran at <b style={{ color: T.pos }}>×{r.croConv.toFixed(3)}</b>.</div>
+        {pred && <div style={{ marginTop: 10, background: pred.hit ? "#EAF4E5" : "#F5EFE3", borderRadius: 10, padding: "10px 12px", fontSize: 12.5, border: `1px solid ${pred.hit ? T.posFill : T.platform}` }}>{pred.hit ? "✓" : "✗"} You predicted <b>#{pred.predicted}</b>, finished <b>#{pred.actual}</b> this week.</div>}
+        {r.returnedUnits > 8 && <div style={{ marginTop: 10, background: "#FBE9E7", border: `1px solid ${T.negFill}`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>↩ <Term term="returns">Returns</Term> cost you {Math.round(r.returnedUnits)} sales plus {gbp(r.returnHandling)} handling. Trust & checkout CRO reduce them.</div>}
+        {r.lostSales > 5 && <div style={{ marginTop: 10, background: "#FBE9E7", border: `1px solid ${T.negFill}`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>⚠ Stocked out — <b>{Math.round(r.lostSales)}</b> couldn't buy. Lost sales now, churned regulars later.</div>}
       </div>
 
       <div style={card()}>
@@ -689,7 +709,7 @@ function ResultView({ stores, ranked, log, round, nextWeek, player, cfg, predict
               <span style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}>
                 <span style={{ fontFamily: T.mono, color: T.muted, width: 14 }}>{i + 1}</span>
                 <span style={{ width: 8, height: 8, borderRadius: 8, background: s.color }} />
-                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}{s.isPlayer && <span style={{ color: PLAYER_COLOR }}> (you)</span>}</span>
+                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
                 <PlatformPill id={s.platformId} />
               </span>
               <span style={{ fontFamily: T.mono, color: T.muted, whiteSpace: "nowrap" }}>{Math.round(s.last.keptSales)} sold · {gbp(s.last.price)}</span>
@@ -697,7 +717,7 @@ function ResultView({ stores, ranked, log, round, nextWeek, player, cfg, predict
           ))}
         </div>
         <div style={{ background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>{log.map((line, i) => <div key={i} style={{ fontSize: 13, color: T.text, marginBottom: i < log.length - 1 ? 7 : 0, lineHeight: 1.45 }}>▸ {line}</div>)}</div>
-        <button onClick={nextWeek} style={{ ...btn(PLAYER_COLOR), width: "100%", marginTop: 16 }}>{round >= cfg.maxRounds ? "See final results →" : `Plan week ${round + 1} →`}</button>
+        <button onClick={nextWeek} style={{ ...btn(PLAYER), width: "100%", marginTop: 16 }}>{round >= cfg.maxRounds ? "See final results →" : `Plan week ${round + 1} →`}</button>
       </div>
     </div>
   );
@@ -717,7 +737,7 @@ function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>{sc.icon} {sc.name.toUpperCase()} · SEED {cfg.seed}</div>
         <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{winner.isPlayer ? "You won the marketplace 🏆" : `${winner.name} took it`}</h1>
-        <div style={{ color: T.muted }}>You finished <b style={{ color: PLAYER_COLOR }}>#{playerRank}</b> on {PMAP[player.platformId].name} with {gbp(player.cumProfit)} profit{player.insolvent ? <span style={{ color: T.neg }}> — but traded insolvent</span> : <> and {gbp(player.cash)} cash</>}.</div>
+        <div style={{ color: T.muted }}>You finished <b style={{ color: T.youText }}>#{playerRank}</b> on {PMAP[player.platformId].name} with {gbp(player.cumProfit)} profit{player.insolvent ? <span style={{ color: T.neg }}> — but traded insolvent</span> : <> and {gbp(player.cash)} cash</>}.</div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 18 }}>
         <div style={card()}>
@@ -750,7 +770,7 @@ function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
           <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.md`, buildMarkdown(stores, player, predictionLog, cfg), "text/markdown")} style={{ ...btn("transparent"), color: T.text, border: `1px solid ${T.border}` }}>⬇ Download Markdown</button>
         </div>
       </div>
-      <div style={{ textAlign: "center", marginTop: 22 }}><button onClick={restart} style={btn(PLAYER_COLOR)}>Play again ↺</button></div>
+      <div style={{ textAlign: "center", marginTop: 22 }}><button onClick={restart} style={btn(PLAYER)}>Play again ↺</button></div>
     </div>
   );
 }
@@ -780,7 +800,7 @@ function Debrief({ stores, player, cfg, predictionLog }) {
     <div style={{ ...card(), marginTop: 18 }}>
       <SectionTitle>Debrief — what the game was teaching</SectionTitle>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-        {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, marginBottom: 6, color: PLAYER_COLOR }}>{c.t}</div><div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>{c.b}</div></div>)}
+        {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, marginBottom: 6, color: T.playerText }}>{c.t}</div><div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>{c.b}</div></div>)}
       </div>
     </div>
   );
@@ -800,6 +820,6 @@ function Slider({ label, value, min, max, step, onChange, fmt, hint, accent }) {
 function MiniStat({ label, value, sub, accent }) {
   return <div style={{ background: T.panel2, borderRadius: 10, padding: "11px 12px" }}><div style={{ color: T.muted, fontSize: 11 }}>{label}</div><div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 18, color: accent, margin: "2px 0" }}>{value}</div><div style={{ color: T.muted, fontSize: 10.5, lineHeight: 1.3 }}>{sub}</div></div>;
 }
-const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20 });
-const pickCard = (on) => ({ textAlign: "left", cursor: "pointer", color: T.text, background: on ? T.sel : T.panel, border: `1.5px solid ${on ? PLAYER_COLOR : T.border}` });
-const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 11, padding: "13px 22px", fontFamily: T.body, fontWeight: 700, fontSize: 15, cursor: "pointer", letterSpacing: 0.2 });
+const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20, boxShadow: T.shadow });
+const pickCard = (on) => ({ textAlign: "left", cursor: "pointer", color: T.text, background: on ? T.sel : T.panel, border: `1.5px solid ${on ? PLAYER : T.border}` });
+const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 15.5, cursor: "pointer", letterSpacing: 0.2 });

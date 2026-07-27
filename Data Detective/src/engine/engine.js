@@ -175,11 +175,11 @@ const CAUSE_TYPES = [
 /* ---- the case file ---------------------------------------------- */
 const CASES = [
   {
-    id: "paypal-gateway", n: 1, difficulty: "Standard",
+    id: "paypal-gateway", n: 1, difficulty: "Beginner",
     ticket: {
-      channel: "#cro-incidents", from: "Priya · Head of CRO",
-      subject: "Checkout may be broken — revenue is down",
-      body: "Revenue is down about 20% this week compared with last week. Customer service has had a few complaints, but nothing specific. Can you investigate and tell us the cause before the team meeting?",
+      channel: "#cro-team", from: "Priya · Ops",
+      subject: "Checkout looks broken?",
+      body: "Revenue is down about 15% week-on-week and finance is asking. A few customers are saying payment \"didn\u2019t go through\". Can someone confirm whether checkout is actually broken \u2014 and for everyone, or just some people?",
     },
     // Deliberately moderate, not catastrophic: a glaring near-total
     // wipeout is unmissable from the topline alone and needs no real
@@ -212,9 +212,9 @@ const CASES = [
     // cross-tab isolates the truth: it's specifically Mobile Safari,
     // and there it's a real, dramatic collapse. This is the case where
     // "check every report" beats "find the one report with a clean signal".
-    id: "mobile-safari-bug", n: 2, difficulty: "Advanced",
+    id: "mobile-safari-bug", n: 2, difficulty: "Intermediate",
     ticket: {
-      channel: "#cro-incidents", from: "Priya · Head of CRO",
+      channel: "#cro-team", from: "Priya · Ops",
       subject: "Conversion is slowly falling — we cannot identify the cause",
       body: "Nothing looks badly broken, but conversion has been lower for about two weeks, and revenue is behind target. Marketing says it is just the market. Engineering says nothing important changed. We need a clear answer for the board report.",
     },
@@ -245,9 +245,9 @@ const CASES = [
     // call is "no site fault — traffic quality", and the discipline being
     // tested is refusing to invent a bug: if no segment rate moved, nothing
     // broke. (Implemented with session-shifts only, incident = null.)
-    id: "traffic-mix", n: 3, difficulty: "Expert",
+    id: "traffic-mix", n: 3, difficulty: "Intermediate",
     ticket: {
-      channel: "#cro-incidents", from: "Dev · Growth Lead",
+      channel: "#cro-team", from: "Dev · Growth Lead",
       subject: "Conversion is down but the site looks fine",
       body: "Sitewide conversion is down about 8% over the last week and revenue is behind, but nobody has touched the checkout and error rates are normal. We did just scale up a new paid-social campaign. Is the site broken, or is something else going on? The board wants a definitive answer, with evidence.",
     },
@@ -275,9 +275,9 @@ const CASES = [
     // hide a severe localized incident that a favourable mix-shift is
     // masking — you must segment, and you must not mistake the masking
     // surge for the cause. (Rate incident on device:desktop + benign shifts.)
-    id: "masked-desktop", n: 4, difficulty: "Expert",
+    id: "masked-desktop", n: 4, difficulty: "Advanced",
     ticket: {
-      channel: "#cro-incidents", from: "Priya · Head of CRO",
+      channel: "#cro-team", from: "Priya · Ops",
       subject: "Small dip, but revenue feels worse than it should",
       body: "Sitewide conversion is only down a couple of percent — well within what we'd call noise — and returning-customer numbers are actually up after our loyalty push, so most of the team thinks we're fine. But revenue is softer than that small dip suggests, and a few customers mentioned checkout looked odd. Can you confirm there's really nothing wrong?",
     },

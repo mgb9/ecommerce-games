@@ -297,7 +297,7 @@ function FieldReveal({ guess, result, onAgain, onExit }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {result.clueDetail.map((c) => (
             <div key={c.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <span style={{ fontFamily: T.mono, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: c.found ? "#1f2e18" : "#2A2731", color: c.found ? T.pos : T.neg, whiteSpace: "nowrap", marginTop: 1 }}>{c.found ? "FLAGGED" : "MISSED"}</span>
+              <span style={{ fontFamily: T.mono, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: c.found ? "#EAF4E5" : "#FBE9E7", color: c.found ? T.pos : T.neg, whiteSpace: "nowrap", marginTop: 1 }}>{c.found ? "FLAGGED" : "MISSED"}</span>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>{c.label}{c.core && <span style={{ color: T.amber, fontWeight: 600, fontSize: 11 }}> · core clue</span>}</div>
                 <div style={{ fontSize: 12.5, color: T.muted, lineHeight: 1.55, marginTop: 2 }}>{c.detail}</div>
@@ -332,14 +332,14 @@ export default function FieldCase({ plain, togglePlain, onExit }) {
   const t = FIELD_CASE.ticket;
   return (
     <div>
-      <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181D", position: "sticky", top: 0, zIndex: 30 }}>
+      <div style={{ background: T.hdrBg, color: T.hdrText, position: "sticky", top: 0, zIndex: 30 }}>
         <div style={{ maxWidth: wide ? 1380 : 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Data <span style={{ color: PLAYER }}>Detective</span></span>
-            <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>Chrichton · the cold case</span>
+            <span style={{ color: T.hdrMuted, fontSize: 13, fontFamily: T.mono }}>Chrichton · the cold case</span>
           </div>
           <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
-            {phase !== "intro" && <Stat label="CASE" value="5" accent={PLAYER} />}
+            {phase !== "intro" && <Stat label="CASE" value="5" accent="#FF5A4A" />}
             {(phase === "investigate" || phase === "diagnose") && <Stat label="REPORTS" value={`${viewed.length}`} accent={T.instructor} />}
             {(phase === "investigate" || phase === "diagnose") && <Stat label="FLAGS" value={`${flags.length}`} accent={T.instructor} />}
             <PlainToggle plain={plain} toggle={togglePlain} />
@@ -350,16 +350,16 @@ export default function FieldCase({ plain, togglePlain, onExit }) {
       <div style={{ maxWidth: wide ? 1380 : 1180, margin: "0 auto", padding: "0 20px 64px" }}>
         {phase === "intro" && (
           <div className="rise" style={{ maxWidth: 720, margin: "44px auto 0" }}>
-            <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 44, lineHeight: 1.08, letterSpacing: -1, margin: 0 }}>
+            <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 48, lineHeight: 1.05, letterSpacing: -1.2, margin: 0 }}>
               <PT rich={<>The numbers say cut Paid Search.<br /><span style={{ color: PLAYER }}>The numbers are lying.</span></>}
                   plain={<>The report says one channel is best.<br /><span style={{ color: PLAYER }}>Check if the data is telling the truth.</span></>} />
             </h1>
-            <p style={{ color: T.muted, fontSize: 16, lineHeight: 1.6, marginTop: 18 }}>
+            <p style={{ color: T.body2, fontSize: 17, lineHeight: 1.6, marginTop: 18 }}>
               Cases 1–4 gave you clean data with one broken segment. This one is the opposite — <b style={{ color: T.text }}>real Google Analytics exports</b> from a real UK electronics retailer in 2015, exactly as they came out of the tool. Nothing is generated and nothing has been cleaned. Before you trust a single percentage, ask the detective's first question: <i>can this witness be believed?</i> Watch for <Term term="selfreferral">payment-gateway self-referrals</Term>, <Term term="testtraffic">test traffic</Term>, and check the <Term term="aov">AOV</Term> of anything that looks miraculous. Flag rows with 🚩 as you go — your evidence list is scored.
             </p>
             <LOBadges los={["LO3"]} />
             <TermsHint />
-            <div style={{ marginTop: 20, background: "#131118", border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px" }}>
+            <div style={{ marginTop: 20, background: T.panel, borderLeft: `6px solid ${PLAYER}`, borderRadius: 16, padding: "18px 20px", boxShadow: T.shadow }}>
               <div style={{ display: "flex", justifyContent: "space-between", color: T.muted, fontSize: 12, fontFamily: T.mono, marginBottom: 8 }}>
                 <span>{t.channel}</span><span>{t.from}</span>
               </div>

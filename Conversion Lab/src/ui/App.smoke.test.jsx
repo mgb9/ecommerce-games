@@ -9,6 +9,6 @@ describe("App renders", () => {
   it("mounts the intro screen without a missing-symbol error", () => {
     const html = renderToStaticMarkup(<App />);
     expect(html).toContain("Conversion");
-    expect(html).toContain("Only the data decides");
+    expect(html).toContain("Prove it with data");
   });
 });

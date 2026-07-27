@@ -9,10 +9,20 @@ import {
 const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 `;
+/* Light WMG redesign (2026-07): page #F5F5F6, white cards, shared red
+   primary #EE3124, dark #211F25 header band. Text tokens are AA on the
+   light surfaces; *Fill tokens are for bars/dots/lines only (3:1 class),
+   never for small text. FF's secondary accent is the olive #7F8F1E — the
+   light-bg-safe reading of its old lime #C1D82F. */
 const T = {
-  ink: "#171519", panel: "#211F25", panel2: "#2A2731", border: "#3B3843",
-  text: "#F5F4F6", muted: "#A5A3AB", pos: "#7DCB6A", neg: "#E2654E", amber: "#FBB034",
-  player: "#C1D82F", instructor: "#C4A578", sel: "#2C2933", track: "#343039", faint: "#8D8B93", onAccent: "#211F25",
+  ink: "#F5F5F6", panel: "#FFFFFF", panel2: "#F4F3F5", border: "#E4E4E7",
+  text: "#211F25", body2: "#454B50", muted: "#616265", faint: "#8A8A8E",
+  pos: "#2F7D33", neg: "#B3271E", amber: "#946A11",
+  posFill: "#3A9E3A", negFill: "#E2654E", amberFill: "#FBB034",
+  player: "#EE3124", playerText: "#D6261B", second: "#7F8F1E",
+  instructor: "#8A6D45", sel: "#FDEBE9", track: "#E7E6E9", onAccent: "#FFFFFF",
+  hdrBg: "#211F25", hdrText: "#F5F4F6", hdrMuted: "#9A9A9E", hdrBorder: "#3B3843",
+  shadow: "0 12px 30px -26px rgba(0,0,0,0.5)",
   display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;
@@ -24,7 +34,7 @@ function Term({ term, children }) {
   return (
     <span style={{ position: "relative", display: "inline-block" }}>
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
-      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: "#131118", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>}
+      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.hdrText, lineHeight: 1.5, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>}
     </span>
   );
 }
@@ -51,23 +61,12 @@ const LOS = {
   LO3: { title: "Enhance UX & conversion", full: "LO3 — Evaluate functionalities to enhance user experience and conversions." },
   LO4: { title: "Collaborative analysis & build", full: "LO4 — Collaboratively analyse, and build a live e-commerce site." },
 };
-function LOBadges({ los }) {
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 18 }}>
-      <span style={{ fontSize: 11, color: T.muted, fontFamily: T.mono, letterSpacing: 1 }}>🎓 WM956-15</span>
-      {los.map((k) => (
-        <span key={k} title={LOS[k].full}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: T.panel2, border: `1px solid ${T.border}`, borderRadius: 999, padding: "3px 10px 3px 8px", fontSize: 12, cursor: "help", whiteSpace: "nowrap" }}>
-          <b style={{ color: T.amber, fontFamily: T.mono, fontWeight: 700 }}>{k}</b>
-          <span style={{ color: T.muted }}>{LOS[k].title}</span>
-        </span>
-      ))}
-    </div>
-  );
-}
+// LO context now rides on the intro Eyebrow's title tooltip; LOS is the
+// single source for the full outcome wording.
+// Lives on the dark header band, so it styles against hdr* tokens.
 function PlainToggle({ plain, toggle }) {
   return (
-    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? T.instructor : T.panel2, border: `1px solid ${plain ? T.instructor : T.border}`, color: plain ? T.onAccent : T.muted, borderRadius: 9, padding: "7px 10px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, display: "flex", alignItems: "center", gap: 5 }}>
+    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, display: "flex", alignItems: "center", gap: 5 }}>
       <span style={{ fontSize: 14 }}>🗣️</span> Simpler English
     </button>
   );
@@ -130,8 +129,8 @@ export default function App() {
       <style>{FONT_IMPORT + `
         * { box-sizing: border-box; }
         input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
-        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; }
+        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; box-shadow:0 0 0 3px var(--accent-soft); }
+        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; }
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
@@ -160,58 +159,68 @@ function Header({ phase, state, cfg, records, plain, togglePlain, onToggleInstru
   const show = phase !== "intro";
   const spent = records.reduce((a, r) => a + r.spend, 0);
   return (
-    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181E", position: "sticky", top: 0, zIndex: 30 }}>
+    <div style={{ background: T.hdrBg, color: T.hdrText, position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
           <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Funnel <span style={{ color: PLAYER }}>Fixer</span></span>
-          <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>Chrichton · <Term term="cro">CRO</Term> diagnosis</span>
+          <span style={{ color: T.hdrMuted, fontSize: 13, fontFamily: T.mono }}>Chrichton · <Term term="cro">CRO</Term> diagnosis</span>
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
-          {show && <Stat label="QUARTER" value={`${Math.min(state.quarter, cfg.quarters)}/${cfg.quarters}`} accent={PLAYER} />}
-          {show && <Stat label="CUM PROFIT" value={gbpK(state.cumProfit)} accent={state.cumProfit >= 0 ? T.pos : T.neg} />}
-          {show && <Stat label="SPENT" value={gbpK(spent)} accent={T.instructor} />}
+          {show && <Stat label="QUARTER" value={`${Math.min(state.quarter, cfg.quarters)}/${cfg.quarters}`} accent="#FF5A4A" />}
+          {show && <Stat label="CUM PROFIT" value={gbpK(state.cumProfit)} accent={state.cumProfit >= 0 ? "#7DCB6A" : "#FF5A4A"} />}
+          {show && <Stat label="SPENT" value={gbpK(spent)} accent="#C4A578" />}
           <PlainToggle plain={plain} toggle={togglePlain} />
-          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: T.panel2, border: `1px solid ${T.border}`, color: T.instructor, borderRadius: 9, padding: "7px 11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 15 }}>⚙</span> Instructor</button>
+          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 15 }}>⚙</span> Instructor</button>
         </div>
       </div>
     </div>
   );
 }
+// Header-only: values sit on the dark band, so accents are the bright
+// (dark-bg) palette, not the light-surface text tokens.
 function Stat({ label, value, accent }) {
-  return <div style={{ textAlign: "right" }}><div style={{ color: T.muted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.text, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
+  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
 }
 
-/* ---- INTRO -------------------------------------------------- */
+/* ---- INTRO (light redesign: eyebrow + serif H1 + numbered step cards) */
+function Eyebrow({ children, title }) {
+  return (
+    <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
+      <span aria-hidden="true" style={{ width: 26, height: 3, background: PLAYER, borderRadius: 3 }} />
+      <span style={{ color: T.playerText, fontSize: 13, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
+    </div>
+  );
+}
 function Intro({ onStart, cfg }) {
   return (
-    <div className="rise" style={{ maxWidth: 760, margin: "44px auto 0" }}>
-      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
+    <div className="rise" style={{ maxWidth: 820, margin: "48px auto 0" }}>
+      <Eyebrow title={`${LOS.LO1.full}\n${LOS.LO3.full}`}>Funnel economics · LO1 · LO3</Eyebrow>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 50, lineHeight: 1.04, letterSpacing: -1.2, margin: "16px 0 0" }}>
         <PT rich={<>The funnel is leaking.<br /><span style={{ color: PLAYER }}>Where do you spend?</span></>}
             plain={<>Your checkout funnel is losing customers.<br /><span style={{ color: PLAYER }}>Choose where to invest.</span></>} />
       </h1>
-      <p style={{ color: T.muted, fontSize: 16, lineHeight: 1.6, marginTop: 18 }}>
+      <p style={{ color: T.body2, fontSize: 17.5, lineHeight: 1.6, marginTop: 18 }}>
         Chrichton's e-commerce <Term term="funnel">funnel</Term> loses people at every step. You have a fixed budget each quarter and a menu of fixes.{" "}
         <PT rich={<>The trap: the biggest <i>percentage</i> gap is rarely the biggest <i>money</i> leak.</>}
             plain={<>The key point: the stage with the biggest percentage gap is usually NOT the stage that loses the most money.</>} />{" "}
         Diagnose with <Term term="opportunitysizing">opportunity sizing</Term>, spend where the £ is, and watch the <Term term="bottleneck">bottleneck</Term> move.
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10, marginTop: 22 }}>
-        {[["①", "Diagnose", "Read the funnel and predict the biggest money leak — before you see the £ sizing."],
-        ["②", "Allocate", "Spend the quarter's budget across fixes. You can't afford everything."],
-        ["③", "Run", <>See purchases, profit, <Term term="cac">CAC</Term>, <Term term="ltvcac">LTV/CAC</Term> and the <Term term="roi">ROI</Term> of each spend.</>],
-        ["④", "Move on", "The bottleneck jumps to a new stage. Re-diagnose. Repeat."]].map(([n, t, d]) => (
-          <div key={t} style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "13px 14px" }}>
-            <div style={{ color: PLAYER, fontFamily: T.mono, fontSize: 13 }}>{n}</div>
-            <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, margin: "3px 0 4px" }}>{t}</div>
-            <div style={{ color: T.muted, fontSize: 12, lineHeight: 1.45 }}>{d}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(185px,1fr))", gap: 14, marginTop: 26 }}>
+        {[["01", "Diagnose", "Read the funnel and predict the biggest money leak — before you see the £ sizing."],
+        ["02", "Allocate", "Spend the quarter's budget across fixes. You can't afford everything."],
+        ["03", "Run", <>See purchases, profit, <Term term="cac">CAC</Term>, <Term term="ltvcac">LTV/CAC</Term> and the <Term term="roi">ROI</Term> of each spend.</>],
+        ["04", "Move on", "The bottleneck jumps to a new stage. Re-diagnose. Repeat."]].map(([n, t, d]) => (
+          <div key={t} style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: "16px 17px", boxShadow: T.shadow }}>
+            <div style={{ color: T.second, fontFamily: T.mono, fontSize: 13, fontWeight: 700 }}>{n}</div>
+            <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, margin: "4px 0 5px" }}>{t}</div>
+            <div style={{ color: T.body2, fontSize: 13.5, lineHeight: 1.5 }}>{d}</div>
           </div>
         ))}
       </div>
-      <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 24, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 28, flexWrap: "wrap" }}>
         <button onClick={onStart} style={btn(PLAYER)}>Open the dashboard →</button>
-        <span style={{ color: T.muted, fontSize: 13 }}>{cfg.quarters} quarters · {gbp(cfg.budget)}/quarter · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
+        <span style={{ color: T.muted, fontSize: 14 }}>{cfg.quarters} quarters · {gbp(cfg.budget)}/quarter · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
       </div>
-      <LOBadges los={["LO1", "LO3"]} />
       <TermsHint />
     </div>
   );
@@ -229,8 +238,7 @@ function FunnelViz({ rates, sessions, leaksArr, bottleneckKey, showLeaks, predKe
         const leak = i > 0 ? leakByStage[v.key] : null;
         const isBott = leak && leak.stage === bottleneckKey;
         const isPred = leak && leak.stage === predKey;
-        const barColor = i === 0 ? "#3a3executes" : isBott ? "#3a2018" : T.panel2;
-        const border = isBott ? T.neg : isPred ? PLAYER : T.border;
+        const border = isBott ? T.negFill : isPred ? PLAYER : T.border;
         return (
           <div key={v.key}>
             {leak && (
@@ -242,7 +250,7 @@ function FunnelViz({ rates, sessions, leaksArr, bottleneckKey, showLeaks, predKe
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "center" }}>
-              <div className="fbar" style={{ width: `${widthPct(v.count)}%`, minWidth: 120, background: i === 0 ? "#2E2B35" : isBott ? "#33201a" : T.panel2, border: `1.5px solid ${border}`, borderRadius: 10, padding: compact ? "7px 14px" : "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <div className="fbar" style={{ width: `${widthPct(v.count)}%`, minWidth: 120, background: i === 0 ? "#ECEBEE" : isBott ? "#FBE9E7" : T.panel2, border: `1.5px solid ${border}`, borderRadius: 10, padding: compact ? "7px 14px" : "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                 <span style={{ fontWeight: 700, fontSize: compact ? 12.5 : 13.5, whiteSpace: "nowrap" }}>{v.label}{isBott && <span style={{ color: T.neg, fontSize: 11, marginLeft: 6 }}>● bottleneck</span>}</span>
                 <span style={{ fontFamily: T.mono, fontSize: compact ? 12 : 13, color: T.text }}>{Math.round(v.count).toLocaleString()}</span>
               </div>
@@ -261,7 +269,7 @@ function Diagnose({ state, cfg, leaksArr, bottleneck, predLeak, setPredLeak, pre
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>QUARTER {state.quarter}</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>QUARTER {state.quarter}</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Diagnose the funnel</h2>
       </div>
       <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.55, marginTop: 8, maxWidth: 820 }}>
@@ -306,10 +314,10 @@ function Allocate({ state, cfg, leaksArr, bottleneck, predLeak, chosen, toggleCh
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>QUARTER {state.quarter}</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>QUARTER {state.quarter}</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Allocate the budget</h2>
       </div>
-      <div style={{ marginTop: 10, background: predHit ? "#1f2e18" : "#2A2731", border: `1px solid ${predHit ? T.pos : T.amber}55`, borderRadius: 11, padding: "12px 15px", fontSize: 13.5, lineHeight: 1.5 }}>
+      <div style={{ marginTop: 10, background: predHit ? "#EAF4E5" : "#FBF3DF", border: `1px solid ${predHit ? T.posFill : T.amberFill}`, borderRadius: 11, padding: "12px 15px", fontSize: 13.5, lineHeight: 1.5 }}>
         {predHit ? "✓" : "✗"} The biggest <Term term="opportunitysizing">money leak</Term> is <b style={{ color: T.neg }}>{bottleneck.label}</b> ({gbpK(bottleneck.leak)}/quarter) — you predicted <b>{STAGES.find((s) => s.key === predLeak)?.label}</b>. Notice it's not always the biggest % gap.
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.1fr)", gap: 18, marginTop: 14 }}>
@@ -356,7 +364,7 @@ function ResultView({ result, cfg, record, bestActual, onNext, lastQuarter }) {
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>QUARTER {record.quarter} RESULT</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>QUARTER {record.quarter} RESULT</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{dPurch >= 0 ? `+${Math.round(dPurch)}` : Math.round(dPurch)} purchases this quarter</h2>
       </div>
 
@@ -387,7 +395,7 @@ function ResultView({ result, cfg, record, bestActual, onNext, lastQuarter }) {
               {roiSorted.map((x) => (
                 <div key={x.id}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 3 }}><span>{x.icon} {x.name}</span><span style={{ fontFamily: T.mono, color: x.roi >= 1 ? T.pos : x.roi >= 0.3 ? T.amber : T.neg }}>{x.roi.toFixed(2)}× · {gbp(x.incrProfit)}</span></div>
-                  <div style={{ height: 8, background: T.track, borderRadius: 8, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (Math.max(0, x.roi) / maxRoi) * 100)}%`, height: "100%", background: x.roi >= 1 ? T.pos : x.roi >= 0.3 ? T.amber : T.neg }} /></div>
+                  <div style={{ height: 8, background: T.track, borderRadius: 8, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (Math.max(0, x.roi) / maxRoi) * 100)}%`, height: "100%", background: x.roi >= 1 ? T.posFill : x.roi >= 0.3 ? T.amberFill : T.negFill }} /></div>
                 </div>
               ))}
             </div>
@@ -406,7 +414,7 @@ function ResultView({ result, cfg, record, bestActual, onNext, lastQuarter }) {
 }
 function ScoreChip({ ok, label, you, truth }) {
   return (
-    <div style={{ background: ok ? "#1f2e18" : "#2A2731", border: `1px solid ${ok ? T.pos : T.amber}55`, borderRadius: 10, padding: "9px 11px" }}>
+    <div style={{ background: ok ? "#EAF4E5" : "#FBF3DF", border: `1px solid ${ok ? T.posFill : T.amberFill}`, borderRadius: 10, padding: "9px 11px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: T.muted, marginBottom: 3 }}><span>{label}</span><span style={{ color: ok ? T.pos : T.amber, fontWeight: 700 }}>{ok ? "✓" : "✗"}</span></div>
       <div style={{ fontSize: 12 }}>You: <b>{you}</b></div>
       {!ok && <div style={{ fontSize: 11.5, color: T.muted }}>Actual: {truth}</div>}
@@ -430,7 +438,7 @@ function EndView({ records, state, cfg, restart }) {
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>CHRICHTON · SEED {cfg.seed}</div>
         <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{gbp(state.cumProfit)} cumulative profit</h1>
-        <div style={{ color: T.muted }}>Over {records.length} quarters · biggest-leak called <b style={{ color: PLAYER }}>{leakHits}/{records.length}</b> · best-ROI bet <b style={{ color: PLAYER }}>{roiHits}/{records.length}</b></div>
+        <div style={{ color: T.muted }}>Over {records.length} quarters · biggest-leak called <b style={{ color: T.playerText }}>{leakHits}/{records.length}</b> · best-ROI bet <b style={{ color: T.playerText }}>{roiHits}/{records.length}</b></div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 18 }}>
         <div style={card()}>
@@ -448,7 +456,7 @@ function EndView({ records, state, cfg, restart }) {
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
               <CartesianGrid stroke={T.border} strokeDasharray="3 3" /><XAxis dataKey="q" tickLine={false} /><YAxis tickLine={false} width={36} domain={[0, "auto"]} />
-              <Tooltip contentStyle={tip} formatter={(v) => v + "×"} /><ReferenceLine y={3} stroke={T.pos} strokeDasharray="5 4" label={{ value: "healthy ≥3", fill: T.pos, fontSize: 10, position: "insideTopRight" }} />
+              <Tooltip contentStyle={tip} formatter={(v) => v + "×"} /><ReferenceLine y={3} stroke={T.posFill} strokeDasharray="5 4" label={{ value: "healthy ≥3", fill: T.pos, fontSize: 10, position: "insideTopRight" }} />
               <Line type="monotone" dataKey="ltvCac" stroke={T.instructor} strokeWidth={3} dot={{ r: 3 }} connectNulls />
             </LineChart>
           </ResponsiveContainer>
@@ -459,7 +467,7 @@ function EndView({ records, state, cfg, restart }) {
       <div style={{ ...card(), marginTop: 18 }}>
         <SectionTitle>What this taught</SectionTitle>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-          {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, marginBottom: 6, color: PLAYER }}>{c.t}</div><div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>{c.b}</div></div>)}
+          {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, marginBottom: 6, color: T.playerText }}>{c.t}</div><div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>{c.b}</div></div>)}
         </div>
       </div>
 
@@ -484,8 +492,8 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
   const preset = (label, patch) => <button key={label} onClick={() => set(patch)} style={presetBtn}>{label}</button>;
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1D1B21", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#00000066", zIndex: 40 }} />
+      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: T.panel, borderLeft: `1px solid ${T.border}`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #00000030" }}>
         <div style={{ padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
@@ -497,7 +505,7 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Seed</div>
               <div style={{ display: "flex", gap: 6 }}>
-                <input value={cfg.seed} onChange={(e) => set({ seed: e.target.value })} style={{ flex: 1, background: T.panel, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 13, outline: "none" }} />
+                <input value={cfg.seed} onChange={(e) => set({ seed: e.target.value })} style={{ flex: 1, background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 13, outline: "none" }} />
                 <button onClick={() => set({ seed: "FNL-" + Math.random().toString(36).slice(2, 7).toUpperCase() })} style={{ ...presetBtn, padding: "8px 10px" }}>🎲</button>
               </div>
             </div>
@@ -552,7 +560,8 @@ function ISlide({ label, v, min, max, step, fmt, on, A, ch }) {
   );
 }
 const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "9px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 12.5, lineHeight: 1.3 };
-const tip = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12 };
-const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20 });
-const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 11, padding: "13px 22px", fontFamily: T.body, fontWeight: 700, fontSize: 15, cursor: "pointer", letterSpacing: 0.2 });
+const tip = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12, boxShadow: T.shadow };
+const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20, boxShadow: T.shadow });
+// Redesign CTA: pill, heavy weight, white on the accent.
+const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 15.5, cursor: "pointer", letterSpacing: 0.2 });
 const pickRow = (on) => ({ textAlign: "left", cursor: "pointer", color: T.text, background: on ? T.sel : T.panel2, border: `1.5px solid ${on ? PLAYER : T.border}`, borderRadius: 10, padding: "10px 12px", fontSize: 13, fontWeight: 600 });

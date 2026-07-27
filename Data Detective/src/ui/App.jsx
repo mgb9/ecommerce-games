@@ -10,14 +10,24 @@ import FieldCase from "./FieldCase.jsx";
 const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 `;
+/* Light WMG redesign (2026-07): page #F5F5F6, white cards, shared red
+   primary #EE3124, dark #211F25 header band. Text tokens are AA on light
+   surfaces; *Fill tokens are for bars/dots/lines only, never small text.
+   SEG_COLORS are darkened for white charts — slot 0 stays gold-family
+   (NOT orange/red) so the broken-segment red line keeps its salience. */
 const T = {
-  ink: "#171519", panel: "#211F25", panel2: "#2A2731", border: "#3B3843",
-  text: "#F5F4F6", muted: "#A5A3AB", pos: "#7DCB6A", neg: "#E2654E", amber: "#FBB034",
-  player: "#F47920", instructor: "#BFA98C", sel: "#2C2933", track: "#343039", faint: "#8D8B93", onAccent: "#211F25",
+  ink: "#F5F5F6", panel: "#FFFFFF", panel2: "#F4F3F5", border: "#E4E4E7",
+  text: "#211F25", body2: "#454B50", muted: "#616265", faint: "#8A8A8E",
+  pos: "#2F7D33", neg: "#B3271E", amber: "#946A11",
+  posFill: "#3A9E3A", negFill: "#E2654E", amberFill: "#FBB034",
+  player: "#EE3124", playerText: "#D6261B",
+  instructor: "#8A6D45", sel: "#FDEBE9", track: "#E7E6E9", onAccent: "#FFFFFF",
+  hdrBg: "#211F25", hdrText: "#F5F4F6", hdrMuted: "#9A9A9E", hdrBorder: "#3B3843",
+  shadow: "0 12px 30px -26px rgba(0,0,0,0.5)",
   display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;
-const SEG_COLORS = ["#FBB034", "#3FB6A8", "#E2654E", "#9B8Fb0", "#7DCB6A", "#C9A06A"];
+const SEG_COLORS = ["#C8860D", "#2E8C81", "#E2654E", "#7D6F98", "#3A9E3A", "#A07B4F"];
 
 function Term({ term, children }) {
   const [open, setOpen] = useState(false);
@@ -26,7 +36,7 @@ function Term({ term, children }) {
   return (
     <span style={{ position: "relative", display: "inline-block" }}>
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
-      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: "#131118", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>}
+      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.hdrText, lineHeight: 1.5, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>}
     </span>
   );
 }
@@ -74,9 +84,18 @@ function LOBadges({ los }) {
 }
 function PlainToggle({ plain, toggle }) {
   return (
-    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? T.instructor : T.panel2, border: `1px solid ${plain ? T.instructor : T.border}`, color: plain ? T.onAccent : T.muted, borderRadius: 9, padding: "7px 10px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, display: "flex", alignItems: "center", gap: 5 }}>
+    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, display: "flex", alignItems: "center", gap: 5 }}>
       <span style={{ fontSize: 14 }}>🗣️</span> Simpler English
     </button>
+  );
+}
+
+function Eyebrow({ children, title }) {
+  return (
+    <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
+      <span aria-hidden="true" style={{ width: 26, height: 3, background: PLAYER, borderRadius: 3 }} />
+      <span style={{ color: T.playerText, fontSize: 13, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
+    </div>
   );
 }
 
@@ -128,8 +147,8 @@ export default function App() {
       <style>{FONT_IMPORT + `
         * { box-sizing: border-box; }
         input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
-        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; }
+        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; box-shadow:0 0 0 3px var(--accent-soft); }
+        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; }
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
@@ -169,61 +188,62 @@ function Header({ phase, caseData, reportsViewed, pivotsUsed, plain, togglePlain
   const show = phase !== "intro";
   const wide = phase === "investigate";
   return (
-    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181D", position: "sticky", top: 0, zIndex: 30 }}>
+    <div style={{ background: T.hdrBg, color: T.hdrText, position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{ maxWidth: wide ? 1380 : 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
           <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Data <span style={{ color: PLAYER }}>Detective</span></span>
-          <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>Chrichton · root-cause diagnosis</span>
+          <span style={{ color: T.hdrMuted, fontSize: 13, fontFamily: T.mono }}>Chrichton · analytics</span>
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
-          {show && <Stat label="CASE" value={`${caseData.n}`} accent={PLAYER} />}
+          {show && <Stat label="CASE" value={`${caseData.n}`} accent="#FF5A4A" />}
           {(phase === "investigate" || phase === "diagnose") && <Stat label="REPORTS" value={`${(reportsViewed || []).length}`} accent={T.instructor} />}
           {(phase === "investigate" || phase === "diagnose") && <Stat label="PIVOTS" value={`${(pivotsUsed || []).length}`} accent={T.instructor} />}
           <PlainToggle plain={plain} toggle={togglePlain} />
-          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: T.panel2, border: `1px solid ${T.border}`, color: T.instructor, borderRadius: 9, padding: "7px 11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 15 }}>⚙</span> Instructor</button>
+          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 15 }}>⚙</span> Instructor</button>
         </div>
       </div>
     </div>
   );
 }
+// Header-only: values sit on the dark band, so accents use the bright palette.
 function Stat({ label, value, accent }) {
-  return <div style={{ textAlign: "right" }}><div style={{ color: T.muted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.text, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
+  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
 }
 
 /* ---- INTRO / TICKET --------------------------------------------- */
-const DIFFICULTY_COLOR = { Standard: T.pos, Advanced: T.neg, Expert: T.amber, "Field data": T.instructor };
+const DIFFICULTY_COLOR = { Beginner: "#3A9E3A", Intermediate: "#FBB034", Advanced: "#F47920", "Field data": "#8A6D45" };
 function Intro({ caseData, cfg, caseIndex, onSelectCase, onStart }) {
   const t = caseData.ticket;
   return (
-    <div className="rise" style={{ maxWidth: 720, margin: "44px auto 0" }}>
-      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 44, lineHeight: 1.08, letterSpacing: -1, margin: 0 }}>
-        <PT rich={<>Something's wrong with the numbers.<br /><span style={{ color: PLAYER }}>Find out what.</span></>}
-            plain={<>A number has changed.<br /><span style={{ color: PLAYER }}>Find out why.</span></>} />
+    <div className="rise" style={{ maxWidth: 820, margin: "48px auto 0" }}>
+      <Eyebrow title={LOS.LO3.full}>Root-cause diagnosis · LO3</Eyebrow>
+      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 50, lineHeight: 1.04, letterSpacing: -1.2, margin: "16px 0 0" }}>
+        <PT rich={<>Something is off in the numbers. <span style={{ color: PLAYER }}>Find out what.</span></>}
+            plain={<>A number has changed. <span style={{ color: PLAYER }}>Find out why.</span></>} />
       </h1>
-      <p style={{ color: T.muted, fontSize: 16, lineHeight: 1.6, marginTop: 18 }}>
-        Chrichton's <Term term="cro">CRO</Term> team gets a ticket like this most weeks. Your job: open the dashboard, use{" "}
-        <Term term="segmentation">segmentation</Term> to find where the <Term term="anomaly">anomaly</Term> really is. Then submit a
-        diagnosis: the dimension, the segment, the likely cause, and roughly when it started. Watch for events that{" "}
-        <PT rich={<><i>look</i> related but are really a <Term term="redherring">red herring</Term>.</>}
-            plain={<>look related but are not the real cause (a <Term term="redherring">red herring</Term>).</>} />
+      <p style={{ color: T.body2, fontSize: 17.5, lineHeight: 1.6, marginTop: 18 }}>
+        Chrichton's <Term term="cro">CRO</Term> team gets a ticket like this most weeks. Open the dashboard, use{" "}
+        <Term term="segmentation">segmentation</Term> to find where the <Term term="anomaly">anomaly</Term> really lives — then diagnose
+        the dimension, the segment, the likely cause, and roughly when it started. Watch for a{" "}
+        <PT rich={<><Term term="redherring">red herring</Term> that only <i>looks</i> related.</>}
+            plain={<><Term term="redherring">red herring</Term> — an event that looks related but is not the real cause.</>} />
       </p>
-      <LOBadges los={["LO3"]} />
       <TermsHint />
 
       <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
         {CASES.map((c, i) => (
           <button key={c.id} onClick={() => onSelectCase(i)} style={{ ...pillBtn(caseIndex === i), display: "flex", alignItems: "center", gap: 7 }}>
             <span style={{ width: 7, height: 7, borderRadius: 7, background: DIFFICULTY_COLOR[c.difficulty] || T.muted }} />
-            Case {c.n} · {c.difficulty}
+            Case {String(c.n).padStart(2, "0")} · {c.difficulty}
           </button>
         ))}
         <button onClick={() => onSelectCase(CASES.length)} title="Real Google Analytics exports from a real 2015 retailer — audit them" style={{ ...pillBtn(false), display: "flex", alignItems: "center", gap: 7 }}>
           <span style={{ width: 7, height: 7, borderRadius: 7, background: DIFFICULTY_COLOR["Field data"] }} />
-          Case 5 · Field data
+          Case 05 · Field data
         </button>
       </div>
 
-      <div style={{ marginTop: 14, background: "#131118", border: `1px solid ${T.border}`, borderRadius: 14, padding: "16px 18px" }}>
+      <div style={{ marginTop: 14, background: T.panel, borderLeft: `6px solid ${PLAYER}`, borderRadius: 16, padding: "18px 20px", boxShadow: T.shadow }}>
         <div style={{ display: "flex", justifyContent: "space-between", color: T.muted, fontSize: 12, fontFamily: T.mono, marginBottom: 8 }}>
           <span>{t.channel}</span><span>{t.from}</span>
         </div>
@@ -231,8 +251,8 @@ function Intro({ caseData, cfg, caseIndex, onSelectCase, onStart }) {
         <div style={{ color: T.text, fontSize: 14, lineHeight: 1.55 }}>{t.body}</div>
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 22, flexWrap: "wrap" }}>
-        <button onClick={onStart} style={btn(PLAYER)}>Open the dashboard →</button>
-        <span style={{ color: T.muted, fontSize: 13 }}>Case {caseData.n} of {CASES.length + 1} · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
+        <button onClick={onStart} style={btn(T.hdrBg)}>Open the dashboard →</button>
+        <span style={{ color: T.muted, fontSize: 14 }}>Case {String(caseData.n).padStart(2, "0")} of {CASES.length + 1} · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
       </div>
     </div>
   );
@@ -263,7 +283,7 @@ function pivotByDay(seriesByseg, segIds) {
   const days = seriesByseg[segIds[0]].map((r) => r.day);
   return days.map((day, i) => { const row = { day }; for (const id of segIds) row[id] = seriesByseg[id][i].conversionRate; return row; });
 }
-const tipStyle = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12 };
+const tipStyle = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12, boxShadow: T.shadow };
 const DeltaTag = ({ pctChange, suffix }) => (
   <span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 11.5, color: pctChange >= 0 ? T.pos : T.neg }}>
     {pctChange >= 0 ? "▲" : "▼"} {Math.abs(pctChange * 100).toFixed(0)}%{suffix && <span style={{ color: T.muted, fontWeight: 500 }}> {suffix}</span>}
@@ -655,7 +675,7 @@ function Diagnose({ caseData, diagnosis, setDiagnosis, onBack, onSubmit }) {
           <PickGroup title="3 · What's the likely cause?" value={diagnosis.causeType} options={CAUSE_TYPES.map((c) => ({ id: c.id, name: c.label }))}
             onChange={(id) => setDiagnosis((d) => ({ ...d, causeType: id }))} />
           <div style={{ fontSize: 13.5, fontWeight: 600, marginBottom: 8 }}>4 · Roughly when did it start?</div>
-          <span style={{ fontFamily: T.mono, fontWeight: 700, color: PLAYER, fontSize: 13.5 }}>{dayLong(diagnosis.startDay)}</span>
+          <span style={{ fontFamily: T.mono, fontWeight: 700, color: T.playerText, fontSize: 13.5 }}>{dayLong(diagnosis.startDay)}</span>
           <input type="range" min={0} max={TOTAL_DAYS - 1} step={1} value={diagnosis.startDay} onChange={(e) => setDiagnosis((d) => ({ ...d, startDay: Number(e.target.value) }))} style={{ width: "100%", margin: "8px 0 5px", "--accent": PLAYER, "--accent-soft": PLAYER + "30" }} />
           <div style={{ fontSize: 11.5, color: T.muted }}>Doesn't need to be exact — within a few days is fine.</div>
         </div>
@@ -721,7 +741,7 @@ function Reveal({ caseData, diagnosis, result, reportsViewed, pivotsUsed, onRest
             <div style={{ fontSize: 11.5, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 7 }}>Timeline events, now revealed</div>
             {caseData.events.map((e, i) => (
               <div key={i} style={{ display: "flex", gap: 8, alignItems: "baseline", fontSize: 12.5, marginBottom: 5 }}>
-                <span style={{ fontFamily: T.mono, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: e.real ? "#1f2e18" : "#2A2731", color: e.real ? T.pos : T.amber }}>{e.real ? "REAL CAUSE" : "RED HERRING"}</span>
+                <span style={{ fontFamily: T.mono, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: e.real ? "#EAF4E5" : "#FBF3DF", color: e.real ? T.pos : T.amber }}>{e.real ? "REAL CAUSE" : "RED HERRING"}</span>
                 <span>{e.label}</span>
               </div>
             ))}
@@ -751,8 +771,8 @@ function InstructorPanel({ cfg, onApply, onClose }) {
   const A = T.instructor;
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 330, maxWidth: "92vw", background: "#1D1B21", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#00000066", zIndex: 40 }} />
+      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 330, maxWidth: "92vw", background: T.panel, borderLeft: `1px solid ${T.border}`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #00000030" }}>
         <div style={{ padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
@@ -762,7 +782,7 @@ function InstructorPanel({ cfg, onApply, onClose }) {
           <div style={{ marginTop: 16, marginBottom: 14 }}>
             <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Seed</div>
             <div style={{ display: "flex", gap: 6 }}>
-              <input value={seed} onChange={(e) => setSeed(e.target.value)} style={{ flex: 1, background: T.panel, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 13, outline: "none" }} />
+              <input value={seed} onChange={(e) => setSeed(e.target.value)} style={{ flex: 1, background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 13, outline: "none" }} />
               <button onClick={() => setSeed("DD-" + Math.random().toString(36).slice(2, 7).toUpperCase())} style={{ background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", cursor: "pointer" }}>🎲</button>
             </div>
           </div>
@@ -780,8 +800,8 @@ function InstructorPanel({ cfg, onApply, onClose }) {
 
 /* ---- atoms ------------------------------------------------------------ */
 function SectionTitle({ children }) { return <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, marginBottom: 12, letterSpacing: -0.2 }}>{children}</div>; }
-const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20 });
-const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 11, padding: "13px 22px", fontFamily: T.body, fontWeight: 700, fontSize: 15, cursor: "pointer", letterSpacing: 0.2 });
+const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20, boxShadow: T.shadow });
+const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 15.5, cursor: "pointer", letterSpacing: 0.2 });
 const pillBtn = (on) => ({ padding: "8px 13px", borderRadius: 9, cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, border: `1.5px solid ${on ? PLAYER : T.border}`, background: on ? PLAYER : "transparent", color: on ? T.onAccent : T.text });
 const pickRow = (on) => ({ cursor: "pointer", color: T.text, background: on ? T.sel : T.panel2, border: `1.5px solid ${on ? PLAYER : T.border}`, borderRadius: 10, padding: "9px 12px", fontSize: 13, fontWeight: 600 });
 const selStyle = (filled) => ({ background: T.panel2, color: filled ? PLAYER : T.text, border: `1px solid ${filled ? PLAYER : T.border}`, borderRadius: 8, padding: "6px 9px", fontFamily: T.body, fontSize: 12.5, fontWeight: 600, cursor: "pointer", outline: "none" });

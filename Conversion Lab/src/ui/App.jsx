@@ -17,11 +17,21 @@ const metricOf = (exp) => exp.metricLabel || "conversion rate";
 const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
 `;
+/* Light WMG redesign (2026-07): page #F5F5F6, white cards, shared red
+   primary #EE3124, dark #211F25 header band. Text tokens are AA on light
+   surfaces; *Fill tokens are for bars/dots/lines only, never small text.
+   CL's secondary accent is the gold #946A11 — the light-bg-safe reading
+   of its old #FBB034. Arm colors darkened to stay legible as text. */
 const T = {
-  ink: "#171519", panel: "#211F25", panel2: "#2A2731", border: "#3B3843",
-  text: "#F5F4F6", muted: "#A5A3AB", pos: "#7DCB6A", neg: "#E2654E", amber: "#D99A26",
-  player: "#FBB034", instructor: "#C9A06A",
-  armA: "#9B8Fb0", armB: "#3FB6A8", sel: "#2C2933", track: "#343039", faint: "#8D8B93", onAccent: "#211F25",
+  ink: "#F5F5F6", panel: "#FFFFFF", panel2: "#F4F3F5", border: "#E4E4E7",
+  text: "#211F25", body2: "#454B50", muted: "#616265", faint: "#8A8A8E",
+  pos: "#2F7D33", neg: "#B3271E", amber: "#946A11",
+  posFill: "#3A9E3A", negFill: "#E2654E", amberFill: "#FBB034",
+  player: "#EE3124", playerText: "#D6261B", second: "#946A11",
+  instructor: "#8A6D45",
+  armA: "#6F6191", armB: "#217A70", sel: "#FDEBE9", track: "#E7E6E9", onAccent: "#FFFFFF",
+  hdrBg: "#211F25", hdrText: "#F5F4F6", hdrMuted: "#9A9A9E", hdrBorder: "#3B3843",
+  shadow: "0 12px 30px -26px rgba(0,0,0,0.5)",
   display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
 };
 const PLAYER = T.player;
@@ -36,7 +46,7 @@ function Term({ term, children }) {
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
       {open && (
         <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 230, fontWeight: 400,
-          background: "#131118", border: `1px solid ${T.instructor}66`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.text, lineHeight: 1.5, boxShadow: "0 10px 28px #000a", fontFamily: T.body }}>{def}</span>
+          background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.hdrText, lineHeight: 1.5, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>
       )}
     </span>
   );
@@ -65,23 +75,20 @@ const LOS = {
   LO3: { title: "Enhance UX & conversion", full: "LO3 — Evaluate functionalities to enhance user experience and conversions." },
   LO4: { title: "Collaborative analysis & build", full: "LO4 — Collaboratively analyse, and build a live e-commerce site." },
 };
-function LOBadges({ los }) {
+// LO context rides on the intro Eyebrow's title tooltip; LOS is the single
+// source for the full outcome wording.
+function Eyebrow({ children, title }) {
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 18 }}>
-      <span style={{ fontSize: 11, color: T.muted, fontFamily: T.mono, letterSpacing: 1 }}>🎓 WM956-15</span>
-      {los.map((k) => (
-        <span key={k} title={LOS[k].full}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: T.panel2, border: `1px solid ${T.border}`, borderRadius: 999, padding: "3px 10px 3px 8px", fontSize: 12, cursor: "help", whiteSpace: "nowrap" }}>
-          <b style={{ color: T.amber, fontFamily: T.mono, fontWeight: 700 }}>{k}</b>
-          <span style={{ color: T.muted }}>{LOS[k].title}</span>
-        </span>
-      ))}
+    <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
+      <span aria-hidden="true" style={{ width: 26, height: 3, background: PLAYER, borderRadius: 3 }} />
+      <span style={{ color: T.playerText, fontSize: 13, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
     </div>
   );
 }
+// Lives on the dark header band, so it styles against hdr* tokens.
 function PlainToggle({ plain, toggle }) {
   return (
-    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? T.instructor : T.panel2, border: `1px solid ${plain ? T.instructor : T.border}`, color: plain ? T.onAccent : T.muted, borderRadius: 9, padding: "7px 10px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, display: "flex", alignItems: "center", gap: 5 }}>
+    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, display: "flex", alignItems: "center", gap: 5 }}>
       <span style={{ fontSize: 14 }}>🗣️</span> Simpler English
     </button>
   );
@@ -120,7 +127,8 @@ export default function App() {
 
   const exp = useMemo(() => effExperiment(EXPERIMENTS[expIdx], cfg), [expIdx, cfg]);
 
-  function startArc() { setExpIdx(0); setRecords([]); loadExperiment(0); setPhase("bench"); }
+  // The redesigned intro's experiment cards can enter the arc at any point.
+  function startArc(i = 0) { setExpIdx(i); setRecords([]); loadExperiment(i); setPhase("bench"); }
   function loadExperiment(i) {
     const base = EXPERIMENTS[i];
     setPredWinner(null); setPredBand(null); setCall(null); setResult(null);
@@ -192,8 +200,8 @@ export default function App() {
         * { box-sizing: border-box; }
         input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
         input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%;
-          cursor:pointer; background:var(--accent); border:2px solid #171519; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #171519; }
+          cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; box-shadow:0 0 0 3px var(--accent-soft); }
+        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; }
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
@@ -239,21 +247,21 @@ function Header({ phase, expIdx, cfg, qIdx, qScore, plain, togglePlain, onToggle
   const isWireframe = phase === "wireframe";
   const isLab = phase !== "intro" && !isQuiz && !isWireframe;
   return (
-    <div style={{ borderBottom: `1px solid ${T.border}`, background: "#1A181E", position: "sticky", top: 0, zIndex: 30 }}>
+    <div style={{ background: T.hdrBg, color: T.hdrText, position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
           <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Conversion <span style={{ color: PLAYER }}>Lab</span></span>
-          <span style={{ color: T.muted, fontSize: 13, fontFamily: T.mono }}>{isQuiz ? "Which Test Won?" : "Chrichton · A/B testing simulator"}</span>
+          <span style={{ color: T.hdrMuted, fontSize: 13, fontFamily: T.mono }}>{isQuiz ? "Which Test Won?" : "Chrichton · A/B testing"}</span>
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
-          {isQuiz && <Stat label="QUESTION" value={`${Math.min(qIdx + 1, QUIZ.length)}/${QUIZ.length}`} accent={PLAYER} />}
-          {isQuiz && <Stat label="SCORE" value={`${qScore}`} accent={T.pos} />}
-          {isLab && <Stat label="EXPERIMENT" value={`${expIdx + 1}/${EXPERIMENTS.length}`} accent={PLAYER} />}
-          {isLab && <Stat label="α" value={cfg.alpha.toFixed(2)} accent={T.instructor} />}
-          {isLab && <Stat label="POWER" value={`${Math.round(cfg.power * 100)}%`} accent={T.instructor} />}
-          {isLab && <Stat label="SEED" value={cfg.seed} accent={T.muted} />}
+          {isQuiz && <Stat label="QUESTION" value={`${Math.min(qIdx + 1, QUIZ.length)}/${QUIZ.length}`} accent="#FF5A4A" />}
+          {isQuiz && <Stat label="SCORE" value={`${qScore}`} accent="#7DCB6A" />}
+          {isLab && <Stat label="EXPERIMENT" value={`${expIdx + 1}/${EXPERIMENTS.length}`} accent="#FF5A4A" />}
+          {isLab && <Stat label="α" value={cfg.alpha.toFixed(2)} accent="#C4A578" />}
+          {isLab && <Stat label="POWER" value={`${Math.round(cfg.power * 100)}%`} accent="#C4A578" />}
+          {isLab && <Stat label="SEED" value={cfg.seed} accent={T.hdrMuted} />}
           <PlainToggle plain={plain} toggle={togglePlain} />
-          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: T.panel2, border: `1px solid ${T.border}`, color: T.instructor, borderRadius: 9, padding: "7px 11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 15 }}>⚙</span> Instructor
           </button>
         </div>
@@ -261,52 +269,61 @@ function Header({ phase, expIdx, cfg, qIdx, qScore, plain, togglePlain, onToggle
     </div>
   );
 }
+// Header-only: values sit on the dark band, so accents use the bright
+// (dark-bg) palette, not the light-surface text tokens.
 function Stat({ label, value, accent }) {
-  return <div style={{ textAlign: "right" }}><div style={{ color: T.muted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.text, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
+  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
 }
 
-/* ---- INTRO -------------------------------------------------- */
+/* ---- INTRO (light redesign: eyebrow + serif H1 + mode cards + experiment grid) */
 function Intro({ onStart, onQuiz, onWireframe, cfg }) {
+  const modeCard = (icon, title, desc, onClick) => (
+    <button onClick={onClick} style={{ textAlign: "left", display: "flex", gap: 12, alignItems: "flex-start", background: T.panel, border: `1px solid ${T.border}`, borderLeft: `5px solid ${T.second}`, borderRadius: 16, padding: "16px 18px", cursor: "pointer", boxShadow: T.shadow, fontFamily: T.body }}>
+      <span style={{ fontSize: 22, lineHeight: 1 }} aria-hidden="true">{icon}</span>
+      <span>
+        <span style={{ display: "block", fontFamily: T.display, fontWeight: 700, fontSize: 18, color: T.text }}>{title}</span>
+        <span style={{ display: "block", color: T.body2, fontSize: 13.5, lineHeight: 1.5, marginTop: 3 }}>{desc}</span>
+      </span>
+    </button>
+  );
   return (
-    <div className="rise" style={{ maxWidth: 760, margin: "44px auto 0" }}>
-      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 46, lineHeight: 1.05, letterSpacing: -1, margin: 0 }}>
-        <PT rich={<>Two versions of a page.<br /><span style={{ color: PLAYER }}>Only the data decides.</span></>}
-            plain={<>Two versions of one web page.<br /><span style={{ color: PLAYER }}>Let the data decide which is better.</span></>} />
-      </h1>
-      <p style={{ color: T.muted, fontSize: 16, lineHeight: 1.6, marginTop: 18 }}>
-        You're running conversion experiments for <b style={{ color: T.text }}>Chrichton</b>, a garden retailer. For each test you'll
-        see two variants of a real page, <b style={{ color: T.text }}>predict</b> which converts better and by how much, commit a{" "}
-        <Term term="samplesize">sample size</Term>, then watch visitors stream in and the <Term term="significance">significance</Term>{" "}
-        verdict resolve with real statistical noise. The lesson lives in the gap between what you <i>predicted</i> and what the data <i>shows</i>.
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10, marginTop: 22 }}>
-        {[
-          ["①", "Predict", "Pick a winner, an effect-size band, and a sample size — before any data."],
-          ["②", "Run", "Visitors split 50/50; watch rates wobble and the p-value cross the line."],
-          ["③", "Call it", "Winner, no difference, or need more data?"],
-          ["④", "Reveal", "The hidden truth, whether you were right, and which bias fooled you."],
-        ].map(([n, t, d]) => (
-          <div key={t} style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "13px 14px" }}>
-            <div style={{ color: PLAYER, fontFamily: T.mono, fontSize: 13 }}>{n}</div>
-            <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, margin: "3px 0 4px" }}>{t}</div>
-            <div style={{ color: T.muted, fontSize: 12, lineHeight: 1.45 }}>{d}</div>
-          </div>
+    <div className="rise" style={{ maxWidth: 1180, margin: "48px auto 0" }}>
+      <div style={{ maxWidth: 820 }}>
+        <Eyebrow title={`${LOS.LO2.full}\n${LOS.LO3.full}`}>A/B testing · LO2 · LO3</Eyebrow>
+        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 50, lineHeight: 1.04, letterSpacing: -1.2, margin: "16px 0 0" }}>
+          <PT rich={<>Design is a hypothesis. <span style={{ color: PLAYER }}>Prove it with data.</span></>}
+              plain={<>A design is only a guess. <span style={{ color: PLAYER }}>Use data to test it.</span></>} />
+        </h1>
+        <p style={{ color: T.body2, fontSize: 17.5, lineHeight: 1.6, marginTop: 18 }}>
+          Each experiment shows two <b style={{ color: T.text }}>Chrichton</b> page variants. Predict which converts better and by how
+          much, commit a <Term term="samplesize">sample size</Term>, then run a seeded <Term term="significance">A/B test</Term> with
+          real statistical noise. The gap between your hunch and the data is the lesson.
+        </p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 16, marginTop: 26 }}>
+        {modeCard("🧱", "Wireframe Studio", "Assemble a product page for a brief, then test your design against the current page.", onWireframe)}
+        {modeCard("🏆", "Which Test Won?", "Real e-commerce A/B tests — call the winner, the size, and the mechanism.", onQuiz)}
+      </div>
+      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, margin: "28px 0 12px" }}>A/B experiment set</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 14 }}>
+        {EXPERIMENTS.map((e, i) => (
+          <button key={e.id} onClick={() => onStart(i)} style={{ textAlign: "left", background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: "14px 16px", cursor: "pointer", boxShadow: T.shadow, fontFamily: T.body }}>
+            <span style={{ display: "block", fontFamily: T.mono, fontSize: 12, fontWeight: 700, color: T.second }}>{String(e.n).padStart(2, "0")}</span>
+            <span style={{ display: "block", fontFamily: T.display, fontWeight: 700, fontSize: 16.5, color: T.text, margin: "3px 0 4px", lineHeight: 1.25 }}>{e.title}</span>
+            <span style={{ display: "block", color: T.muted, fontSize: 13 }}>{e.principle}</span>
+          </button>
         ))}
       </div>
-      <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 24, flexWrap: "wrap" }}>
-        <button onClick={onStart} style={btn(PLAYER)}>Enter the lab →</button>
-        <button onClick={onWireframe} style={{ ...btn("transparent"), color: T.text, border: `1px solid ${T.border}` }}>🎨 Wireframe studio →</button>
-        <button onClick={onQuiz} style={{ ...btn("transparent"), color: T.text, border: `1px solid ${T.border}` }}>Which Test Won? quiz →</button>
-        <span style={{ color: T.muted, fontSize: 13 }}>{EXPERIMENTS.length} experiments · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
+      <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 24, flexWrap: "wrap" }}>
+        <button onClick={() => onStart(0)} style={btn(PLAYER)}>Run the full set →</button>
+        <span style={{ color: T.muted, fontSize: 14 }}>{EXPERIMENTS.length} experiments · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
       </div>
-      <LOBadges los={["LO2", "LO3"]} />
       <TermsHint />
-
       <div style={{ marginTop: 30 }}>
         <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: 1.5, color: T.muted, marginBottom: 10 }}>BUILT ON THE CRO STACK</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
           {CRO_STACK.map((s, i) => (
-            <div key={s.k} style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 14px" }}>
+            <div key={s.k} style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 14px", boxShadow: T.shadow }}>
               <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
                 <span style={{ width: 20, height: 20, borderRadius: 20, background: T.instructor, color: T.onAccent, fontFamily: T.mono, fontWeight: 700, fontSize: 11, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</span>
                 <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14 }}>{s.k}</span>
@@ -698,7 +715,7 @@ function Bench({ exp, base, cfg, predWinner, setPredWinner, predBand, setPredBan
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>EXPERIMENT {base.n}</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>EXPERIMENT {base.n}</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>{base.title}</h2>
         <Chip>{base.principle}</Chip>
       </div>
@@ -815,7 +832,7 @@ function Running({ exp, base, cfg, result, animN, total, liveStat, animComplete,
       <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 12 }}>
         {!animComplete && !canStop && <div style={{ textAlign: "center", color: T.muted, fontSize: 13, fontFamily: T.mono }}>collecting data… {Math.round((animN / total) * 100)}%</div>}
         {canStop && (
-          <div style={{ background: "#2A2731", border: `1px solid ${T.amber}55`, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
+          <div style={{ background: "#FBF3DF", border: `1px solid ${T.amberFill}`, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
             <div style={{ fontSize: 13, marginBottom: 10 }}>You said you'd run to <b>{plannedN.toLocaleString()}</b> per arm. Stop early at <b>{animN.toLocaleString()}</b>?</div>
             <button onClick={() => onCall(verdict === "none" ? "more" : verdict)} style={{ ...btn(T.amber), padding: "10px 18px" }}>⏹ Stop & call it now</button>
           </div>
@@ -865,7 +882,7 @@ function Verdict({ exp, base, cfg, result, decisionN, record, predBand, call, on
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>VERDICT · EXPERIMENT {base.n}</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>VERDICT · EXPERIMENT {base.n}</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{base.title}</h2>
       </div>
 
@@ -911,8 +928,8 @@ function Verdict({ exp, base, cfg, result, decisionN, record, predBand, call, on
           <ScoreCard ok={bandOk} title="Effect-size prediction" you={BANDS.find((b) => b.id === predBand)?.label} truth={tBand.label} />
           <ScoreCard ok={callOk} title="Your final call" you={callLabels[call]} truth={callTruthHint(s, truthDiff)} />
         </div>
-        <div style={{ marginTop: 14, background: tBand.id === "none" && s.significant ? "#3A1D1F" : T.panel2, border: `1px solid ${tBand.id === "none" && s.significant ? T.neg + "55" : T.border}`, borderRadius: 11, padding: "14px 16px" }}>
-          <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: PLAYER, marginBottom: 5 }}>🎓 {base.concept}</div>
+        <div style={{ marginTop: 14, background: tBand.id === "none" && s.significant ? "#FBE9E7" : T.panel2, border: `1px solid ${tBand.id === "none" && s.significant ? T.negFill : T.border}`, borderRadius: 11, padding: "14px 16px" }}>
+          <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.playerText, marginBottom: 5 }}>🎓 {base.concept}</div>
           <div style={{ fontSize: 13, lineHeight: 1.55 }}>{base.lesson}</div>
           {result.firstSignificantN != null && result.firstSignificantN < result.arms.A.n && !exp.segments && (
             <div style={{ marginTop: 9, fontSize: 12, color: T.amber, lineHeight: 1.45 }}>🔎 This run first read p&lt;α at just <b>{result.firstSignificantN.toLocaleString()}</b> visitors/arm. Had you peeked and stopped there, you'd have called it on thinner evidence — sometimes a false alarm.</div>
@@ -931,7 +948,7 @@ function RevealRow({ label, value, color }) {
 }
 function ScoreCard({ ok, title, you, truth }) {
   return (
-    <div style={{ background: ok ? "#1E2B1E" : "#2A2731", border: `1px solid ${ok ? T.pos : T.amber}55`, borderRadius: 11, padding: "13px 15px" }}>
+    <div style={{ background: ok ? "#EAF4E5" : "#FBF3DF", border: `1px solid ${ok ? T.posFill : T.amberFill}`, borderRadius: 11, padding: "13px 15px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
         <span style={{ fontSize: 12.5, color: T.muted }}>{title}</span>
         <span style={{ color: ok ? T.pos : T.amber, fontWeight: 700, fontSize: 13 }}>{ok ? "✓ correct" : "✗ off"}</span>
@@ -962,7 +979,7 @@ function ProfitNote({ exp, s }) {
   const pb = profitPerThousand(exp, s.rB, "B");
   const bWorse = pb < pa;
   return (
-    <div style={{ marginTop: 12, background: bWorse ? "#3A1D1F" : "#1E2B1E", border: `1px solid ${bWorse ? T.neg : T.pos}55`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
+    <div style={{ marginTop: 12, background: bWorse ? "#FBE9E7" : "#EAF4E5", border: `1px solid ${bWorse ? T.negFill : T.posFill}`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
       💷 <b>Business impact / 1,000 visitors:</b> A makes <b style={{ color: T.text }}>{gbp(pa)}</b>, B makes <b style={{ color: bWorse ? T.neg : T.pos }}>{gbp(pb)}</b>.
       {bWorse ? " B converts more, but the free shipping makes it LESS profitable — a test that wins on clicks but loses money." : " B wins on both conversion and profit here."}
     </div>
@@ -974,7 +991,7 @@ function GuardrailNote({ exp, s }) {
   const gb = guardrailPerThousand(exp, s.rB, "B");
   const bWorse = gb < ga;
   return (
-    <div style={{ marginTop: 12, background: bWorse ? "#3A1D1F" : "#1E2B1E", border: `1px solid ${bWorse ? T.neg : T.pos}55`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
+    <div style={{ marginTop: 12, background: bWorse ? "#FBE9E7" : "#EAF4E5", border: `1px solid ${bWorse ? T.negFill : T.posFill}`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
       🚧 <b><Term term="guardrail">Guardrail</Term> — {exp.guardrail.label}:</b> A delivers <b style={{ color: T.text }}>{ga.toFixed(1)}</b>, B delivers <b style={{ color: bWorse ? T.neg : T.pos }}>{gb.toFixed(1)}</b>.
       {bWorse ? ` B won the test metric but the guardrail moved the wrong way (${Math.round((1 - gb / ga) * 100)}% fewer). ` : " B held up on the guardrail too. "}
       <span style={{ color: T.muted }}>{exp.guardrail.note}</span>
@@ -1012,7 +1029,7 @@ function QuizRound({ item, idx, total, onComplete }) {
   return (
     <div className="rise" style={{ marginTop: 22, maxWidth: 980, marginLeft: "auto", marginRight: "auto" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: PLAYER, fontSize: 13 }}>QUESTION {idx + 1} / {total}</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>QUESTION {idx + 1} / {total}</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{item.title}</h2>
       </div>
       <p style={{ color: T.muted, fontSize: 15, lineHeight: 1.5, marginTop: 6 }}>{item.question}</p>
@@ -1029,7 +1046,7 @@ function QuizRound({ item, idx, total, onComplete }) {
                 <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15 }}>{side === "a" ? item.a : item.b}</span>
               </div>
               <div style={{ padding: "0 16px 16px" }}><QuizMock kind={item.mock} side={side} /></div>
-              {stage === "reveal" && <div style={{ background: isWin ? "#1E2B1E" : "#26242B", color: isWin ? T.pos : T.muted, fontFamily: T.mono, fontWeight: 700, fontSize: 12, textAlign: "center", padding: "7px 0" }}>{isWin ? "✓ this won" : (item.answer === "none" || item.answer === "depends") ? "—" : ""}</div>}
+              {stage === "reveal" && <div style={{ background: isWin ? "#EAF4E5" : "#ECEBEE", color: isWin ? T.pos : T.muted, fontFamily: T.mono, fontWeight: 700, fontSize: 12, textAlign: "center", padding: "7px 0" }}>{isWin ? "✓ this won" : (item.answer === "none" || item.answer === "depends") ? "—" : ""}</div>}
             </div>
           );
         })}
@@ -1090,7 +1107,7 @@ function QuizRound({ item, idx, total, onComplete }) {
           </div>
           <div style={{ fontSize: 13.5, lineHeight: 1.55, marginBottom: 8 }}>{item.result}</div>
           <div style={{ background: T.panel2, borderRadius: 10, padding: "11px 13px", fontSize: 13, lineHeight: 1.55 }}>
-            <b style={{ color: PLAYER }}>Why:</b> {item.term && GLOSSARY[item.term] ? <Term term={item.term}>{item.principle}</Term> : item.principle}
+            <b style={{ color: T.playerText }}>Why:</b> {item.term && GLOSSARY[item.term] ? <Term term={item.term}>{item.principle}</Term> : item.principle}
           </div>
           <button onClick={finish} style={{ ...btn(PLAYER), width: "100%", marginTop: 14 }}>{idx + 1 >= total ? "See your calibration →" : "Next question →"}</button>
         </div>
@@ -1180,7 +1197,7 @@ function Summary({ records, cfg, restart }) {
       <div style={{ textAlign: "center", marginBottom: 20 }}>
         <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>CHRICHTON · SEED {cfg.seed}</div>
         <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 36, margin: "6px 0", letterSpacing: -0.5 }}>Your calibration report</h1>
-        <div style={{ color: T.muted }}>Effect-size band <b style={{ color: PLAYER }}>{bandHits}/{ordered.length}</b> · final call <b style={{ color: PLAYER }}>{callHits}/{ordered.length}</b> correct.</div>
+        <div style={{ color: T.muted }}>Effect-size band <b style={{ color: T.playerText }}>{bandHits}/{ordered.length}</b> · final call <b style={{ color: T.playerText }}>{callHits}/{ordered.length}</b> correct.</div>
       </div>
 
       <div style={card()}>
@@ -1209,7 +1226,7 @@ function Summary({ records, cfg, restart }) {
       <div style={{ ...card(), marginTop: 16 }}>
         <SectionTitle>What the lab was teaching</SectionTitle>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-          {EXPERIMENTS.map((e) => <div key={e.id} style={{ background: T.panel2, borderRadius: 11, padding: "13px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: PLAYER, marginBottom: 5 }}>{e.concept}</div><div style={{ fontSize: 12.5, color: T.text, lineHeight: 1.5 }}>{e.lesson}</div></div>)}
+          {EXPERIMENTS.map((e) => <div key={e.id} style={{ background: T.panel2, borderRadius: 11, padding: "13px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.playerText, marginBottom: 5 }}>{e.concept}</div><div style={{ fontSize: 12.5, color: T.text, lineHeight: 1.5 }}>{e.lesson}</div></div>)}
         </div>
       </div>
 
@@ -1249,8 +1266,8 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
   const preset = (label, patch) => <button key={label} onClick={() => set(patch)} style={presetBtn}>{label}</button>;
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#0008", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: "#1D1B21", borderLeft: `1px solid ${A}55`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #0007" }}>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#00000066", zIndex: 40 }} />
+      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: T.panel, borderLeft: `1px solid ${T.border}`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #00000030" }}>
         <div style={{ padding: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
@@ -1346,7 +1363,7 @@ function ToggleRow({ label, on, onToggle, accent }) {
   return (
     <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 13, fontWeight: 500 }}>
       <span>{label}</span>
-      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#171519", transition: "left .15s" }} /></span>
+      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#FFFFFF", boxShadow: "0 1px 3px #00000040", transition: "left .15s" }} /></span>
     </div>
   );
 }
@@ -1361,10 +1378,10 @@ function InstructorSlider({ label, value, min, max, step, fmt, onChange, accent,
     </div>
   );
 }
-const tipStyle = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12 };
+const tipStyle = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12, boxShadow: T.shadow };
 const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "9px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 12.5, lineHeight: 1.3 };
-const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20 });
-const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 11, padding: "13px 22px", fontFamily: T.body, fontWeight: 700, fontSize: 15, cursor: "pointer", letterSpacing: 0.2 });
+const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20, boxShadow: T.shadow });
+const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 15.5, cursor: "pointer", letterSpacing: 0.2 });
 const pillBtn = (on) => ({ flex: 1, padding: "10px 8px", borderRadius: 9, cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, border: `1.5px solid ${on ? PLAYER : T.border}`, background: on ? PLAYER : "transparent", color: on ? T.onAccent : T.text });
-const croBtn = (disabled, primary) => ({ background: disabled ? "#2A2731" : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text, border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 8, padding: "8px 12px", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap" });
+const croBtn = (disabled, primary) => ({ background: disabled ? T.panel2 : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text, border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 8, padding: "8px 12px", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap" });
 const td = () => ({ padding: "7px 8px", borderBottom: `1px solid ${T.border}` });
