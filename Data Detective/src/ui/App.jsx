@@ -4,55 +4,76 @@ import { T, GLOBAL_CSS } from "./theme.js";
 import { PlainModeProvider } from "./shared.jsx";
 import GeneratedCase from "./generated/GeneratedCase.jsx";
 import InstructorPanel from "./generated/InstructorPanel.jsx";
+import Inbox from "./Inbox.jsx";
+import CaseFile from "./CaseFile.jsx";
+import { caseAt, nextAttempt } from "./caseList.js";
+import { loadProgress } from "./progress.js";
 import { readUrlConfig } from "./urlConfig.js";
 import { clearCaseSessions, readSession, writeSession } from "./session.js";
 
-// Case 8 carries ~1,400 lines of real 2015 data: download it only when opened.
+// Case 9 carries ~1,400 lines of real 2015 data: download it only when opened.
 const FieldCase = lazy(() => import("./field/FieldCase.jsx"));
 
-/* Root: picks which case is on screen and with what instructor config.
-   caseIndex 0..CASES.length-1 are the generated cases (1–7); CASES.length
-   is the field-data case (8, real 2015 exports). Each case component owns
-   its whole session; bumping `run` remounts it, which is how every
-   "switch case" / "try again" / "apply instructor settings" starts afresh.
-   `attempts` counts retries per case, so a retry gets a fresh variant.
+/* Root: which screen is on show — the case inbox, the case file, or one
+   case — and with what instructor config. caseIndex 0..CASES.length-1 are
+   the generated cases (1–8); CASES.length is the field-data case (9, real
+   2015 exports). Each case component owns its whole session; bumping `run`
+   remounts it, which is how every "open a case" / "try again" / "apply
+   instructor settings" starts afresh. Going back to the inbox keeps the
+   case where it was, so the student can return to it. `attempts` counts
+   tries per case, so a retry gets a fresh variant; `nav` counts screen
+   changes, so focus moves to each new screen's heading (not on first load).
    All of this is mirrored to the tab's session so a refresh resumes it. */
+const VERSION = 2;   // saved records from before the inbox (field case = index 7) are ignored
+
 export default function App() {
   const [app, setApp] = useState(initialAppState);
-  const { caseIndex, cfg, run, attempts } = app;
+  const { view, caseIndex, cfg, run, attempts, nav } = app;
   const [showInstructor, setShowInstructor] = useState(false);
   const [instructor] = useState(instructorMode);
   useShellBarOffset();
-  useEffect(() => { writeSession("app", { ...app, search: currentSearch() }); }, [app]);
+  useEffect(() => { writeSession("app", { ...app, v: VERSION, search: currentSearch() }); }, [app]);
 
   function startCase(idx, newCfg = cfg, { retry = false } = {}) {
     clearCaseSessions();
-    setApp((a) => ({
-      caseIndex: idx, cfg: newCfg, run: a.run + 1,
+    setApp((a) => {
       // new instructor settings are a new puzzle for everyone: attempts restart
-      attempts: newCfg !== a.cfg ? {} : retry ? { ...a.attempts, [idx]: (a.attempts[idx] || 1) + 1 } : a.attempts,
-    }));
+      const attempt = newCfg !== a.cfg ? null : retry ? (a.attempts[idx] || 1) + 1 : nextAttempt(idx, a.attempts, loadProgress());
+      return {
+        ...a, view: "case", caseIndex: idx, cfg: newCfg, run: a.run + 1, nav: a.nav + 1,
+        attempts: attempt === null ? {} : { ...a.attempts, [idx]: attempt },
+      };
+    });
   }
-  const isField = caseIndex >= CASES.length;
+  const go = (v) => setApp((a) => ({ ...a, view: v, nav: a.nav + 1 }));
+  // On the inbox, new settings apply to whichever case is opened next.
+  const applyOnInbox = (c) => { clearCaseSessions(); setApp((a) => ({ ...a, cfg: c, attempts: {}, caseIndex: null })); };
+
+  const autoFocus = nav > 0;
+  const isField = caseIndex === CASES.length;
   const sessionKey = `r${run}:c${caseIndex}`;
-  // After a switch, restart or refresh (not on first load), move focus to the screen.
-  const autoFocus = run > 0;
+  const toggleInstructor = instructor ? () => setShowInstructor((v) => !v) : undefined;
+  const inCase = view === "case" && caseIndex !== null;
 
   return (
     <PlainModeProvider>
       <div style={{ minHeight: "100vh", background: T.ink, color: T.text, fontFamily: T.body }}>
         <style>{GLOBAL_CSS}</style>
-        {isField ? (
+        {view === "inbox" && <Inbox autoFocus={autoFocus} cfg={cfg} attempts={attempts} current={caseIndex} currentDone={["reveal", "report"].includes(readSession(`${sessionKey}:phase`))}
+          onOpen={(i) => startCase(i)} onReturn={() => go("case")} onCaseFile={() => go("casefile")} onToggleInstructor={toggleInstructor} />}
+        {view === "casefile" && <CaseFile autoFocus={autoFocus} onBack={() => go("inbox")} />}
+        {inCase && isField && (
           <Suspense fallback={<div role="status" style={{ maxWidth: 1180, margin: "48px auto", padding: "0 20px", color: T.muted, fontSize: 16 }}>Opening the 2015 archive…</div>}>
-            <FieldCase key={run} sessionKey={sessionKey} autoFocus={autoFocus} onRestart={() => startCase(caseIndex)} onExit={() => startCase(0)} />
+            <FieldCase key={run} sessionKey={sessionKey} autoFocus={autoFocus} onRestart={() => startCase(caseIndex)} onExit={() => go("inbox")} />
           </Suspense>
-        ) : (
-          <>
-            <GeneratedCase key={run} sessionKey={sessionKey} autoFocus={autoFocus} caseIndex={caseIndex} cfg={cfg} attempt={attempts[caseIndex] || 1}
-              onSelectCase={(i) => startCase(i)} onRetry={() => startCase(caseIndex, cfg, { retry: true })}
-              onToggleInstructor={instructor ? () => setShowInstructor((v) => !v) : undefined} />
-            {showInstructor && <InstructorPanel cfg={cfg} caseN={CASES[caseIndex].n} onApply={(c) => { setShowInstructor(false); startCase(caseIndex, c); }} onClose={() => setShowInstructor(false)} />}
-          </>
+        )}
+        {inCase && !isField && (
+          <GeneratedCase key={run} sessionKey={sessionKey} autoFocus={autoFocus} caseIndex={caseIndex} cfg={cfg} attempt={attempts[caseIndex] || 1}
+            onInbox={() => go("inbox")} onRetry={() => startCase(caseIndex, cfg, { retry: true })} onToggleInstructor={toggleInstructor} />
+        )}
+        {showInstructor && (
+          <InstructorPanel cfg={cfg} caseN={inCase ? caseAt(caseIndex).n : null} onClose={() => setShowInstructor(false)}
+            onApply={(c) => { setShowInstructor(false); if (inCase) startCase(caseIndex, c); else applyOnInbox(c); }} />
         )}
       </div>
     </PlainModeProvider>
@@ -62,13 +83,17 @@ export default function App() {
 const currentSearch = () => (typeof location === "undefined" ? "" : location.search);
 
 // A refresh (same URL) resumes the saved session; arriving by a different
-// link — e.g. a cohort link — starts from that link's settings instead.
+// link — e.g. a cohort link — starts from that link's settings instead: the
+// inbox, or straight into the case it names.
 function initialAppState() {
   const saved = readSession("app");
-  if (saved && saved.search === currentSearch() && saved.cfg) return { caseIndex: saved.caseIndex, cfg: saved.cfg, run: saved.run, attempts: saved.attempts || {} };
+  if (saved?.v === VERSION && saved.search === currentSearch() && saved.cfg) {
+    return { view: saved.view, caseIndex: saved.caseIndex, cfg: saved.cfg, run: saved.run, attempts: saved.attempts || {}, nav: saved.nav || 0 };
+  }
   clearCaseSessions();
   const { caseIndex, cfg } = readUrlConfig();
-  return { caseIndex, cfg, run: 0, attempts: {} };
+  if (caseIndex === null) return { view: "inbox", caseIndex: null, cfg, run: 0, attempts: {}, nav: 0 };
+  return { view: "case", caseIndex, cfg, run: 0, attempts: { [caseIndex]: nextAttempt(caseIndex, {}, loadProgress()) }, nav: 0 };
 }
 
 // The instructor panel (seed and noise level) is for staff. It appears only

@@ -3,7 +3,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { REPORTS, TOTAL_DAYS, realtimeSnapshot, summariseTopline, avgRange, dayShort, dayLong } from "../../engine/engine.js";
 import { PRESETS } from "./dateRange.js";
 import { T, PLAYER, SEG_COLORS, card, pillBtn, tipStyle } from "../theme.js";
-import { gbp, num, pct, secs } from "../format.js";
+import { gbp, gbp2, num, pct, secs } from "../format.js";
 import { Chart, Dashboard, KpiTile, LegendLine, SectionTitle, SideNav, useNarrow } from "../shared.jsx";
 import ReportPanel from "./ReportPanel.jsx";
 import FunnelView from "./FunnelView.jsx";
@@ -32,7 +32,7 @@ function DateRangeBar({ range }) {
 const NAV_TOP = [["home", "🏠 Home overview"], ["realtime", "🟢 Realtime"], ["funnel", "🔻 Funnel exploration"], ["orders", "🧾 Back-office orders"]];
 const NAV_GROUPS = REPORTS.map((g) => ({ group: g.group, items: g.items.map((it) => ({ key: it.dim, label: it.label })) }));
 
-export default function Investigate({ caseData, metric, setMetric, activeReport, openReport, onPivot, viewed, pivots, range, onDiagnose }) {
+export default function Investigate({ caseData, metric, setMetric, activeReport, openReport, onPivot, viewed, pivots, range, lens = "conversionRate", onLens = () => {}, onDiagnose }) {
   const reportDim = caseData.breakdowns.find((d) => d.key === activeReport);
   return (
     <Dashboard title="Analytics" meta={`${viewed.length} reports · ${pivots.length} pivots checked`}
@@ -42,7 +42,7 @@ export default function Investigate({ caseData, metric, setMetric, activeReport,
       {activeReport === "realtime" && <RealtimeView caseData={caseData} />}
       {activeReport === "funnel" && <FunnelView caseData={caseData} range={range} />}
       {activeReport === "orders" && <OrdersView caseData={caseData} range={range} />}
-      {reportDim && <ReportPanel key={reportDim.key} caseData={caseData} reportDim={reportDim} onPivot={onPivot} range={range} />}
+      {reportDim && <ReportPanel key={reportDim.key} caseData={caseData} reportDim={reportDim} onPivot={onPivot} range={range} lens={lens} onLens={onLens} />}
     </Dashboard>
   );
 }
@@ -53,6 +53,7 @@ const METRICS = [
   { id: "sessions", label: "Sessions", fmt: num },
   { id: "engagementRate", label: "Engagement rate", fmt: (v) => pct(v, 1) },
   { id: "revenue", label: "Revenue", fmt: (v) => gbp(v) },
+  { id: "aov", label: "Avg order value", fmt: gbp2 },
 ];
 // Indices into SEG_COLORS chosen to avoid 2 (red) and 4 (green), which are
 // reserved for the up/down delta semantics elsewhere on these cards.
@@ -62,7 +63,7 @@ const KPI_CARDS = [
   { key: "engagedSessions", label: "Engaged sessions", fmt: num, colorIdx: 1 },
   { key: "engagementRate", label: "Engagement rate", fmt: (v) => pct(v, 1), colorIdx: 3 },
   { key: "avgEngagementTime", label: "Avg engagement", fmt: secs, colorIdx: 0 },
-  { key: "events", label: "Events", fmt: num, colorIdx: 5 },
+  { key: "aov", label: "Avg order value", fmt: gbp2, colorIdx: 5 },
   { key: "purchases", label: "Conversions", fmt: num, colorIdx: 1 },
   { key: "revenue", label: "Revenue", fmt: gbp, colorIdx: 3 },
 ];

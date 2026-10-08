@@ -1,9 +1,10 @@
-/* Case 8's metadata — its number, ticket and period — kept apart from the
-   real GA data (fieldcase-data.js, ~1,400 lines) so the case picker can
-   name the case without loading the data: the field case is code-split
-   and only downloaded when a student opens it. */
+/* Case 9's metadata — its number, ticket, period and principle — kept
+   apart from the real GA data (fieldcase-data.js, ~1,400 lines) so the
+   inbox and the case file can name the case without loading the data: the
+   field case is code-split and only downloaded when a student opens it. */
 export const FIELD_CASE = {
-  id: "cold-case-2015", n: 8, difficulty: "Field data",
+  id: "cold-case-2015", n: 9, difficulty: "Field data", title: "The 2015 cold case",
+  lesson: "Before you trust a number, ask whether the measurement can be believed. Self-referrals, test orders and unfiltered internal traffic can make a channel look miraculous — fix the tracking, then re-measure, then decide.",
   words: ["selfreferral", "exclusionlist", "testtraffic", "aov", "pla"],   // glossary terms for the case report
   ticket: {
     channel: "#cro-team", from: "Priya · Ops",

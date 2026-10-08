@@ -25,7 +25,7 @@ const days = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => from 
 export const CASES = [
   /* ---- 1 · Beginner: one payment route fails ---------------------- */
   {
-    id: "paypal-gateway", n: 1, difficulty: "Beginner",
+    id: "paypal-gateway", n: 1, difficulty: "Beginner", title: "Is checkout broken?",
     words: ["segmentation", "gateway", "redherring", "funnelstep"],   // glossary terms for the case report
     lesson: "Segment before you blame “checkout”: one payment method failing can sink the whole funnel while every other route through it is fine — and the event that lines up best on the timeline is not automatically the cause.",
     variants: [
@@ -64,7 +64,7 @@ export const CASES = [
 
   /* ---- 2 · Intermediate: a fault that lives in an intersection ---- */
   {
-    id: "mobile-safari-bug", n: 2, difficulty: "Intermediate",
+    id: "mobile-safari-bug", n: 2, difficulty: "Intermediate", title: "Soft for two weeks, nobody knows why",
     words: ["crosstab", "segmentation", "funnelstep", "redherring"],   // glossary terms for the case report
     lesson: "Interaction effects hide in single-dimension reports. When two dimensions each look “a bit off”, cross-tab them: the real fault may live only in their intersection, diluted everywhere else.",
     variants: [
@@ -103,7 +103,7 @@ export const CASES = [
 
   /* ---- 3 · Intermediate: the average falls, nothing broke --------- */
   {
-    id: "traffic-mix", n: 3, difficulty: "Intermediate",
+    id: "traffic-mix", n: 3, difficulty: "Intermediate", title: "More visitors, lower conversion",
     words: ["mixshift", "conversion", "segmentation", "redherring"],   // glossary terms for the case report
     lesson: "If no segment's own rate moved, nothing broke. A falling average can be pure mix shift (Simpson's paradox) — a conversation about traffic quality with marketing, not a bug hunt with engineering.",
     variants: [
@@ -126,7 +126,7 @@ export const CASES = [
         },
       },
       {
-        ticket: { ...GROWTH, subject: "More traffic, lower conversion — is the site broken?", body: "Traffic is up but sitewide conversion has slipped and revenue hasn't grown with the visits. Nobody has touched the checkout and error rates are normal. We did just switch our search ads to a broad-match strategy to grow volume. Is the site broken, or is something else going on? The board wants a definitive answer, with evidence." },
+        ticket: { ...GROWTH, subject: "Busier search ads, lower conversion — is the site broken?", body: "Sitewide conversion has slipped over the last week and revenue is behind, but nobody has touched the checkout and error rates are normal. We did just switch our search ads to a broad-match strategy to grow volume. Is the site broken, or is something else going on? The board wants a definitive answer, with evidence." },
         incident: null,
         sessionShiftEvents: [
           { dimension: "campaign", segment: "generic", days: days(16, 27), factor: 3.0 },
@@ -147,12 +147,12 @@ export const CASES = [
 
   /* ---- 4 · Advanced: a real fault hidden by good news ------------- */
   {
-    id: "masked-desktop", n: 4, difficulty: "Advanced",
+    id: "masked-desktop", n: 4, difficulty: "Advanced", title: "A dip that feels too small",
     words: ["masking", "mixshift", "segmentation"],   // glossary terms for the case report
     lesson: "A calm topline does not mean nothing is wrong. A favourable mix shift can mask a severe localised fault — segment anyway, and treat good news that arrives with a dip as possible camouflage.",
     variants: [
       {
-        ticket: { ...OPS, subject: "Small dip, but revenue feels worse than it should", body: "Sitewide conversion is only down a few percent — well within what we'd normally call noise — and returning-customer numbers are actually up after our loyalty push, so most of the team thinks we're fine. But revenue is softer than that small dip suggests, and a few customers mentioned checkout looked odd. Can you confirm there's really nothing wrong?" },
+        ticket: { ...OPS, subject: "Small dip, but revenue feels worse than it should", body: "Sitewide conversion is only down a few percent — well within what we'd normally call noise — and returning-customer numbers are actually up after our loyalty push, so most of the team thinks we're fine. But a few customers mentioned checkout looked odd. Can you confirm there's really nothing wrong?" },
         incident: { dimension: "device", segment: "desktop", type: "rate", shape: "cliff", startDay: 18, factor: 0.72, stage: "checkout" },
         sessionShiftEvents: [
           { dimension: "userType", segment: "returning", days: days(18, 27), factor: 2.2 },
@@ -169,7 +169,7 @@ export const CASES = [
         },
       },
       {
-        ticket: { ...OPS, subject: "Revenue feels soft, but the numbers say we're fine", body: "Sitewide conversion is only down a few percent — well within what we'd normally call noise — and returning-customer numbers are up after our loyalty push, so most of the team thinks we're fine. But revenue is softer than that small dip suggests, and a couple of customers complained that checkout 'froze'. Can you confirm there's really nothing wrong?" },
+        ticket: { ...OPS, subject: "Revenue feels soft, but the numbers say we're fine", body: "Sitewide conversion is only down a few percent — well within what we'd normally call noise — and returning-customer numbers are up after our loyalty push, so most of the team thinks we're fine. But a couple of customers complained that checkout 'froze'. Can you confirm there's really nothing wrong?" },
         incident: { dimension: "device", segment: "mobile", type: "rate", shape: "cliff", startDay: 17, factor: 0.55, stage: "checkout" },
         sessionShiftEvents: [
           { dimension: "userType", segment: "returning", days: days(17, 27), factor: 2.2 },
@@ -190,7 +190,7 @@ export const CASES = [
 
   /* ---- 5 · Intermediate: a slow bleed, not a cliff --------------- */
   {
-    id: "stockout-slow-bleed", n: 5, difficulty: "Intermediate",
+    id: "stockout-slow-bleed", n: 5, difficulty: "Intermediate", title: "The slow leak",
     words: ["funnelstep", "baseline", "anomaly"],   // glossary terms for the case report
     lesson: "Shape tells cause. A sudden cliff points to something that broke; a slow slide that keeps getting worse points to something running out or wearing down — stock, budget, patience. Find where it lives, then read its shape.",
     variants: [
@@ -227,7 +227,7 @@ export const CASES = [
 
   /* ---- 6 · Advanced: the dashboard is wrong, not the shop --------- */
   {
-    id: "false-alarm-tracking", n: 6, difficulty: "Advanced",
+    id: "false-alarm-tracking", n: 6, difficulty: "Advanced", title: "Conversions fell off a cliff",
     words: ["groundtruth", "funnelstep", "anomaly"],   // glossary terms for the case report
     lesson: "Before declaring a crisis, check the dashboard against a ground-truth number. If the order system didn't see a drop, the problem is the measurement, not the shop — and rolling back the site would have fixed nothing.",
     variants: [
@@ -264,7 +264,7 @@ export const CASES = [
 
   /* ---- 7 · Advanced: nothing is broken ---------------------------- */
   {
-    id: "normal-week", n: 7, difficulty: "Advanced",
+    id: "normal-week", n: 7, difficulty: "Advanced", title: "The worst day in a month",
     words: ["noise", "baseline", "anomaly"],   // glossary terms for the case report
     lesson: "Sometimes the right diagnosis is “nothing is broken”. Check that a dip is bigger than normal variation and confined to one group before calling it an incident — small segments swing wildly by chance, and calendars move whole sites.",
     variants: [
@@ -294,6 +294,46 @@ export const CASES = [
         truth: {
           dimension: null, segment: null, startDay: null, shape: "none", causeType: "external_no_issue",
           explanation: "Nothing is broken. On Thursday evening the cup final was on national TV: fewer people shopped, and the people who browsed bought less, so traffic and conversion dipped for one day — in every segment at once — and were back to normal on Friday. Over the week as a whole, conversion is within a few percent of the first week. The reports that looked alarming were small segments with only a few dozen orders a week, where a swing of 20% or more between two weeks is ordinary chance. A real incident would show a drop that is bigger than that normal variation, confined to one group, and still there the next day. The CSS fix and the returns-policy update had no effect. The right call is to roll back nothing and explain the calendar.",
+        },
+      },
+    ],
+  },
+
+  /* ---- 8 · Intermediate: the money moved, conversion didn't ------- */
+  {
+    id: "orders-up-revenue-down", n: 8, difficulty: "Intermediate", title: "Orders up, revenue down",
+    words: ["revenuetree", "aov", "segmentation", "redherring"],   // glossary terms for the case report
+    lesson: "Revenue = sessions × conversion × average order value. When revenue moves, find which of the three moved before you dig, then segment that one. A group can look like your best news on conversion while it is exactly where the money is leaking.",
+    variants: [
+      {
+        ticket: { ...GROWTH, subject: "Orders up, revenue down — is the dashboard wrong?", body: "Orders are up on a normal week, yet revenue is down, and finance says the average order is worth about a sixth less than it was. Marketing are calling it a good month; finance thinks the analytics must be broken. Which is it? If something really has changed: where, what, and since when?" },
+        // A cut-price code: German baskets shrink by more than half, while the
+        // bargain lifts German conversion and pulls in deal-hunters.
+        incident: { dimension: "country", segment: "de", type: "aov", shape: "cliff", startDay: 17, factor: 0.45, rateFactor: 1.4 },
+        sessionShiftEvents: [{ dimension: "country", segment: "de", days: days(17, 27), factor: 1.3 }],
+        events: [
+          { day: 15, label: "EU delivery partner switched", real: false },
+          { day: 17, label: "Staff discount scheme relaunched", real: true },
+          { day: 19, label: "Price-comparison feed refreshed", real: false },
+        ],
+        truth: {
+          dimension: "country", segment: "de", startDay: 17, shape: "cliff", causeType: "pricing_promo", lens: "aov",
+          explanation: "Nothing broke, and the dashboard is right. When the staff discount scheme was relaunched on day 17, a 60%-off staff code was posted on a German deal-sharing site and spread fast. From that day German visits rose by a fifth to a quarter, and German shoppers converted far better than before — up by roughly a third to a half — because a big discount turns browsers into buyers. That is why orders went UP. But each German order was worth less than half what it used to be: Germany's average order fell to about £20. So revenue fell while orders rose. The UK's average order held within a few percent, and the smaller markets only wobbled the way small segments do. Read conversion alone and Germany looks like the best news in the business; view the Country report by average order value and it is plainly where the money is leaking. Sitewide, revenue = sessions × conversion × AOV: sessions were flat, conversion rose and AOV fell by about a sixth — which is the factor to segment. Back-office orders match analytics, so the tracking was never the problem. The EU delivery-partner switch and the price-comparison feed refresh were coincidences. The fix is commercial, not technical: cancel the code and tie staff discounts to staff accounts.",
+        },
+      },
+      {
+        ticket: { ...GROWTH, subject: "More orders, less money — what's going on?", body: "Orders are up on a normal week and the team are celebrating, but revenue is down and finance says the average order is worth about a sixth less than it was. Some people think the analytics is broken. Is it? If not: what changed, for whom, and since when?" },
+        // Members no longer pad their baskets to reach free delivery.
+        incident: { dimension: "userType", segment: "returning", type: "aov", shape: "cliff", startDay: 16, factor: 0.7, rateFactor: 1.15 },
+        sessionShiftEvents: [],
+        events: [
+          { day: 14, label: "Competitor launched free returns", real: false },
+          { day: 16, label: "Loyalty scheme terms updated", real: true },
+          { day: 18, label: "Homepage hero banner changed", real: false },
+        ],
+        truth: {
+          dimension: "userType", segment: "returning", startDay: 16, shape: "cliff", causeType: "pricing_promo", lens: "aov",
+          explanation: "Nothing broke, and the dashboard is right. On day 16 the loyalty scheme's terms changed: free delivery for members now starts at £20 instead of £50. Returning customers — mostly members — used to add an extra item to reach £50; now they don't need to. Cheaper delivery tipped more of them into buying, so their conversion rose by roughly a tenth to a fifth and orders went UP. But their average order fell by about 30%, so revenue fell while orders rose. New customers' average order moved only within its normal wobble. Read conversion alone and returning customers look like a success story; view New vs returning by average order value and the leak is plain. Sitewide, revenue = sessions × conversion × AOV: sessions were flat, conversion rose and AOV fell by about a sixth — which is the factor to segment. Back-office orders match analytics, so the tracking was never the problem. The competitor's free-returns offer and the homepage banner were coincidences. Whether the change was worth it is a commercial call — the threshold was cut to reward loyalty — but it should be judged on margin, not on the order count.",
         },
       },
     ],

@@ -69,7 +69,7 @@ describe("case report (cases 1–7)", () => {
   });
 });
 
-describe("case report (case 8)", () => {
+describe("case report (case 9)", () => {
   it("wrong calls show the truth; flagged rows by name; the clue chain; missed core clues to work on", () => {
     const guess = { verdict: "agency-right", gun: FIELD_GUN_TRUTH, remedy: "rem-mobile", confidence: 90 };
     const flags = ["ch-referral"];

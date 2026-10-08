@@ -5,10 +5,10 @@ import { ordinal } from "../format.js";
 import { causeLabel, confidenceText, dimsText, segsText, startText } from "../report/labels.js";
 import { ConfidenceVerdict, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
 
-export default function Reveal({ caseData, diagnosis, result, viewed, pivots, onRetry, onOpenReport }) {
+export default function Reveal({ caseData, diagnosis, result, viewed, pivots, lenses, onRetry, onInbox, onOpenReport }) {
   const truth = caseData.truth;
   const narrow = useNarrow();
-  const review = useMemo(() => reviewTrail(caseData, viewed, pivots), [caseData, viewed, pivots]);
+  const review = useMemo(() => reviewTrail(caseData, viewed, pivots, lenses), [caseData, viewed, pivots, lenses]);
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <RevealHeadline kicker={`CASE ${caseData.n} — SOLVED`} title={`${result.fieldsCorrect}/4 correct`} />
@@ -45,6 +45,7 @@ export default function Reveal({ caseData, diagnosis, result, viewed, pivots, on
       <div style={{ textAlign: "center", marginTop: 22, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
         <button onClick={onRetry} style={btn(T.playerBtn)}>Try a fresh variant ↺</button>
         <button onClick={onOpenReport} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Open your case report (PDF)</button>
+        <button onClick={onInbox} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Back to the case inbox</button>
       </div>
       <p style={{ textAlign: "center", fontSize: 13.5, color: T.muted, marginTop: 10, lineHeight: 1.5 }}>
         A fresh variant is the same lesson with a different fault to find. Only your first attempt's score is kept.<br />
@@ -75,6 +76,7 @@ function TrailCard({ review: r }) {
           : <>The signal was in <b>{r.decisive}</b>, which you never {r.compound ? "built" : "opened"}.{r.compound ? " Each single report only shows a diluted part of the drop." : ""}</>)}
       {r.funnelStage && line(r.usedFunnel, <>{r.usedFunnel ? "You used" : "You didn't use"} <b>Funnel exploration</b>. Filtered to the broken segment, it pins the drop to the <b>{r.funnelStage}</b> step — a strong clue to the cause.</>)}
       {r.needsBackOffice && line(r.usedBackOffice, <>{r.usedBackOffice ? "You checked" : "You didn't check"} <b>Back-office orders</b> — the ground truth that tells a broken tag from a broken shop.</>)}
+      {r.lens && line(r.usedLens, <>{r.usedLens ? "You viewed" : "You never viewed"} <b>{r.decisive}</b> by <b>average order value</b> or revenue — the lens that shows where the money went when conversion didn't fall.</>)}
       {!r.noIncident && (
         <div style={{ fontSize: 13.5, color: T.muted, marginTop: 10, lineHeight: 1.5 }}>
           You opened {r.reportsOpened} report{r.reportsOpened === 1 ? "" : "s"} ({r.deadEnds} {r.deadEnds === 1 ? "was a dead end" : "were dead ends"}) and built {r.pivotsBuilt} cross-tab{r.pivotsBuilt === 1 ? "" : "s"}. Ruling things out is part of the job; what matters is whether each view was chosen for a reason.

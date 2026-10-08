@@ -8,7 +8,7 @@ import { calibrationVerdict, confidenceText, longDate, REPORT_LABELS, wordsFor }
 const label = (opts, id) => opts.find((o) => o.id === id)?.label || "—";
 const FIELD_REPORT_NAMES = { channels: "Channels", sourceMedium: "Source / Medium", device: "Mobile overview", age: "Demographics: Age", landingPages: "Landing pages", products: "Product performance" };
 
-/* Case 8's case report, in the same shape as the generated cases' (see
+/* Case 9's case report, in the same shape as the generated cases' (see
    report/generatedReport.js): the three calls, the evidence the student
    flagged, the clue chain, what really happened, and reflection. */
 export function fieldReport({ guess, result, flags, viewed = [] }) {
@@ -29,7 +29,7 @@ export function fieldReport({ guess, result, flags, viewed = [] }) {
     meta: [longDate(), "Field data", "Real Google Analytics exports, autumn 2015"],
     score: { got: result.fieldsCorrect, outOf: 3, detail: `${result.cluesFound} of ${result.clueTotal} clues found (${result.coreFound} of ${result.coreTotal} core)` },
     confidence: guess.confidence ? { label: confidenceText(guess.confidence), verdict } : null,
-    principle: "Before you trust a number, ask whether the measurement can be believed. Self-referrals, test orders and unfiltered internal traffic can make a channel look miraculous — fix the tracking, then re-measure, then decide.",
+    principle: FIELD_CASE.lesson,
     callsTitle: "Your calls vs the truth",
     calls: [
       { label: "Verdict", you: label(FIELD_VERDICTS, guess.verdict), truth: label(FIELD_VERDICTS, FIELD_VERDICT_TRUTH), ok: result.verdictCorrect },

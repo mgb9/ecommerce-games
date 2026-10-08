@@ -21,6 +21,8 @@ export const REPORT_LABELS = Object.fromEntries([
   ...REPORTS.flatMap((g) => g.items.map((it) => [it.dim, it.label])),
 ]);
 export const pivotLabel = (p) => p.split("×").map(dimLabel).join(" × ");
+const LENS_NAMES = { conversionRate: "conversion rate", sessions: "sessions", revenue: "revenue", aov: "average order value" };
+export const lensLabel = (l) => { const [report, metric] = l.split(":"); return `${REPORT_LABELS[report] || report} by ${LENS_NAMES[metric] || metric}`; };
 
 // Calibration: did the stated confidence match how the student did?
 // "Very sure" should mean right about nine times in ten. [text, tone].
@@ -34,13 +36,20 @@ export const calibrationVerdict = (confidence, allCorrect) => {
   return v ? { text: v[0], tone: v[1] } : null;
 };
 
+// The same verdict in two or three words, for the case file's table.
+const SHORT = { 90: [["Well calibrated", "pos"], ["Overconfident", "neg"]], 70: [["Reasonable", "pos"], ["A little too sure", "amber"]], 50: [["Underconfident", "amber"], ["An honest hunch", "amber"]] };
+export const calibrationShort = (confidence, allCorrect) => {
+  const v = SHORT[confidence]?.[allCorrect ? 0 : 1];
+  return v ? { text: v[0], tone: v[1] } : null;
+};
+
 // Display names for the glossary keys a case report lists under "Words to know".
 const WORD_NAMES = {
   segmentation: "Segmentation", correlation: "Correlation", redherring: "Red herring", baseline: "Baseline", anomaly: "Anomaly",
   gateway: "Payment gateway", pp: "Percentage points (pp)", crosstab: "Cross-tab", funnelstep: "Funnel step", conversion: "Conversion",
   cro: "CRO", mixshift: "Mix shift", masking: "Masking", selfreferral: "Self-referral", exclusionlist: "Referral exclusion list",
   testtraffic: "Test traffic", aov: "AOV (average order value)", pla: "PLA (Product Listing Ads)", groundtruth: "Ground truth",
-  calibration: "Calibration", noise: "Noise",
+  calibration: "Calibration", noise: "Noise", revenuetree: "Revenue = sessions × conversion × AOV",
 };
 export const wordsFor = (keys) => keys.filter((k) => GLOSSARY[k]).map((k) => ({ term: WORD_NAMES[k] || k, def: GLOSSARY[k] }));
 

@@ -4,8 +4,8 @@ import { T, PLAYER, card, btn, pickRow, selStyle } from "./theme.js";
 import { pct } from "./format.js";
 import { calibrationVerdict } from "./report/labels.js";
 
-/* Building blocks shared by the generated cases (1–4) and the field-data
-   case (5): plain-language mode, glossary terms, the header band, the
+/* Building blocks shared by the generated cases (1–8) and the field-data
+   case (9): plain-language mode, glossary terms, the header band, the
    GA-style dashboard frame, diagnosis pickers and the reveal atoms. */
 
 export const addOnce = (x) => (list) => (list.includes(x) ? list : [...list, x]);
@@ -143,11 +143,11 @@ export function Eyebrow({ children, title }) {
    bars overlapped (WCAG 2.5.8) and ate a phone's screen.
 
    Each phase is a new "page", so on a phase change (or on mount, when
-   `autoFocus` — i.e. the student just switched or restarted a case) the
+   `autoFocus` — i.e. the student just opened a screen or restarted a case) the
    view scrolls to the top and focus moves to the screen's heading:
    keyboard and screen-reader users land on — and hear — the new screen
    instead of being stranded on a button that no longer exists. */
-export function CaseFrame({ subtitle, phase, caseN, counters, actions, autoFocus, children }) {
+export function CaseFrame({ subtitle, phase, caseN = null, counters = [], actions, autoFocus, children }) {
   const maxWidth = phase === "investigate" ? 1380 : 1180;
   const working = phase === "investigate" || phase === "diagnose";
   const bodyRef = useRef(null);
@@ -169,7 +169,7 @@ export function CaseFrame({ subtitle, phase, caseN, counters, actions, autoFocus
             <span style={{ color: T.hdrMuted, fontSize: 14.5, fontFamily: T.mono }}>{subtitle}</span>
           </div>
           <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", fontFamily: T.mono, fontSize: 14.5 }}>
-            {phase !== "intro" && <Stat label="CASE" value={caseN} accent={T.hdrPlayer} />}
+            {phase !== "intro" && caseN != null && <Stat label="CASE" value={caseN} accent={T.hdrPlayer} />}
             {working && counters.map(([label, value]) => <Stat key={label} label={label} value={value} accent={T.hdrInstructor} />)}
             <PlainToggle />
             {actions}
@@ -178,6 +178,12 @@ export function CaseFrame({ subtitle, phase, caseN, counters, actions, autoFocus
       </div>
       <div ref={bodyRef} style={{ maxWidth, margin: "0 auto", padding: "0 20px 64px" }}>{children}</div>
     </>
+  );
+}
+// Staff only (see App): opens the seed / noise panel.
+export function InstructorButton({ onClick }) {
+  return (
+    <button onClick={onClick} title="Instructor controls" aria-haspopup="dialog" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true" style={{ fontSize: 16.5 }}>⚙</span> Instructor</button>
   );
 }
 function Stat({ label, value, accent }) {

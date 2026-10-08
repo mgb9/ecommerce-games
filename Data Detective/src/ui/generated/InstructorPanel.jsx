@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { T } from "../theme.js";
 import { caseLink } from "../urlConfig.js";
 
-/* Slide-over for the seed + noise behind cases 1–7. Applying starts a
-   new case; a shared seed gives a whole cohort an identical dashboard,
-   and the link opens this case with these settings for everyone.
+/* Slide-over for the seed + noise behind cases 1–8. Applying starts the
+   case afresh (or, from the inbox, applies to whichever case is opened
+   next); a shared seed gives a whole cohort an identical dashboard, and
+   the link opens this case — or the inbox — with these settings for everyone.
 
    A modal dialog: focus moves in on open, Tab cycles inside, Escape or
    the backdrop closes it, and focus returns to whatever opened it. */
@@ -51,7 +52,7 @@ export default function InstructorPanel({ cfg, caseN, onApply, onClose }) {
             <h2 id="dd-instructor-title" style={{ margin: 0, fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}><span aria-hidden="true">⚙ </span>Instructor</h2>
             <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1, padding: "2px 6px", minWidth: 32, minHeight: 32 }}>×</button>
           </div>
-          <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, marginTop: 0 }}>Applies to a <b style={{ color: T.text }}>new case</b> — a shared seed gives a cohort an identical dashboard. Every seed has the same answer; only the numbers differ.</p>
+          <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, marginTop: 0 }}>Applies to a <b style={{ color: T.text }}>new case</b> — a shared seed gives a cohort an identical dashboard. The seed also picks which variant of each case (which fault, on which day) everyone gets.</p>
           <div style={{ marginTop: 16, marginBottom: 14 }}>
             <label htmlFor="dd-seed" style={{ display: "block", fontSize: 14.5, fontWeight: 500, marginBottom: 6 }}>Seed</label>
             <div style={{ display: "flex", gap: 6 }}>
@@ -67,11 +68,11 @@ export default function InstructorPanel({ cfg, caseN, onApply, onClose }) {
             <input id="dd-noise" type="range" min={0.2} max={2} step={0.1} value={noise} aria-valuetext={`${noise.toFixed(1)} times`} onChange={(e) => { setNoise(Number(e.target.value)); setCopied(false); }} style={{ width: "100%", marginTop: 7, "--accent": A, "--accent-soft": A + "30" }} />
             <div style={{ fontSize: 12.5, color: T.muted, marginTop: 5 }}>Low = obvious signal for a first walkthrough. High = brutal, harder to tell signal from noise. Default 1.4×.</div>
           </div>
-          <button onClick={() => onApply({ seed, noise })} style={{ width: "100%", background: A, color: T.onAccent, border: "none", borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 700, fontSize: 15 }}>Apply & start a new case</button>
+          <button onClick={() => onApply({ seed, noise })} style={{ width: "100%", background: A, color: T.onAccent, border: "none", borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 700, fontSize: 15 }}>{caseN ? "Apply & start this case afresh" : "Apply to every case"}</button>
 
           <div style={{ marginTop: 22, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
             <label htmlFor="dd-link" style={{ display: "block", fontSize: 14.5, fontWeight: 500, marginBottom: 4 }}>Link for your cohort</label>
-            <div style={{ fontSize: 12.5, color: T.muted, marginBottom: 8, lineHeight: 1.45 }}>Opens Case {String(caseN).padStart(2, "0")} with this seed and noise level.</div>
+            <div style={{ fontSize: 12.5, color: T.muted, marginBottom: 8, lineHeight: 1.45 }}>{caseN ? `Opens Case ${String(caseN).padStart(2, "0")} with this seed and noise level.` : "Opens the case inbox with this seed and noise level."}</div>
             <div style={{ display: "flex", gap: 6 }}>
               <input id="dd-link" readOnly value={link} onFocus={(e) => e.target.select()} style={{ ...field, fontSize: 12.5 }} />
               <button onClick={copyLink} style={smallBtn}>Copy</button>

@@ -1,16 +1,29 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import App from "./App.jsx";
 
 // A build won't catch an engine symbol the UI references but forgot to
 // import — that's a runtime ReferenceError. Rendering the app exercises the
 // import wiring end-to-end.
+const at = (search) => { globalThis.location = { search, origin: "https://example.test", pathname: "/dd/" }; return renderToStaticMarkup(<App />); };
+afterEach(() => { delete globalThis.location; });
+
 describe("App renders", () => {
-  it("mounts the intro/ticket screen without a missing-symbol error", () => {
+  it("a plain link opens the case inbox", () => {
     const html = renderToStaticMarkup(<App />);
     expect(html).toContain("Data");
+    expect(html).toContain("Chrichton · case inbox");
+    expect(html).toContain("Open case 01");
+    expect(html).toContain("Open case 09");
+  });
+  it("?case=1 opens case 1's ticket, with a way back to the inbox", () => {
+    const html = at("?case=1");
     expect(html).toContain("Find out what");
-    expect(html).toContain("Case 01 of 8");
-    expect(html).toContain("Case 08 · Field data");
+    expect(html).toContain("Case 01 of 9");
+    expect(html).toContain("← All cases");
+  });
+  it("?case=8 is the order-value case; ?case=9 the field case", () => {
+    expect(at("?case=8&seed=DD-2026")).toMatch(/Orders up, revenue down|More orders, less money/);
+    expect(at("?case=9")).toContain("Opening the 2015 archive");
   });
 });

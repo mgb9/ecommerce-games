@@ -1,7 +1,7 @@
 /* ============================================================
-   DATA DETECTIVE — Case 8 "The Cold Case" (field data).
+   DATA DETECTIVE — Case 9 "The Cold Case" (field data).
 
-   Unlike cases 1–7, nothing here is generated: the six reports are
+   Unlike cases 1–8, nothing here is generated: the six reports are
    REAL Google Analytics exports from a UK electronics retailer,
    25 Aug – 3 Nov 2015 (merchant anonymised to Chrichton, the
    suite's fictional company). The pedagogy inverts the other

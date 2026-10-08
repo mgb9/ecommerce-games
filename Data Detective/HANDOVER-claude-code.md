@@ -1,19 +1,19 @@
 # Data Detective — build handover
 
 A root-cause diagnosis game for WM956-15, built to [PLAN-data-detective.md](PLAN-data-detective.md).
-**Two cases of the planned 8-case arc are built**: case 1 validated the investigation-workspace
-interaction; case 2 is a deliberately much harder "Advanced" case built for MSc-level rigour.
+**Nine cases are built** (2026-10-08): eight generated cases (`src/engine/cases.js`) and Case 9, real 2015
+GA exports. The sections below are in build order — later sections supersede earlier ones where they differ;
+the latest state is in "Inbox, case file and order value" near the end.
 
 ## Run it
 ```bash
 npm install
 npm run dev      # http://localhost:5176
-npm test         # 63 tests
+npm test         # 204 tests
 npm run build
 ```
-(From the repo root the dev server is wired in `.claude/launch.json` as `data-detective`.) The intro
-screen has a case-select control (pill buttons per `CASES` entry, tagged Standard/Advanced) — pick a case
-before opening the dashboard.
+(From the repo root the dev server is wired in `.claude/launch.json` as `data-detective`.) A plain link opens
+the case inbox; `?case=N` opens case N's ticket directly.
 
 ## GA-depth rebuild (phase A — done)
 After feedback that "you just click a few things and you find it," the workspace was rebuilt to feel like a
@@ -266,19 +266,63 @@ The remaining two of the four depth features, now built:
   lines), the shell hides its bar in print, and the page title becomes the PDF's file name. Chrome's output is
   a tagged PDF (H1–H3, tables, lists, en-GB) — checked with headless Chrome `--print-to-pdf`.
 
+## Inbox, case file and order value (2026-10-08)
+- **Case inbox** (`src/ui/Inbox.jsx`) is the landing screen: every case as a ticket (number, level, channel,
+  the subject of the variant this student would get), its status as text (Not played / Next up / In progress /
+  "First attempt 3/4"), and a real button per case. `?case=N` still opens a case directly. App state is now
+  `{v: 2, view: "inbox"|"case"|"casefile", caseIndex, cfg, run, attempts, nav}`; `nav` counts screen changes so
+  focus moves to each new screen's h1 (not on first load); session records without `v: 2` are ignored. Going
+  back to the inbox keeps the case as it was ("Return to case 03" / "Back to your results"). **A case this
+  browser has already played reopens on the next variant** (`nextAttempt` in `src/ui/caseList.js`), even in a
+  new tab — so an instructor re-running a played case sees "fresh variant (attempt 2)". The intro's case pills
+  and calibration note are gone.
+- **Case file** (`src/ui/CaseFile.jsx`, linked from the inbox once a case is finished): cases played, fully
+  right first time, calls right; a case-by-case table (first attempt, stated confidence, a short calibration
+  verdict — `calibrationShort` in labels.js); calibration per confidence level (bar vs a tick at the claimed
+  %, plus mean stated confidence vs hit rate, always with a small-sample caveat); and the principle of each
+  case PLAYED (unplayed ones would give answers away). It prints through the same `dd-report` print CSS as the
+  case report — `ReportArticle` / `PrintBar` / `useDocumentTitle` were extracted from ReportView for this.
+  It reads `dd-progress` only; the record shape is unchanged.
+- **Per-segment order value.** Every segment has an `aov` multiplier (wide spread only on country, region,
+  age, gender — dimensions no case shifts; ≈1.0 elsewhere; card/PayPal/Apple Pay exactly 1.0 to keep case 1's
+  revenue pins). Topline AOV comes from the expected-value model in `dayWeights` (purchase-weighted aov per
+  dimension, exact joint correction for rate-joint incidents), calibrated to £42 on a clean day, with small
+  daily noise. Segment and cross-tab revenue are sampled (`AOV_SPREAD`, √orders) then rescaled / raked so
+  revenue reconciles exactly like purchases (tested for every variant and both cross-tab marginals).
+  **Order values use their own RNG streams** (`:aov`, `:xa:`): sessions, conversion, purchases and
+  engagement of cases 1–7 are byte-identical to before (checked by hashing every variant); only revenue moved.
+  Back-office revenue uses the true (no tracking fault) AOV.
+- **New Case 8 "Orders up, revenue down"** (`type: "aov"` incident: `factor` scales the segment's AOV,
+  `rateFactor` its conversion; never pinned to a funnel step). v0: a staff code leaks to a German deal site
+  (Germany AOV −55%, conversion +30–55%, visits +20–25%). v1: loyalty free-delivery threshold cut (returning AOV
+  ≈ −30%, conversion +10–20%). Both: orders up, revenue down, topline AOV about −1/6. New cause type
+  `pricing_promo`; `truth.lens: "aov"`. **The field case is now Case 9** (`fieldcase-meta.js`, which now also
+  holds its title and principle, so the inbox/case file don't load its data).
+- **Report lenses**: each report can be viewed by Conversion rate / Sessions / Revenue / Avg order value
+  (`LENS_DEFS` in ReportPanel.jsx). The chart and the table's Was / Now / Δ follow the lens (stable column keys,
+  so a sort survives); counts are per day. The lens is case state and carries across reports; `lenses`
+  ("report:metric") is logged like `viewed`/`pivots`, and `reviewTrail(…, lenses)` coaches the AOV case.
+  Home: the Events KPI card is now Avg order value; the topline toggle has AOV too.
+- **Small multiples** (`SmallMultiples.jsx`) replace the "too many rows to chart" note for reports over 6 rows
+  (cross-tabs up to 30 cells): inline SVG, one shared scale from 0 whose top is set by the bulk of the data
+  (spikes are clipped and the panel says "off scale"), comparison/current windows shaded, hover read-out. One
+  `role="img"` description; the table carries the numbers. Two columns at 320 px.
+- **Units fix.** Δ columns (report table, funnel) showed a *relative* change labelled "pp". They now show the
+  relative change (−66%) and, for rates, the absolute pp difference beside it. Figures quoted as "pp" in the
+  older sections above were relative changes — read them as %.
+- **Narrative fixes the new lenses would have exposed:** case 3 v1 no longer claims "traffic is up" (session
+  shifts are zero-sum shares, so the topline doesn't rise); case 4's tickets no longer claim revenue is softer
+  than the conversion dip (true on only some seeds).
+- Checked in the browser: inbox → Case 8 → AOV lens → Region × Age small multiples → diagnosis → reveal (lens
+  line) → inbox status → case file, at 1280 px and 320 px (no horizontal scroll); axe-core WCAG 2.2 AA clean on
+  the inbox, case file, case intro and the cross-tab dashboard. VoiceOver script updated (22 steps), not yet run.
+
 ## Deliberately deferred
-- Cases 3–8 from the plan's original table (country/traffic-quality/site-speed/false-alarm/inventory/
-  seasonal-no-issue) — the engine's `incidentFactorAt` shapes and `CASES` array are structured to add them
-  without rework; the `rate-joint` mechanism + `buildCrossTab` are available to any future compound case.
-- A proper case-inbox list screen — the intro screen's pill-button case picker is a minimal stand-in,
-  workable for 2 cases but would want a real ticket-queue UI once there are several more.
-- CSV/Markdown export and the cross-case calibration summary screen — the plan's reflection prompts
-  reference cases that don't exist yet.
-- A per-segment Sessions view in the breakdown chart (currently locked to conversion rate) — would let
-  students see the case-1 email session-bump directly per-segment rather than only via the topline toggle.
-- AOV is a single global constant (`AOV = 42`) — `summariseSegments` computes `aovLate` per segment for
-  forward-compatibility, but it's always exactly 42 today, so it's deliberately NOT shown as a table column
-  (would just be a confusing constant). Worth surfacing once a case introduces real per-segment AOV variation.
-- The compound breakdown's multi-line chart is suppressed (table-only) above 6 segments — a 12-line chart
-  was too cluttered to read. Could revisit with a smarter palette or small-multiples instead of suppressing
-  it outright, if a future case wants the chart back for a compound dimension.
+- **Which call a student gets wrong most** (dimension / segment / cause / start) across cases — with at most nine
+  cases it would be noise, and it needs a progress-schema change.
+- **Case ids in links** (`?case=cold-case-2015`) so a renumbering never breaks a shared link. Renumbering the
+  field case to 9 means any `?case=8` link already sent now opens the AOV case.
+- AOV spread on device / source / campaign / user type is kept near 1.0 so existing narratives hold; widening
+  it means re-pinning those cases' revenue claims.
+- A cross-case reflection section in the case file (questions spanning several cases) — the case reports have
+  per-case reflection already.

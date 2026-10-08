@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { DIMENSIONS, DMAP, FUNNEL_STAGES, buildFunnel } from "../../engine/engine.js";
 import { T, SEG_COLORS, card, pillBtn, selStyle } from "../theme.js";
-import { pct, pp } from "../format.js";
+import { pct, pp, rel } from "../format.js";
 import { SectionTitle } from "../shared.jsx";
 
 /* Funnel exploration: sessions → purchase step rates, for the whole site
@@ -40,7 +40,7 @@ export default function FunnelView({ caseData, range }) {
             <div key={s.key}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3, fontSize: 14 }}>
                 <span style={{ fontWeight: 600 }}>{i + 1}. {s.label} <span style={{ color: T.muted, fontWeight: 400, fontSize: 12.5 }}>step rate</span></span>
-                <span style={{ fontFamily: T.mono }}><span style={{ color: T.muted }}>{pct(st.early, 1)} → </span><b style={{ color: worst ? T.neg : T.text }}>{pct(st.late, 1)}</b> <span style={{ color: st.pctChange < -0.1 ? T.neg : st.pctChange > 0.1 ? T.pos : T.muted, fontWeight: 700 }}>{pp(st.pctChange, 0)}</span></span>
+                <span style={{ fontFamily: T.mono }}><span style={{ color: T.muted }}>{pct(st.early, 1)} → </span><b style={{ color: worst ? T.neg : T.text }}>{pct(st.late, 1)}</b> <span style={{ color: st.pctChange < -0.1 ? T.neg : st.pctChange > 0.1 ? T.pos : T.muted, fontWeight: 700 }}>{rel(st.pctChange, 0)}</span> <span style={{ color: T.muted }}>({pp(st.late - st.early, 1)})</span></span>
               </div>
               <div style={{ height: 14, background: T.track, borderRadius: 7, overflow: "hidden" }}>
                 <div style={{ width: `${Math.round((st.late / maxStep) * 100)}%`, height: "100%", background: worst ? T.neg : SEG_COLORS[0], transition: "width .3s" }} />
@@ -51,7 +51,7 @@ export default function FunnelView({ caseData, range }) {
       </div>
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", fontSize: 14.5 }}>
         <span style={{ color: T.muted }}>Overall conversion ({range.cmpName} → now)</span>
-        <span style={{ fontFamily: T.mono }}>{pct(overall.early, 2)} → <b>{pct(overall.late, 2)}</b> <span style={{ color: overall.pctChange < 0 ? T.neg : T.pos, fontWeight: 700 }}>{pp(overall.pctChange, 1)}</span></span>
+        <span style={{ fontFamily: T.mono }}>{pct(overall.early, 2)} → <b>{pct(overall.late, 2)}</b> <span style={{ color: overall.pctChange < 0 ? T.neg : T.pos, fontWeight: 700 }}>{rel(overall.pctChange, 0)}</span> <span style={{ color: T.muted }}>({pp(overall.late - overall.early, 2)})</span></span>
       </div>
     </div>
   );

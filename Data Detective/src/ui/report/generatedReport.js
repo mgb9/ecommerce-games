@@ -1,19 +1,19 @@
 import { CASES, reviewTrail } from "../../engine/engine.js";
 import { ordinal, pad2 } from "../format.js";
 import {
-  REPORT_LABELS, calibrationVerdict, causeLabel, confidenceText, dimsText, isNone, longDate, pivotLabel, segsText, startText, wordsFor,
+  REPORT_LABELS, calibrationVerdict, causeLabel, confidenceText, dimsText, isNone, lensLabel, longDate, pivotLabel, segsText, startText, wordsFor,
 } from "./labels.js";
 
-/* The case report for cases 1–7, as a plain data model that ReportView
+/* The case report for cases 1–8, as a plain data model that ReportView
    renders (and the student saves as a PDF). Written to the student, in
    plain language: the result at a glance, the lesson, what went well and
    what to work on — derived from what they actually did — their trail,
    the full story, reflection questions they can answer in the report, and
    the words worth knowing. */
-export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result, viewed, pivots }) {
+export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result, viewed, pivots, lenses = [] }) {
   const t = caseData.truth;
   const def = CASES.find((c) => c.id === caseData.id);
-  const review = reviewTrail(caseData, viewed, pivots);
+  const review = reviewTrail(caseData, viewed, pivots, lenses);
   const verdict = calibrationVerdict(diagnosis.confidence, result.allCorrect);
   const view = review.compound ? "cross-tab" : "report";
   const wentWell = [], workOn = [];
@@ -41,6 +41,10 @@ export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result,
     if (review.usedBackOffice) wentWell.push("You checked Back-office orders — the ground truth that shows whether a drop is real.");
     else workOn.push("Before calling a drop real, compare analytics with Back-office orders.");
   }
+  if (review.lens) {
+    if (review.usedLens) wentWell.push(`You viewed ${review.decisive} by average order value or revenue — where the money went when conversion didn't fall.`);
+    else workOn.push(`When revenue falls but conversion doesn't, split revenue into sessions × conversion × average order value, then view ${review.decisive} by the one that moved.`);
+  }
   // The calls themselves
   if (result.causeTypeCorrect) wentWell.push(`You named the right cause: ${causeLabel(t.causeType).toLowerCase()}.`);
   else workOn.push("Match the cause to the evidence: which kind of fault produces this shape, in this segment, at this step?");
@@ -67,6 +71,7 @@ export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result,
     trail: [
       { heading: "Reports you opened, in order", items: viewed.map((k) => REPORT_LABELS[k] || k), empty: "None" },
       { heading: "Cross-tabs you built, in order", items: pivots.map(pivotLabel), empty: "None" },
+      ...(lenses.some((l) => !l.endsWith(":conversionRate")) ? [{ heading: "Reports you viewed by another metric", items: lenses.filter((l) => !l.endsWith(":conversionRate")).map(lensLabel), empty: "None" }] : []),
     ],
     happened: {
       text: t.explanation,

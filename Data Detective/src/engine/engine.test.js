@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   generateCase, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod, scoreDiagnosis, reviewTrail, summariseSegments, summariseTopline, incidentFactorAt,
-  DIMENSIONS, REPORTS, CASES, CAUSE_TYPES, FUNNEL_STAGES, TOTAL_DAYS,
+  DIMENSIONS, REPORTS, CASES, CAUSE_TYPES, FUNNEL_STAGES, TOTAL_DAYS, LENSES,
   avgRange, EARLY_WINDOW, LATE_WINDOW,
 } from "./engine.js";
 
@@ -800,5 +800,97 @@ describe("scoreDiagnosis edge cases", () => {
     expect(reviewTrail(n, ["device", "browser", "payment"], []).found).toBe(true);
     const f = generateCase("false-alarm-tracking", "SEED-A", { noise: 0, variant: 0 });
     expect(reviewTrail(f, ["browser", "orders"], [])).toMatchObject({ found: true, needsBackOffice: true, usedBackOffice: true });
+  });
+});
+
+/* ---- order value (AOV) ------------------------------------------- */
+describe("order value: revenue = orders × a per-segment AOV", () => {
+  it("a clean case's average order is £42, and segments differ (45–54s spend more than 18–24s)", () => {
+    const cd = generateCase(CASE_ID, "SEED-A", { noise: 0, variant: 0 });
+    expect(cd.topline[0].aov).toBeCloseTo(42, 6);
+    const age = summariseSegments(cd.breakdowns.find((d) => d.key === "age"));
+    expect(age.find((r) => r.id === "a45").aovLate).toBeGreaterThan(age.find((r) => r.id === "a18").aovLate * 1.4);
+  });
+  it("every variant's segment revenue sums to the topline's, every day, in every dimension", () => {
+    for (const { c: def, i, label } of VARIANTS) {
+      const c = generateCase(def.id, "SEED-A", { noise: 1.4, variant: i });
+      for (const dim of c.breakdowns) for (let day = 0; day < TOTAL_DAYS; day++) {
+        const sum = dim.segments.reduce((a, s) => a + dim.series[s.id][day].revenue, 0);
+        expect(Math.abs(sum - c.topline[day].revenue) / c.topline[day].revenue, `${label} ${dim.key} d${day}`).toBeLessThan(1e-9);
+      }
+    }
+  });
+  it("cross-tab revenue reconciles to BOTH marginal reports", () => {
+    const c = generateCase("orders-up-revenue-down", "SEED-A", { noise: 1.4, variant: 0 });
+    const ct = buildCrossTab(c, "country", "device");
+    const cty = c.breakdowns.find((d) => d.key === "country").series, dev = c.breakdowns.find((d) => d.key === "device").series;
+    for (const day of [0, 17, 27]) {
+      for (const a of Object.keys(cty)) expect(Object.keys(dev).reduce((s, b) => s + ct.series[`${a}__${b}`][day].revenue, 0)).toBeCloseTo(cty[a][day].revenue, 4);
+      for (const b of Object.keys(dev)) expect(Object.keys(cty).reduce((s, a) => s + ct.series[`${a}__${b}`][day].revenue, 0)).toBeCloseTo(dev[b][day].revenue, 4);
+    }
+  });
+  it("noise 0 keeps every segment's AOV in exact lockstep with the topline when nothing targets it", () => {
+    const cd = generateCase(CASE_ID, "SEED-A", { noise: 0, variant: 0 });
+    const moves = summariseSegments(cd.breakdowns.find((d) => d.key === "region")).map((r) => r.lens.aov.delta);
+    expect(Math.max(...moves) - Math.min(...moves)).toBeLessThan(1e-9);
+  });
+  it("a tracking fault leaves the order book's revenue flat (analytics loses orders, the business doesn't)", () => {
+    for (const v of [0, 1]) {
+      const fake = summariseTopline(generateCase("false-alarm-tracking", "SEED-A", { noise: 0, variant: v }).topline);
+      expect(Math.abs(fake.boRevenue.pctChange)).toBeLessThan(0.01);
+      expect(fake.revenue.pctChange).toBeLessThan(-0.1);
+    }
+  });
+  it("an AOV incident is never pinned to a funnel step — there is no broken step", () => {
+    const c = generateCase("orders-up-revenue-down", "SEED-A", { noise: 0, variant: 0 });
+    expect(buildFunnel(c, [{ dim: "country", seg: "de" }]).attributedStage).toBeNull();
+  });
+  it("summaries carry every lens; topline AOV is a ratio of sums, not a mean of days", () => {
+    const c = generateCase(CASE_ID, "SEED-A", { noise: 1.4, variant: 0 });
+    const row = summariseSegments(c.breakdowns.find((d) => d.key === "device"))[0];
+    expect(Object.keys(row.lens).sort()).toEqual([...LENSES].sort());
+    for (const k of LENSES) expect(Number.isFinite(row.lens[k].delta), k).toBe(true);
+    const t = summariseTopline(c.topline), late = c.topline.slice(21);
+    expect(t.aov.late).toBeCloseTo(late.reduce((a, r) => a + r.revenue, 0) / late.reduce((a, r) => a + r.purchases, 0), 9);
+  });
+});
+
+/* ---- case 8: orders up, revenue down ------------------------------ */
+describe("case 8 narrative matches the generated data", () => {
+  const SEEDS = ["DD-2026", "A1", "B2", "C3", "cohort-x", "Z9", "q", "WM956", "S7919", "S15838"];
+  const ID = "orders-up-revenue-down";
+  const between = (x, lo, hi, msg) => { expect(x, msg).toBeGreaterThan(lo); expect(x, msg).toBeLessThan(hi); };
+  const each = (v, fn) => SEEDS.forEach((seed) => fn(generateCase(ID, seed, { noise: 1.4, variant: v }), seed));
+  const lens = (cd, dim, id) => summariseSegments(cd.breakdowns.find((d) => d.key === dim)).find((r) => r.id === id).lens;
+  const cov = (cd, lo, hi) => { const r = cd.topline.filter((x) => x.day >= lo && x.day <= hi); return r.reduce((a, x) => a + x.purchases, 0) / r.reduce((a, x) => a + x.orders, 0); };
+  it("both tickets: orders up, revenue down, AOV down about a sixth, sessions flat, conversion up; the order book agrees", () => [0, 1].forEach((v) => each(v, (cd, s) => {
+    const t = summariseTopline(cd.topline);
+    expect(t.orders.pctChange, s).toBeGreaterThan(0.01);
+    expect(t.revenue.pctChange, s).toBeLessThan(-0.02);
+    between(t.aov.pctChange, -0.22, -0.12, s);
+    between(t.sessions.pctChange, -0.05, 0.05, s);
+    expect(t.conversionRate.pctChange, s).toBeGreaterThan(0);
+    between(cov(cd, 0, cd.truth.startDay - 1), 0.94, 0.98, s); between(cov(cd, cd.truth.startDay, TOTAL_DAYS - 1), 0.94, 0.98, s);
+  })));
+  it("v0: German visits up a fifth to a quarter, conversion up a third to a half, AOV less than half, about £20; UK AOV holds", () => each(0, (cd, s) => {
+    const de = lens(cd, "country", "de");
+    between(de.sessions.delta, 0.15, 0.32, s);
+    between(de.conversionRate.delta, 0.28, 0.6, s);
+    expect(de.aov.delta, s).toBeLessThan(-0.5);
+    between(de.aov.now, 18, 22, s);
+    between(lens(cd, "country", "uk").aov.delta, -0.08, 0.08, s);
+  }));
+  it("v1: returning conversion up a tenth to a fifth, AOV down about 30%; new customers' AOV only wobbles", () => each(1, (cd, s) => {
+    const ret = lens(cd, "userType", "returning");
+    between(ret.conversionRate.delta, 0.07, 0.26, s);
+    between(ret.aov.delta, -0.37, -0.23, s);
+    between(lens(cd, "userType", "new").aov.delta, -0.12, 0.12, s);
+  }));
+  it("reviewTrail credits viewing the right report by order value or revenue", () => {
+    const c = generateCase(ID, "SEED-A", { noise: 0, variant: 0 });
+    expect(reviewTrail(c, ["country"], [], ["country:conversionRate"])).toMatchObject({ found: true, lens: "aov", usedLens: false });
+    expect(reviewTrail(c, ["country"], [], ["device:aov", "country:aov"]).usedLens).toBe(true);
+    expect(reviewTrail(c, ["country"], [], ["country:revenue"]).usedLens).toBe(true);
+    expect(reviewTrail(exact(CASE_ID), ["payment"], [], ["payment:aov"])).toMatchObject({ lens: null, usedLens: false });
   });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { CASES, REPORTS, TOTAL_DAYS, generateCase, scoreDiagnosis } from "../engine/engine.js";
+import { CASES, LENSES, REPORTS, TOTAL_DAYS, buildCrossTab, generateCase, scoreDiagnosis, summariseSegments } from "../engine/engine.js";
 import {
   FIELD_REPORTS, FIELD_VERDICT_TRUTH, FIELD_GUN_TRUTH, FIELD_REMEDY_TRUTH, scoreFieldDiagnosis,
 } from "../engine/fieldcase.js";
@@ -13,6 +13,10 @@ import FieldInvestigate from "./field/FieldInvestigate.jsx";
 import FieldDiagnose from "./field/FieldDiagnose.jsx";
 import FieldReveal from "./field/FieldReveal.jsx";
 import ReportView from "./report/ReportView.jsx";
+import ReportPanel, { LENS_DEFS } from "./generated/ReportPanel.jsx";
+import SmallMultiples from "./generated/SmallMultiples.jsx";
+import Inbox from "./Inbox.jsx";
+import CaseFile from "./CaseFile.jsx";
 import { generatedReport } from "./report/generatedReport.js";
 import { fieldReport } from "./field/fieldReport.js";
 
@@ -68,6 +72,49 @@ describe("generated-case screens render", () => {
   });
 });
 
+describe("report lenses and small multiples", () => {
+  const cd = generateCase("orders-up-revenue-down", "DD-2026", { variant: 0 });
+  const country = cd.breakdowns.find((d) => d.key === "country");
+  it.each(LENSES)("the Country report viewed by %s", (lens) => {
+    const out = html(<ReportPanel caseData={cd} reportDim={country} onPivot={noop} range={range} lens={lens} onLens={noop} />);
+    expect(out).toContain(`Country — ${LENS_DEFS[lens].label.toLowerCase()}`);
+    expect(out).toContain(`aria-pressed="true" style`);
+    expect(out).toContain(`>${LENS_DEFS[lens].group}</th>`);   // the Was / Now / Δ group follows the lens
+    expect(out).toContain("Germany");
+  });
+  it("a 30-cell cross-tab draws one small panel per cell, on a shared scale", () => {
+    const ct = buildCrossTab(cd, "region", "age");
+    const out = html(<SmallMultiples breakdown={ct} summary={summariseSegments(ct, range.cmp, range.cur)} lens="aov" lensDef={LENS_DEFS.aov} range={range} unit="combination" />);
+    expect(out.match(/<polyline/g)).toHaveLength(30);
+    expect(out).toContain("all on one scale");
+    expect(out).toContain('role="img"');
+  });
+  it("the AOV case's reveal coaches the lens", () => {
+    const guess = { ...cd.truth, confidence: 70 };
+    const out = html(<Reveal caseData={cd} diagnosis={guess} result={scoreDiagnosis(guess, cd.truth)} viewed={["country"]} pivots={[]} lenses={["country:conversionRate"]} onRetry={noop} onInbox={noop} />);
+    expect(out).toContain("You never viewed");
+    expect(out).toContain("Back to the case inbox");
+  });
+});
+
+describe("inbox and case file render", () => {
+  const cfg = { seed: "DD-2026", noise: 1.4 };
+  it("the inbox lists every case with an Open button", () => {
+    const out = html(<Inbox cfg={cfg} attempts={{}} current={null} onOpen={noop} onReturn={noop} onCaseFile={noop} />);
+    expect(out).toContain("Case <span");
+    for (const n of ["01", "08", "09"]) expect(out).toContain(`Open case ${n}`);
+    expect(out.match(/<li /g)).toHaveLength(9);
+    expect(out).toContain("Next up");
+    expect(out).toMatch(/Orders up, revenue down|More orders, less money/);   // case 8's ticket for this seed's variant
+  });
+  it("the case file with nothing played says so, and prints as a report", () => {
+    const out = html(<CaseFile onBack={noop} />);
+    expect(out).toContain("Your case file");
+    expect(out).toContain("Nothing here yet");
+    expect(out).toContain('<article class="dd-report"');
+  });
+});
+
 describe("field-case screens render", () => {
   const reportKeys = ["overview", ...FIELD_REPORTS.flatMap((g) => g.items.map((it) => it.key))];
 
@@ -96,7 +143,7 @@ describe("field-case screens render", () => {
 });
 
 describe("the case report renders, ready to save as a PDF", () => {
-  it("cases 1–7: title, score, feedback, trail, reflection boxes with printable lines, glossary", () => {
+  it("cases 1–8: title, score, feedback, trail, reflection boxes with printable lines, glossary", () => {
     const cd = generateCase(CASES[0].id, "DD-2026", { variant: 0 });
     const d = { dimension: "device", segment: "mobile", secondary: null, segmentB: null, causeType: "deploy_bug", startDay: 18, confidence: 90 };
     const out = html(<ReportView model={generatedReport({ caseData: cd, cfg: { seed: "DD-2026", noise: 1.4 }, diagnosis: d, result: scoreDiagnosis(d, cd.truth), viewed: ["device"], pivots: [] })} sessionKey="t" onBack={noop} />);
@@ -105,10 +152,10 @@ describe("the case report renders, ready to save as a PDF", () => {
     expect(out.match(/class="dd-print-only"/g).length).toBe(5);   // the name line + four answers
     expect(out).toContain('<article class="dd-report"');
   });
-  it("case 8: the clue chain and flagged rows", () => {
+  it("case 9: the clue chain and flagged rows", () => {
     const guess = { verdict: FIELD_VERDICT_TRUTH, gun: FIELD_GUN_TRUTH, remedy: FIELD_REMEDY_TRUTH, confidence: 70 };
     const flags = ["ch-referral"];
     const out = html(<ReportView model={fieldReport({ guess, result: scoreFieldDiagnosis(guess, flags), flags })} sessionKey="t" onBack={noop} />);
-    for (const s of ["Case 08:", "The clue chain", "Rows you flagged as evidence (1)", "Referral", "Self-referral"]) expect(out, s).toContain(s);
+    for (const s of ["Case 09:", "The clue chain", "Rows you flagged as evidence (1)", "Referral", "Self-referral"]) expect(out, s).toContain(s);
   });
 });

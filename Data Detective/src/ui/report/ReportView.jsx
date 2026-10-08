@@ -11,48 +11,74 @@ import { useSessionState } from "../session.js";
    game around it disappears. While it is open, the page title is set to
    the report's name, which browsers use as the PDF's file name. */
 const NAME_KEY = "dd-student-name";
-const TONE = { pos: [T.posTint, T.pos], neg: [T.negTint, T.neg], amber: [T.amberTint, T.amber] };
+export const TONE = { pos: [T.posTint, T.pos], neg: [T.negTint, T.neg], amber: [T.amberTint, T.amber] };
 
-function useStudentName() {
+export function useStudentName() {
   const [name, setName] = useState(() => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } });
   useEffect(() => { try { localStorage.setItem(NAME_KEY, name); } catch {} }, [name]);
   return [name, setName];
 }
 
+// While a printable page is open its title is the document's name — which
+// browsers use as the saved PDF's file name.
+export function useDocumentTitle(title, name) {
+  useEffect(() => {
+    const previous = document.title;
+    document.title = title + (name.trim() ? ` – ${name.trim()}` : "");
+    return () => { document.title = previous; };
+  }, [title, name]);
+}
+
+// The screen-only bar above a printable page: a way back, and Save as PDF.
+export function PrintBar({ onBack, backLabel, note }) {
+  return (
+    <div className="dd-noprint" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, maxWidth: 860, margin: "0 auto 14px" }}>
+      <button onClick={onBack} style={linkBtn}>{backLabel}</button>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 13.5, color: T.muted, maxWidth: 330, lineHeight: 1.45 }}>Opens your browser's print window — choose <b style={{ color: T.text }}>Save as PDF</b> as the destination.{note ? ` ${note}` : ""}</span>
+        <button onClick={() => window.print()} style={{ ...btn(T.playerBtn), padding: "12px 22px", fontSize: 16 }}>Save as PDF</button>
+      </div>
+    </div>
+  );
+}
+
+// A printable document: the article the print CSS keeps (GLOBAL_CSS), its
+// header — kicker, title, meta line — and the student's (optional) name.
+export function ReportArticle({ kicker, title, meta, name, setName, children }) {
+  const nameId = useId();
+  return (
+    <article className="dd-report" aria-labelledby="dd-report-title" style={{ background: "#FFFFFF", color: T.text, maxWidth: 860, margin: "0 auto", padding: "clamp(22px, 5vw, 46px) clamp(18px, 5vw, 50px)", borderRadius: 6, border: `1px solid ${T.border}`, boxShadow: "0 18px 40px -30px rgba(0,0,0,0.45)", fontSize: 15, lineHeight: 1.55 }}>
+      <header style={{ borderBottom: `3px solid ${T.player}`, paddingBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", fontSize: 12.5, fontWeight: 900, letterSpacing: 1.6, textTransform: "uppercase" }}>
+          <span style={{ color: T.playerText }}>{kicker}</span>
+          <span style={{ color: T.muted }}>WM956-15 · LO3</span>
+        </div>
+        <h1 id="dd-report-title" style={{ fontFamily: T.display, fontWeight: 700, fontSize: "clamp(24px, 4.4vw, 31px)", lineHeight: 1.15, letterSpacing: -0.5, margin: "10px 0 6px" }}>{title}</h1>
+        <div style={{ fontSize: 13.5, color: T.muted }}>{meta.join(" · ")}</div>
+        <div className="dd-noprint" style={{ marginTop: 14 }}>
+          <label htmlFor={nameId} style={{ display: "block", fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Your name <span style={{ fontWeight: 400, color: T.muted }}>(optional — printed on the report, saved only in this browser)</span></label>
+          <input id={nameId} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" style={{ width: "100%", maxWidth: 380, padding: "8px 10px", border: `1px solid ${T.border}`, borderRadius: 8, background: T.panel2, font: "inherit", color: T.text }} />
+        </div>
+        <div className="dd-print-only" style={{ marginTop: 10, fontSize: 14 }}><b>Name:</b> {name.trim() || "______________________________"}</div>
+      </header>
+      {children}
+      <footer style={{ marginTop: 26, paddingTop: 10, borderTop: `1px solid ${T.border}`, fontSize: 12.5, color: T.muted }}>
+        Data Detective · WM956-15 e-commerce learning games · WMG, University of Warwick. Made in your browser — nothing in this report was sent anywhere.
+      </footer>
+    </article>
+  );
+}
+
 export default function ReportView({ model, sessionKey, onBack }) {
   const [name, setName] = useStudentName();
   const [answers, setAnswers] = useSessionState(`${sessionKey}:answers`, {});
-  const nameId = useId();
-  useEffect(() => {
-    const previous = document.title;
-    document.title = model.fileTitle + (name.trim() ? ` – ${name.trim()}` : "");
-    return () => { document.title = previous; };
-  }, [model.fileTitle, name]);
+  useDocumentTitle(model.fileTitle, name);
 
   return (
     <div className="rise" style={{ marginTop: 22 }}>
-      <div className="dd-noprint" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, maxWidth: 860, margin: "0 auto 14px" }}>
-        <button onClick={onBack} style={linkBtn}>← back to your results</button>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13.5, color: T.muted, maxWidth: 330, lineHeight: 1.45 }}>Opens your browser's print window — choose <b style={{ color: T.text }}>Save as PDF</b> as the destination. Your answers are included.</span>
-          <button onClick={() => window.print()} style={{ ...btn(T.playerBtn), padding: "12px 22px", fontSize: 16 }}>Save as PDF</button>
-        </div>
-      </div>
+      <PrintBar onBack={onBack} backLabel="← back to your results" note="Your answers are included." />
 
-      <article className="dd-report" aria-labelledby="dd-report-title" style={{ background: "#FFFFFF", color: T.text, maxWidth: 860, margin: "0 auto", padding: "clamp(22px, 5vw, 46px) clamp(18px, 5vw, 50px)", borderRadius: 6, border: `1px solid ${T.border}`, boxShadow: "0 18px 40px -30px rgba(0,0,0,0.45)", fontSize: 15, lineHeight: 1.55 }}>
-        <header style={{ borderBottom: `3px solid ${T.player}`, paddingBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", fontSize: 12.5, fontWeight: 900, letterSpacing: 1.6, textTransform: "uppercase" }}>
-            <span style={{ color: T.playerText }}>Data Detective · Case report</span>
-            <span style={{ color: T.muted }}>WM956-15 · LO3</span>
-          </div>
-          <h1 id="dd-report-title" style={{ fontFamily: T.display, fontWeight: 700, fontSize: "clamp(24px, 4.4vw, 31px)", lineHeight: 1.15, letterSpacing: -0.5, margin: "10px 0 6px" }}>{model.title}</h1>
-          <div style={{ fontSize: 13.5, color: T.muted }}>{model.meta.join(" · ")}</div>
-          <div className="dd-noprint" style={{ marginTop: 14 }}>
-            <label htmlFor={nameId} style={{ display: "block", fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Your name <span style={{ fontWeight: 400, color: T.muted }}>(optional — printed on the report, saved only in this browser)</span></label>
-            <input id={nameId} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" style={{ width: "100%", maxWidth: 380, padding: "8px 10px", border: `1px solid ${T.border}`, borderRadius: 8, background: T.panel2, font: "inherit", color: T.text }} />
-          </div>
-          <div className="dd-print-only" style={{ marginTop: 10, fontSize: 14 }}><b>Name:</b> {name.trim() || "______________________________"}</div>
-        </header>
+      <ReportArticle kicker="Data Detective · Case report" title={model.title} meta={model.meta} name={name} setName={setName}>
 
         <Section title="At a glance">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: 16, alignItems: "stretch" }}>
@@ -154,18 +180,14 @@ export default function ReportView({ model, sessionKey, onBack }) {
             </dl>
           </Section>
         )}
-
-        <footer style={{ marginTop: 26, paddingTop: 10, borderTop: `1px solid ${T.border}`, fontSize: 12.5, color: T.muted }}>
-          Data Detective · WM956-15 e-commerce learning games · WMG, University of Warwick. Made in your browser — nothing in this report was sent anywhere.
-        </footer>
-      </article>
+      </ReportArticle>
     </div>
   );
 }
 
-const subHead = { fontSize: 13, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted, margin: "0 0 6px" };
+export const subHead = { fontSize: 13, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted, margin: "0 0 6px" };
 
-function Section({ title, children }) {
+export function Section({ title, children }) {
   return (
     <section style={{ marginTop: 24 }}>
       <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 20, margin: "0 0 10px", letterSpacing: -0.2, breakAfter: "avoid" }}>{title}</h2>
@@ -173,7 +195,7 @@ function Section({ title, children }) {
     </section>
   );
 }
-function Tag({ tone, children }) {
+export function Tag({ tone, children }) {
   const [bg, fg] = TONE[tone] || TONE.amber;
   return <span style={{ flexShrink: 0, fontSize: 11.5, fontWeight: 900, letterSpacing: 0.6, textTransform: "uppercase", padding: "2px 8px", borderRadius: 6, background: bg, color: fg, whiteSpace: "nowrap" }}>{children}</span>;
 }

@@ -48,7 +48,7 @@ export default function FieldReveal({ guess, result, onAgain, onExit, onOpenRepo
       <div style={{ textAlign: "center", marginTop: 22, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
         <button onClick={onAgain} style={btn(T.playerBtn)}>Work the case again ↺</button>
         <button onClick={onOpenReport} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Open your case report (PDF)</button>
-        <button onClick={onExit} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Back to the generated cases</button>
+        <button onClick={onExit} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Back to the case inbox</button>
       </div>
       <p style={{ textAlign: "center", fontSize: 13.5, color: T.muted, marginTop: 10 }}>Your case report has your calls, the evidence you flagged, the clue chain and reflection questions you can answer before saving it as a PDF. The data is real, so working the case again replays it — only your first attempt's score is kept.</p>
     </div>
