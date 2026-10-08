@@ -9,7 +9,7 @@ the latest state is in "Inbox, case file and order value" near the end.
 ```bash
 npm install
 npm run dev      # http://localhost:5176
-npm test         # 204 tests
+npm test         # 206 tests
 npm run build
 ```
 (From the repo root the dev server is wired in `.claude/launch.json` as `data-detective`.) A plain link opens
@@ -316,6 +316,35 @@ The remaining two of the four depth features, now built:
 - Checked in the browser: inbox → Case 8 → AOV lens → Region × Age small multiples → diagnosis → reveal (lens
   line) → inbox status → case file, at 1280 px and 320 px (no horizontal scroll); axe-core WCAG 2.2 AA clean on
   the inbox, case file, case intro and the cross-tab dashboard. VoiceOver script updated (22 steps), not yet run.
+
+## Learning outcomes and skills development (2026-10-08)
+Prompted by the module's PTES result for **Skills Development (87.9%, below the department)**. PTES asks whether
+the course built confidence in independent learning, creativity, research skills, communicating to diverse
+audiences, thinking about the skills needed for a career, and preparation for a career (Section G of the PTES
+2020 questionnaire). Students rate skills they *recognise* developing, so the game now names them, shows
+the evidence, and gives students words they can use.
+- **The module's own terms** (`src/engine/outcomes.js`): the four learning outcomes verbatim from the 2026/27
+  specification, the specification's transferable and subject-specific skills, and the catalogue link
+  (courses.warwick.ac.uk/modules/2026/WM956-15). `LOS` in shared.jsx now uses this wording (it paraphrased).
+- **Each case's mapping** (`outcomes` in cases.js and fieldcase-meta.js): LO3 always; "partly LO1" for cases
+  01, 02, 06, 09 (the fault sits in a technology); LO2 and LO4 never claimed (the coverage matrix's honest
+  reading — LO4 is the group Website Build). Plus a syllabus topic, three case-specific skills with what
+  practising them looked like, and a CV evidence line. Communication and self-assessment are practised in
+  every case. Tested.
+- **Where it shows:** the case intro ("What this case develops" — outcomes as visible text, not tooltips);
+  inbox rows (LO tags) and an inbox panel of what the cases do and don't develop; the reveal ("Skills you
+  practised", with the student's own confidence-vs-result line); the case report ("What this case
+  developed": outcomes, skills, a CV line; header tag now the case's LOs); the case file ("Skills record"
+  with the cases still to practise each skill, CV lines for every case played, LO coverage, and "Using this in
+  your assessment" for the Business Report and the Website Build).
+- **New communication exercise:** "Your reply to {sender}" in every case report — write to the person who
+  raised the ticket, for a non-analyst: what happened, how sure you are, what next and who does it. Prints
+  as text or ruled lines.
+- **Hub** (`index.html` → `docs/index.html`): the LO panel used paraphrases that didn't match the
+  specification (LO4 was "Operate a store under constraints"); it now uses shortened spec wording, says LO4 is
+  assessed through the group Website Build, and links to the catalogue. Marketplace Tycoon no longer claims LO4.
+- Checked: axe-core clean on intro, reveal, report, inbox and case file; 320 px reflow on inbox, intro and case
+  file. The hub's only axe finding is pre-existing, in the shared WMG shell ("WMG home" link name vs its text).
 
 ## Deliberately deferred
 - **Which call a student gets wrong most** (dimension / segment / cause / start) across cases — with at most nine

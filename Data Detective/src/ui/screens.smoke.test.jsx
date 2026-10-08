@@ -103,9 +103,21 @@ describe("inbox and case file render", () => {
     const out = html(<Inbox cfg={cfg} attempts={{}} current={null} onOpen={noop} onReturn={noop} onCaseFile={noop} />);
     expect(out).toContain("Case <span");
     for (const n of ["01", "08", "09"]) expect(out).toContain(`Open case ${n}`);
-    expect(out.match(/<li /g)).toHaveLength(9);
+    expect(out.match(/>Open case \d\d →</g)).toHaveLength(9);
+    expect(out).toContain("What these cases develop");
+    expect(out).toContain("Partly, in cases 01, 02, 06, 09.");
+    expect(out).toContain("Assessed through the group Website Build, not this game.");
+    expect(out).toContain("LO3 · LO1 (partly)");
     expect(out).toContain("Next up");
     expect(out).toMatch(/Orders up, revenue down|More orders, less money/);   // case 8's ticket for this seed's variant
+  });
+  it("the case file, with cases played: skills record, CV lines, learning outcomes", () => {
+    const store = { "dd-progress": JSON.stringify({ "paypal-gateway": { first: 4, outOf: 4, confidence: 90 }, "cold-case-2015": { first: 2, outOf: 3, confidence: 90 } }) };
+    globalThis.localStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = v; }, removeItem: (k) => { delete store[k]; } };
+    try {
+      const out = html(<CaseFile onBack={noop} />);
+      for (const s of ["Skills record", "Research and data analysis", "For your CV or an interview", CASES[0].outcomes.cv, "Learning outcomes", "played 2 of 9", "Using this in your assessment", "Well calibrated", "Overconfident"]) expect(out, s).toContain(s);
+    } finally { delete globalThis.localStorage; }
   });
   it("the case file with nothing played says so, and prints as a report", () => {
     const out = html(<CaseFile onBack={noop} />);
@@ -147,9 +159,10 @@ describe("the case report renders, ready to save as a PDF", () => {
     const cd = generateCase(CASES[0].id, "DD-2026", { variant: 0 });
     const d = { dimension: "device", segment: "mobile", secondary: null, segmentB: null, causeType: "deploy_bug", startDay: 18, confidence: 90 };
     const out = html(<ReportView model={generatedReport({ caseData: cd, cfg: { seed: "DD-2026", noise: 1.4 }, diagnosis: d, result: scoreDiagnosis(d, cd.truth), viewed: ["device"], pivots: [] })} sessionKey="t" onBack={noop} />);
-    for (const s of ["Save as PDF", "Case 01:", "At a glance", "The principle to remember", "What to work on next time", "How you investigated", "Reflection", "Words to know", "Not quite"]) expect(out, s).toContain(s);
-    expect(out.match(/<textarea/g)).toHaveLength(4);
-    expect(out.match(/class="dd-print-only"/g).length).toBe(5);   // the name line + four answers
+    for (const s of ["Save as PDF", "Case 01:", "At a glance", "The principle to remember", "What to work on next time", "How you investigated", "Reflection", "Words to know", "Not quite",
+      "WM956-15 · LO3 · LO1 (partly)", "What this case developed", "Critically evaluate advanced eCommerce functionalities", "For your CV or an interview", "Your reply to Priya", "courses.warwick.ac.uk/modules/2026/WM956-15"]) expect(out, s).toContain(s);
+    expect(out.match(/<textarea/g)).toHaveLength(5);   // the reply + four reflection answers
+    expect(out.match(/class="dd-print-only"/g).length).toBe(6);   // the name line, the reply, four answers
     expect(out).toContain('<article class="dd-report"');
   });
   it("case 9: the clue chain and flagged rows", () => {

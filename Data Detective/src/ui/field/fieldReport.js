@@ -2,6 +2,7 @@ import {
   FIELD_CASE, FIELD_VERDICTS, FIELD_VERDICT_TRUTH, FIELD_GUNS, FIELD_GUN_TRUTH,
   FIELD_REMEDIES, FIELD_REMEDY_TRUTH, FIELD_EXPLANATION, FIELD_ROW_NAMES,
 } from "../../engine/fieldcase.js";
+import { MODULE, confidenceLine, developed, losLabel } from "../outcomesModel.js";
 import { pad2 } from "../format.js";
 import { calibrationVerdict, confidenceText, longDate, REPORT_LABELS, wordsFor } from "../report/labels.js";
 
@@ -25,6 +26,7 @@ export function fieldReport({ guess, result, flags, viewed = [] }) {
 
   return {
     fileTitle: `Data Detective – Case ${pad2(FIELD_CASE.n)} report`,
+    tag: `${MODULE.code} · ${losLabel(FIELD_CASE.outcomes)}`,
     title: `Case ${pad2(FIELD_CASE.n)}: ${FIELD_CASE.ticket.subject}`,
     meta: [longDate(), "Field data", "Real Google Analytics exports, autumn 2015"],
     score: { got: result.fieldsCorrect, outOf: 3, detail: `${result.cluesFound} of ${result.clueTotal} clues found (${result.coreFound} of ${result.coreTotal} core)` },
@@ -51,5 +53,6 @@ export function fieldReport({ guess, result, flags, viewed = [] }) {
       "What would you check in any analytics account before trusting it to set a budget?",
     ],
     words: wordsFor(FIELD_CASE.words || []),
+    ...developed(FIELD_CASE.outcomes, FIELD_CASE.ticket, confidenceLine(guess.confidence, result.fieldsCorrect, 3)),
   };
 }

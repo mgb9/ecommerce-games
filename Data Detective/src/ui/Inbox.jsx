@@ -4,6 +4,8 @@ import { pad2 } from "./format.js";
 import { CaseFrame, Eyebrow, InstructorButton, LOS, PT, Tag, Term, TermsHint, useNarrow } from "./shared.jsx";
 import { ALL_CASES, DIFFICULTY_COLOR, isPlayed, nextAttempt, ticketFor } from "./caseList.js";
 import { CONFIDENCE, loadProgress } from "./progress.js";
+import { SuiteOutcomes } from "./Outcomes.jsx";
+import { losLabel } from "./outcomesModel.js";
 
 /* The case inbox — the landing screen. Every case as a ticket in the CRO
    team's queue: its number, difficulty and the ticket this student would
@@ -26,7 +28,7 @@ export default function Inbox({ autoFocus, cfg, attempts, current, currentDone =
           Case <span style={{ color: PLAYER }}>inbox</span>
         </h1>
         <p style={{ color: T.body2, fontSize: 18, lineHeight: 1.6, marginTop: 16 }}>
-          <PT rich={<>{ALL_CASES.length} tickets have landed in Chrichton's <Term term="cro">CRO</Term> channel. In each one something looks wrong in the analytics: find where it really lives, what caused it and when it started — or show that nothing is broken. They get harder as you go, and Case {pad2(ALL_CASES.length)} is real data from 2015. Work them in any order; only your first attempt at each case is scored.</>}
+          <PT rich={<>{ALL_CASES.length} tickets have landed in Chrichton's <Term term="cro">CRO</Term> channel. In each one something looks wrong in the analytics: find where it really lives, what caused it and when it started — or show that nothing is broken. They get harder as you go, and Case {pad2(ALL_CASES.length)} is real data from 2015. Work them in any order; only your first attempt at each case is scored. Below the list: the learning outcomes and skills the cases develop.</>}
               plain={<>There are {ALL_CASES.length} tickets. In each one, a number in the analytics has changed. Find which group of visitors it affects, what caused it and when it started — or show that nothing is broken. The cases get harder. Case {pad2(ALL_CASES.length)} uses real data from 2015. You can do them in any order. Only your first try at each case gets a score.</>} />
         </p>
         <TermsHint />
@@ -49,6 +51,7 @@ export default function Inbox({ autoFocus, cfg, attempts, current, currentDone =
               onOpen={() => onOpen(i)} onReturn={onReturn} />
           ))}
         </ol>
+        <SuiteOutcomes style={{ marginTop: 22 }} />
       </div>
     </CaseFrame>
   );
@@ -68,6 +71,7 @@ function CaseRow({ c, ticket, done, resumable, results, isNext, narrow, onOpen, 
         <div style={{ display: "flex", gap: "4px 12px", flexWrap: "wrap", alignItems: "baseline", fontSize: 13.5, color: T.muted }}>
           <span style={{ fontFamily: T.mono, fontWeight: 700, color: T.text }}>Case {pad2(c.n)}</span>
           <span>{c.difficulty}</span>
+          <span>{losLabel(c.outcomes)}</span>
           <span style={{ fontFamily: T.mono }}>{ticket.channel} · {ticket.from}</span>
         </div>
         <h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18.5, lineHeight: 1.3, margin: "6px 0 6px" }}>{ticket.subject}</h3>

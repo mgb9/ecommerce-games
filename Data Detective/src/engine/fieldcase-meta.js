@@ -6,6 +6,17 @@ export const FIELD_CASE = {
   id: "cold-case-2015", n: 9, difficulty: "Field data", title: "The 2015 cold case",
   lesson: "Before you trust a number, ask whether the measurement can be believed. Self-referrals, test orders and unfiltered internal traffic can make a channel look miraculous — fix the tracking, then re-measure, then decide.",
   words: ["selfreferral", "exclusionlist", "testtraffic", "aov", "pla"],   // glossary terms for the case report
+  // what this case develops (see outcomes.js): LO1 partly — the first action is
+  // choosing the right analytics configuration for this business
+  outcomes: {
+    los: ["LO3"], partly: ["LO1"], syllabus: ["Digital marketing for eCommerce"],
+    skills: {
+      research: "Auditing real, uncleaned exports for self-referrals, test orders and internal traffic before trusting them.",
+      critical: "Questioning a channel that looked miraculous instead of acting on it.",
+      organisation: "Recommending that the measurement be fixed before any budget moved.",
+    },
+    cv: "Audited real Google Analytics exports from a 2015 UK retailer and showed that a recommended budget shift rested on broken measurement (payment-gateway self-referrals and test orders).",
+  },
   ticket: {
     channel: "#cro-team", from: "Priya · Ops",
     subject: "Cold case: audit the 2015 channel decision",

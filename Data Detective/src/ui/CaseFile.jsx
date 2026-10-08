@@ -6,6 +6,7 @@ import { PrintBar, ReportArticle, Section, Tag, subHead, useDocumentTitle, useSt
 import { calibrationShort, longDate } from "./report/labels.js";
 import { ALL_CASES, isPlayed } from "./caseList.js";
 import { CONFIDENCE, loadProgress } from "./progress.js";
+import { MODULE, suiteCoverage } from "./outcomesModel.js";
 
 /* The case file: every case this browser has played, on one printable page
    (saved as a PDF like a case report). Each case's FIRST attempt — the only
@@ -27,7 +28,7 @@ export default function CaseFile({ autoFocus, onBack }) {
     <CaseFrame autoFocus={autoFocus} subtitle="Chrichton · your case file" phase="casefile">
       <div className="rise" style={{ marginTop: 22 }}>
         <PrintBar onBack={onBack} backLabel="← back to the case inbox" />
-        <ReportArticle kicker="Data Detective · Case file" title="Your case file" meta={[longDate(), `${played.length} of ${ALL_CASES.length} cases played`, "First attempts only"]} name={name} setName={setName}>
+        <ReportArticle kicker="Data Detective · Case file" tag={`${MODULE.code} · LO3 · LO1 (partly)`} title="Your case file" meta={[longDate(), `${played.length} of ${ALL_CASES.length} cases played`, "First attempts only"]} name={name} setName={setName}>
           {played.length === 0 ? (
             <Section title="Nothing here yet">
               <p style={{ margin: 0 }}>Finish a case and its result, how sure you said you were, and the principle it teaches will appear here.</p>
@@ -46,6 +47,22 @@ export default function CaseFile({ autoFocus, onBack }) {
               </Section>
               <Section title="Calibration — did your confidence match your results?">
                 <Calibration cases={played.filter((c) => rec(c).confidence)} progress={progress} />
+              </Section>
+              <SkillsRecord played={played} />
+              <Section title="For your CV or an interview">
+                <p style={{ margin: "0 0 10px" }}>One line per case you've played. Pick one and tell it as situation, task, action and result — and say it was a simulation (Case 09 used real data): the method is what counts.</p>
+                <ul style={{ margin: 0, paddingLeft: 22 }}>
+                  {played.map((c) => <li key={c.id} style={{ marginBottom: 6, breakInside: "avoid" }}>{c.outcomes.cv} <span style={{ color: T.muted }}>(Case {pad2(c.n)})</span></li>)}
+                </ul>
+              </Section>
+              <Section title="Learning outcomes">
+                <LearningOutcomes played={played} />
+              </Section>
+              <Section title="Using this in your assessment">
+                <ul style={{ margin: 0, paddingLeft: 22 }}>
+                  <li style={{ marginBottom: 6 }}><b>Business Report (70%)</b> — a report on an eCommerce transformation in a given industry. The method in these cases is the analysis such a report needs: split the headline number into its parts, segment the part that moved, and check that the measurement can be trusted before you act on it.</li>
+                  <li><b>Website Build presentation (30%, LO4)</b> — when you set up your site's analytics, use what Cases 06 and 09 showed: make sure purchases are recorded on every device and browser, exclude your payment provider as a referrer, and keep test orders out of the live data.</li>
+                </ul>
               </Section>
               <Section title="Principles from the cases you've played">
                 <ol role="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -151,6 +168,62 @@ function Calibration({ cases, progress }) {
         On average you said you were <b>{stated}%</b> sure, and you were fully right in <b>{hit}%</b> of cases. {summary.text}
         {" "}With {cases.length} case{cases.length === 1 ? "" : "s"}, treat this as a rough guide: one more result can move it a long way.
       </p>
+    </>
+  );
+}
+
+/* The skills record: each skill the module names, the cases this student
+   has practised it in, and — for the ones they haven't yet — which cases
+   would. Communication and self-assessment are practised in every case. */
+function SkillsRecord({ played }) {
+  const { skills } = suiteCoverage();
+  const ids = new Set(played.map((c) => c.id));
+  const nums = (cs) => cs.map((c) => pad2(c.n)).join(", ");
+  const rows = skills.map((s) => ({ ...s, done: s.cases.filter((c) => ids.has(c.id)), todo: s.cases.filter((c) => !ids.has(c.id)) }));
+  return (
+    <Section title="Skills record">
+      <div role="region" aria-label="Skills record (table)" tabIndex={0} style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14.5 }}>
+          <thead><tr>{["Skill", "What it means here", "Practised in"].map((h) => <th key={h} scope="col" style={{ ...th, whiteSpace: "normal" }}>{h}</th>)}</tr></thead>
+          <tbody>
+            {rows.map((s) => (
+              <tr key={s.id} style={{ breakInside: "avoid" }}>
+                <th scope="row" style={{ ...cell, textAlign: "left" }}>{s.name}<span style={{ display: "block", fontWeight: 400, fontSize: 13, color: T.muted }}>{s.kind}</span></th>
+                <td style={{ ...cell, color: T.body2 }}>{s.how}</td>
+                <td style={{ ...cell, minWidth: 110 }}>
+                  {s.done.length ? <><b>{s.done.length}</b> case{s.done.length === 1 ? "" : "s"} <span style={{ color: T.muted }}>({nums(s.done)})</span></> : <span style={{ color: T.muted }}>Not yet</span>}
+                  {s.todo.length > 0 && <span style={{ display: "block", fontSize: 13, color: T.muted }}>Next: case{s.todo.length === 1 ? "" : "s"} {nums(s.todo.slice(0, 3))}</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+  );
+}
+
+// The module's four learning outcomes, and how far this game serves each.
+function LearningOutcomes({ played }) {
+  const { los } = suiteCoverage();
+  const ids = new Set(played.map((c) => c.id));
+  const count = (cs) => cs.filter((c) => ids.has(c.id)).length;
+  return (
+    <>
+      <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        {los.map((lo) => (
+          <li key={lo.code} style={{ marginBottom: 10, breakInside: "avoid" }}>
+            <b>{lo.code}</b> — {lo.text}
+            <span style={{ display: "block", fontSize: 14, color: T.muted }}>
+              {lo.cases.length ? `Every case. You've played ${count(lo.cases)} of ${lo.cases.length}.`
+                : lo.partlyIn.length ? `Partly, in cases ${lo.partlyIn.map((c) => pad2(c.n)).join(", ")}. You've played ${count(lo.partlyIn)} of them.`
+                : lo.code === "LO4" ? "Assessed through the group Website Build, not this game."
+                : "Not covered by this game."}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p style={{ margin: "4px 0 0", fontSize: 14, color: T.muted }}>All the module's learning outcomes: <a href={MODULE.url} style={{ color: T.text, overflowWrap: "anywhere" }}>{MODULE.url.replace(/^https:\/\//, "")}</a></p>
     </>
   );
 }

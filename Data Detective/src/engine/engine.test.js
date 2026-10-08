@@ -4,6 +4,8 @@ import {
   DIMENSIONS, REPORTS, CASES, CAUSE_TYPES, FUNNEL_STAGES, TOTAL_DAYS, LENSES,
   avgRange, EARLY_WINDOW, LATE_WINDOW,
 } from "./engine.js";
+import { EVERY_CASE_SKILLS, LEARNING_OUTCOMES, SKILLS } from "./outcomes.js";
+import { FIELD_CASE } from "./fieldcase-meta.js";
 
 const CASE_ID = "paypal-gateway";
 const CASE2_ID = "mobile-safari-bug";
@@ -557,6 +559,19 @@ describe("case file", () => {
       const seen = new Set(Array.from({ length: 40 }, (_, k) => generateCase(c.id, "seed-" + k).variant));
       expect(seen.size, c.id).toBe(c.variants.length);
     }
+  });
+  it("every case says what it develops: LO3, honest 'partly' outcomes, real skills, a syllabus topic and a CV line", () => {
+    for (const c of [...CASES, FIELD_CASE]) {
+      const o = c.outcomes;
+      expect(o.los, c.id).toEqual(["LO3"]);
+      for (const lo of o.partly) expect(["LO1"], `${c.id} ${lo}`).toContain(lo);   // LO2 and LO4 are never claimed
+      expect(Object.keys(o.skills).length, c.id).toBeGreaterThanOrEqual(3);
+      for (const [id, did] of Object.entries(o.skills)) { expect(SKILLS[id], `${c.id} ${id}`).toBeTruthy(); expect(EVERY_CASE_SKILLS, id).not.toContain(id); expect(did.length).toBeGreaterThan(30); }
+      expect(o.syllabus.length, c.id).toBeGreaterThan(0);
+      expect(o.cv.length, c.id).toBeGreaterThan(60);
+    }
+    expect(Object.keys(LEARNING_OUTCOMES)).toEqual(["LO1", "LO2", "LO3", "LO4"]);
+    expect(LEARNING_OUTCOMES.LO3.text).toBe("Critically evaluate advanced eCommerce functionalities to enhance user experience and increase conversions.");
   });
   it("cause types that are never the answer would teach students to rule them out — every cause is used", () => {
     const used = new Set(VARIANTS.map(({ v }) => v.truth.causeType));

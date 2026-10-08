@@ -1,7 +1,8 @@
 import React from "react";
 import { FIELD_CASE, scoreFieldDiagnosis } from "../../engine/fieldcase.js";
 import { T, PLAYER, btn, linkBtn } from "../theme.js";
-import { CaseFrame, LOBadges, PT, Term, TermsHint, TicketCard, addOnce } from "../shared.jsx";
+import { CaseFrame, PT, Term, TermsHint, TicketCard, addOnce } from "../shared.jsx";
+import { CaseOutcomes } from "../Outcomes.jsx";
 import { recordFirstAttempt } from "../progress.js";
 import { useSessionState } from "../session.js";
 import FieldInvestigate from "./FieldInvestigate.jsx";
@@ -62,13 +63,13 @@ function FieldIntro({ onStart, onExit }) {
       <p style={{ color: T.body2, fontSize: 18.5, lineHeight: 1.6, marginTop: 18 }}>
         Every other case was simulated. This one is the opposite — <b style={{ color: T.text }}>real Google Analytics exports</b> from a real UK electronics retailer in 2015, exactly as they came out of the tool. Nothing is generated and nothing has been cleaned. Before you trust a single percentage, ask the detective's first question: <i>can this witness be believed?</i> Watch for <Term term="selfreferral">payment-gateway self-referrals</Term>, <Term term="testtraffic">test traffic</Term>, and check the <Term term="aov">AOV</Term> of anything that looks miraculous. Flag rows with 🚩 as you go — your evidence list is scored.
       </p>
-      <LOBadges los={["LO3"]} />
       <TermsHint />
       <TicketCard ticket={FIELD_CASE.ticket} style={{ marginTop: 20 }} />
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 22, flexWrap: "wrap" }}>
         <button onClick={onStart} style={btn(T.playerBtn)}>Open the archive →</button>
         <button onClick={onExit} style={linkBtn}>← All cases</button>
       </div>
+      <CaseOutcomes outcomes={FIELD_CASE.outcomes} style={{ marginTop: 26 }} />
     </div>
   );
 }

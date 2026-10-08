@@ -1,9 +1,11 @@
 import React, { useMemo } from "react";
-import { reviewTrail } from "../../engine/engine.js";
+import { CASEMAP, reviewTrail } from "../../engine/engine.js";
 import { T, card, btn } from "../theme.js";
 import { ordinal } from "../format.js";
 import { causeLabel, confidenceText, dimsText, segsText, startText } from "../report/labels.js";
 import { ConfidenceVerdict, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
+import { SkillsPractised } from "../Outcomes.jsx";
+import { confidenceLine, replyName } from "../outcomesModel.js";
 
 export default function Reveal({ caseData, diagnosis, result, viewed, pivots, lenses, onRetry, onInbox, onOpenReport }) {
   const truth = caseData.truth;
@@ -42,6 +44,7 @@ export default function Reveal({ caseData, diagnosis, result, viewed, pivots, le
         <SectionTitle>The principle</SectionTitle>
         <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6 }}>{truth.lesson}</p>
       </div>
+      <SkillsPractised outcomes={CASEMAP[caseData.id].outcomes} replyTo={replyName(caseData.ticket.from)} confidence={confidenceLine(diagnosis.confidence, result.fieldsCorrect, 4)} style={{ marginTop: 18 }} />
       <div style={{ textAlign: "center", marginTop: 22, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
         <button onClick={onRetry} style={btn(T.playerBtn)}>Try a fresh variant ↺</button>
         <button onClick={onOpenReport} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Open your case report (PDF)</button>

@@ -6,6 +6,7 @@ import { CaseFrame, Eyebrow, InstructorButton, LOS, PT, Term, TermsHint, TicketC
 import { recordFirstAttempt } from "../progress.js";
 import { useSessionState } from "../session.js";
 import { useDateRange } from "./dateRange.js";
+import { CaseOutcomes } from "../Outcomes.jsx";
 
 // The dashboard (and its charting library, most of the bundle) loads on
 // demand: the intro paints without it, and starts fetching it straight away.
@@ -58,7 +59,7 @@ export default function GeneratedCase({ autoFocus, sessionKey, caseIndex, cfg, a
   const instructorBtn = onToggleInstructor && <InstructorButton onClick={onToggleInstructor} />;
   return (
     <CaseFrame autoFocus={autoFocus} subtitle="Chrichton · analytics" phase={phase} caseN={caseData.n} counters={[["REPORTS", viewed.length], ["PIVOTS", pivots.length]]} actions={instructorBtn}>
-      {phase === "intro" && <Intro caseData={caseData} difficulty={def.difficulty} attempt={attempt} onInbox={onInbox} onStart={() => setPhase("investigate")} />}
+      {phase === "intro" && <Intro caseData={caseData} difficulty={def.difficulty} outcomes={def.outcomes} attempt={attempt} onInbox={onInbox} onStart={() => setPhase("investigate")} />}
       {phase === "investigate" && (
         <Suspense fallback={<div role="status" style={{ marginTop: 40, color: T.muted, fontSize: 16 }}>Opening the dashboard…</div>}>
           <Investigate caseData={caseData} metric={metric} setMetric={setMetric} activeReport={activeReport} openReport={openReport}
@@ -77,7 +78,7 @@ export default function GeneratedCase({ autoFocus, sessionKey, caseIndex, cfg, a
 }
 
 /* ---- INTRO / TICKET --------------------------------------------- */
-function Intro({ caseData, difficulty, attempt, onInbox, onStart }) {
+function Intro({ caseData, difficulty, outcomes, attempt, onInbox, onStart }) {
   useEffect(() => { loadInvestigate(); }, []); // prefetch while the ticket is read
   return (
     <div className="rise" style={{ maxWidth: 820, margin: "28px auto 0" }}>
@@ -101,6 +102,7 @@ function Intro({ caseData, difficulty, attempt, onInbox, onStart }) {
         <button onClick={onStart} style={btn(T.hdrBg)}>Open the dashboard →</button>
         <span style={{ color: T.muted, fontSize: 15.5 }}>Case {pad2(caseData.n)} of {CASES.length + 1} · seed <b style={{ color: T.text, fontFamily: T.mono }}>{caseData.seed}</b>{attempt > 1 && <> · fresh variant (attempt {attempt}) — only your first attempt is scored</>}</span>
       </div>
+      <CaseOutcomes outcomes={outcomes} style={{ marginTop: 26 }} />
     </div>
   );
 }

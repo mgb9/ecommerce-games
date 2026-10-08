@@ -3,6 +3,7 @@ import { ordinal, pad2 } from "../format.js";
 import {
   REPORT_LABELS, calibrationVerdict, causeLabel, confidenceText, dimsText, isNone, lensLabel, longDate, pivotLabel, segsText, startText, wordsFor,
 } from "./labels.js";
+import { MODULE, confidenceLine, developed, losLabel } from "../outcomesModel.js";
 
 /* The case report for cases 1–8, as a plain data model that ReportView
    renders (and the student saves as a PDF). Written to the student, in
@@ -55,6 +56,7 @@ export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result,
 
   return {
     fileTitle: `Data Detective – Case ${pad2(caseData.n)} report`,
+    tag: `${MODULE.code} · ${losLabel(def.outcomes)}`,
     title: `Case ${pad2(caseData.n)}: ${caseData.ticket.subject}`,
     meta: [longDate(), def.difficulty, `Seed ${caseData.seed}`, attempt === 1 ? "First attempt" : `Attempt ${attempt} (a fresh variant)`],
     score: { got: result.fieldsCorrect, outOf: 4 },
@@ -86,5 +88,6 @@ export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result,
       "What would you ask the team to monitor so a problem like this is caught sooner?",
     ],
     words: wordsFor(def.words || []),
+    ...developed(def.outcomes, caseData.ticket, confidenceLine(diagnosis.confidence, result.fieldsCorrect, 4)),
   };
 }

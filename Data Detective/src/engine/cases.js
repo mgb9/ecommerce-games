@@ -27,6 +27,18 @@ export const CASES = [
   {
     id: "paypal-gateway", n: 1, difficulty: "Beginner", title: "Is checkout broken?",
     words: ["segmentation", "gateway", "redherring", "funnelstep"],   // glossary terms for the case report
+    // what this case develops: learning outcomes (LO3 always; `partly` = touched,
+    // not central), syllabus topic, skills with what practising them looked like
+    // here, and an evidence line for a CV — see outcomes.js
+    outcomes: {
+      los: ["LO3"], partly: ["LO1"], syllabus: ["Operations: payment processing"],
+      skills: {
+        research: "Segmenting by payment method to find that one route through checkout had failed.",
+        critical: "Ruling out the campaign and the maintenance window that lined up with the drop.",
+        operations: "Recognising a payment-gateway failure from its pattern: one method, a sudden cliff, the Purchase step.",
+      },
+      cv: "Diagnosed a sitewide revenue drop as a single failing payment method, by segmenting checkout data and ruling out coincident marketing activity (case-based analytics simulation).",
+    },
     lesson: "Segment before you blame “checkout”: one payment method failing can sink the whole funnel while every other route through it is fine — and the event that lines up best on the timeline is not automatically the cause.",
     variants: [
       {
@@ -66,6 +78,15 @@ export const CASES = [
   {
     id: "mobile-safari-bug", n: 2, difficulty: "Intermediate", title: "Soft for two weeks, nobody knows why",
     words: ["crosstab", "segmentation", "funnelstep", "redherring"],   // glossary terms for the case report
+    outcomes: {
+      los: ["LO3"], partly: ["LO1"], syllabus: ["Design principles: website design best practices"],
+      skills: {
+        research: "Cross-tabulating two dimensions to isolate a fault that lived only in their intersection.",
+        critical: "Seeing that two reports that each looked a little off were halves of one problem.",
+        conversion: "Pinning the loss to one step of the funnel, for one device and browser combination.",
+      },
+      cv: "Isolated a conversion fault affecting a single device and browser combination by cross-tabulating analytics reports (case-based analytics simulation).",
+    },
     lesson: "Interaction effects hide in single-dimension reports. When two dimensions each look “a bit off”, cross-tab them: the real fault may live only in their intersection, diluted everywhere else.",
     variants: [
       {
@@ -105,6 +126,15 @@ export const CASES = [
   {
     id: "traffic-mix", n: 3, difficulty: "Intermediate", title: "More visitors, lower conversion",
     words: ["mixshift", "conversion", "segmentation", "redherring"],   // glossary terms for the case report
+    outcomes: {
+      los: ["LO3"], partly: [], syllabus: ["Digital marketing: audience-first marketing"],
+      skills: {
+        critical: "Seeing that the average fell because the mix of visitors changed while no group's own rate did (Simpson's paradox).",
+        organisation: "Taking the finding to whoever runs the campaign, not to engineering.",
+        conversion: "Separating the quality of the traffic from the performance of the site.",
+      },
+      cv: "Showed that a fall in sitewide conversion came from a change in traffic mix, not a site fault, by comparing each segment's own conversion rate (case-based analytics simulation).",
+    },
     lesson: "If no segment's own rate moved, nothing broke. A falling average can be pure mix shift (Simpson's paradox) — a conversation about traffic quality with marketing, not a bug hunt with engineering.",
     variants: [
       {
@@ -149,6 +179,15 @@ export const CASES = [
   {
     id: "masked-desktop", n: 4, difficulty: "Advanced", title: "A dip that feels too small",
     words: ["masking", "mixshift", "segmentation"],   // glossary terms for the case report
+    outcomes: {
+      los: ["LO3"], partly: [], syllabus: ["Design principles: conversion optimisation"],
+      skills: {
+        research: "Segmenting a calm topline anyway, and finding a serious fault underneath it.",
+        critical: "Treating good news that arrived with a dip as possible camouflage.",
+        conversion: "Separating a favourable shift in customer mix from a real fall in one device's conversion.",
+      },
+      cv: "Found a serious device-specific checkout fault hidden by a favourable change in customer mix (case-based analytics simulation).",
+    },
     lesson: "A calm topline does not mean nothing is wrong. A favourable mix shift can mask a severe localised fault — segment anyway, and treat good news that arrives with a dip as possible camouflage.",
     variants: [
       {
@@ -192,6 +231,15 @@ export const CASES = [
   {
     id: "stockout-slow-bleed", n: 5, difficulty: "Intermediate", title: "The slow leak",
     words: ["funnelstep", "baseline", "anomaly"],   // glossary terms for the case report
+    outcomes: {
+      los: ["LO3"], partly: [], syllabus: ["Operations"],
+      skills: {
+        research: "Reading the shape of the change — a slide, not a cliff — to narrow down the cause.",
+        problem: "Dating a gradual onset, where there is no single bad day.",
+        operations: "Recognising a stock problem from where, and how, conversion fell.",
+      },
+      cv: "Traced a gradual fall in conversion to stock running out on a best-selling range, using the shape of the decline and funnel analysis (case-based analytics simulation).",
+    },
     lesson: "Shape tells cause. A sudden cliff points to something that broke; a slow slide that keeps getting worse points to something running out or wearing down — stock, budget, patience. Find where it lives, then read its shape.",
     variants: [
       {
@@ -229,6 +277,15 @@ export const CASES = [
   {
     id: "false-alarm-tracking", n: 6, difficulty: "Advanced", title: "Conversions fell off a cliff",
     words: ["groundtruth", "funnelstep", "anomaly"],   // glossary terms for the case report
+    outcomes: {
+      los: ["LO3"], partly: ["LO1"], syllabus: ["Operations: transaction management"],
+      skills: {
+        research: "Checking analytics against a ground-truth number from the order system.",
+        critical: "Not taking the dashboard's word for a crisis.",
+        organisation: "Stopping a rollback that would have fixed nothing, and sending the fix to whoever owns tracking.",
+      },
+      cv: "Showed that an apparent collapse in conversions was a tracking fault, not lost sales, by reconciling analytics with back-office orders before any rollback (case-based analytics simulation).",
+    },
     lesson: "Before declaring a crisis, check the dashboard against a ground-truth number. If the order system didn't see a drop, the problem is the measurement, not the shop — and rolling back the site would have fixed nothing.",
     variants: [
       {
@@ -266,6 +323,15 @@ export const CASES = [
   {
     id: "normal-week", n: 7, difficulty: "Advanced", title: "The worst day in a month",
     words: ["noise", "baseline", "anomaly"],   // glossary terms for the case report
+    outcomes: {
+      los: ["LO3"], partly: [], syllabus: ["eCommerce fundamentals: key concepts"],
+      skills: {
+        critical: "Judging whether a dip was bigger than normal variation, and confined to one group, before calling it an incident.",
+        research: "Checking several dimensions to show that nothing stood out.",
+        organisation: "Telling senior people that nothing needs rolling back, and why.",
+      },
+      cv: "Advised against an unnecessary rollback by showing that a one-day dip was a calendar effect within normal variation (case-based analytics simulation).",
+    },
     lesson: "Sometimes the right diagnosis is “nothing is broken”. Check that a dip is bigger than normal variation and confined to one group before calling it an incident — small segments swing wildly by chance, and calendars move whole sites.",
     variants: [
       {
@@ -303,6 +369,15 @@ export const CASES = [
   {
     id: "orders-up-revenue-down", n: 8, difficulty: "Intermediate", title: "Orders up, revenue down",
     words: ["revenuetree", "aov", "segmentation", "redherring"],   // glossary terms for the case report
+    outcomes: {
+      los: ["LO3"], partly: [], syllabus: ["eCommerce fundamentals: key concepts"],
+      skills: {
+        research: "Breaking revenue into sessions × conversion × average order value, then segmenting the part that moved.",
+        critical: "Not trusting a segment just because it looked like good news on conversion.",
+        organisation: "Framing the fix as a commercial decision about margin, not a technical bug.",
+      },
+      cv: "Explained why revenue fell while orders rose by decomposing revenue into traffic, conversion and average order value, and isolating the segment whose basket size collapsed (case-based analytics simulation).",
+    },
     lesson: "Revenue = sessions × conversion × average order value. When revenue moves, find which of the three moved before you dig, then segment that one. A group can look like your best news on conversion while it is exactly where the money is leaking.",
     variants: [
       {

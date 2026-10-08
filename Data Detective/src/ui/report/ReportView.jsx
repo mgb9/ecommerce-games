@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useState } from "react";
 import { T, btn, linkBtn } from "../theme.js";
 import { useSessionState } from "../session.js";
+import { MODULE } from "../outcomesModel.js";
 
 /* The case report: a printable document the student saves as a PDF with
    the browser's own "Save as PDF" — which, in Chrome, produces a tagged,
@@ -44,14 +45,14 @@ export function PrintBar({ onBack, backLabel, note }) {
 
 // A printable document: the article the print CSS keeps (GLOBAL_CSS), its
 // header — kicker, title, meta line — and the student's (optional) name.
-export function ReportArticle({ kicker, title, meta, name, setName, children }) {
+export function ReportArticle({ kicker, tag = "WM956-15 · LO3", title, meta, name, setName, children }) {
   const nameId = useId();
   return (
     <article className="dd-report" aria-labelledby="dd-report-title" style={{ background: "#FFFFFF", color: T.text, maxWidth: 860, margin: "0 auto", padding: "clamp(22px, 5vw, 46px) clamp(18px, 5vw, 50px)", borderRadius: 6, border: `1px solid ${T.border}`, boxShadow: "0 18px 40px -30px rgba(0,0,0,0.45)", fontSize: 15, lineHeight: 1.55 }}>
       <header style={{ borderBottom: `3px solid ${T.player}`, paddingBottom: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", fontSize: 12.5, fontWeight: 900, letterSpacing: 1.6, textTransform: "uppercase" }}>
           <span style={{ color: T.playerText }}>{kicker}</span>
-          <span style={{ color: T.muted }}>WM956-15 · LO3</span>
+          <span style={{ color: T.muted }}>{tag}</span>
         </div>
         <h1 id="dd-report-title" style={{ fontFamily: T.display, fontWeight: 700, fontSize: "clamp(24px, 4.4vw, 31px)", lineHeight: 1.15, letterSpacing: -0.5, margin: "10px 0 6px" }}>{title}</h1>
         <div style={{ fontSize: 13.5, color: T.muted }}>{meta.join(" · ")}</div>
@@ -78,7 +79,7 @@ export default function ReportView({ model, sessionKey, onBack }) {
     <div className="rise" style={{ marginTop: 22 }}>
       <PrintBar onBack={onBack} backLabel="← back to your results" note="Your answers are included." />
 
-      <ReportArticle kicker="Data Detective · Case report" title={model.title} meta={model.meta} name={name} setName={setName}>
+      <ReportArticle kicker="Data Detective · Case report" tag={model.tag} title={model.title} meta={model.meta} name={name} setName={setName}>
 
         <Section title="At a glance">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: 16, alignItems: "stretch" }}>
@@ -126,6 +127,8 @@ export default function ReportView({ model, sessionKey, onBack }) {
           </div>
         </Section>
 
+        {model.develops && <Developed d={model.develops} />}
+
         <Section title="How you investigated">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: 18 }}>
             {model.trail.map((t) => (
@@ -161,6 +164,12 @@ export default function ReportView({ model, sessionKey, onBack }) {
             </>
           )}
         </Section>
+
+        {model.reply && (
+          <Section title={`Your reply to ${model.reply.name}`}>
+            <Reply reply={model.reply} value={answers.reply || ""} onChange={(v) => setAnswers((a) => ({ ...a, reply: v }))} />
+          </Section>
+        )}
 
         <Section title="Reflection — bring this to the seminar">
           <ol style={{ margin: 0, paddingLeft: 22 }}>
@@ -229,5 +238,55 @@ function Answer({ question, value, onChange }) {
           : Array.from({ length: 4 }, (_, i) => <div key={i} style={{ height: 26, borderBottom: "1px solid #9A9A9E" }} />)}
       </div>
     </li>
+  );
+}
+
+// What the case developed: the learning outcomes it serves (the module
+// specification's wording), the skills practised and what that looked like
+// here, and a line the student can use on a CV or in an interview.
+function Developed({ d }) {
+  const moduleHref = MODULE.url.replace(/^https:\/\//, "");
+  return (
+    <Section title="What this case developed">
+      <h3 style={subHead}>Learning outcomes</h3>
+      <ul style={{ margin: "0 0 6px", paddingLeft: 22 }}>
+        {d.los.map((lo) => <li key={lo.code} style={{ marginBottom: 4, breakInside: "avoid" }}><b>{lo.code}{lo.partly ? " (partly)" : ""}</b> — {lo.text}</li>)}
+      </ul>
+      <p style={{ margin: "0 0 16px", fontSize: 14, color: T.muted }}>
+        Syllabus: {d.syllabus.join("; ")}. All the module's learning outcomes: <a href={MODULE.url} style={{ color: T.text, overflowWrap: "anywhere" }}>{moduleHref}</a>
+      </p>
+      <h3 style={subHead}>Skills you practised</h3>
+      <ul style={{ listStyle: "none", margin: "0 0 16px", padding: 0 }}>
+        {d.skills.map((s) => (
+          <li key={s.id} style={{ marginBottom: 8, breakInside: "avoid" }}>
+            <b>{s.name}</b> <span style={{ color: T.muted, fontSize: 13.5 }}>({s.kind.toLowerCase()})</span> — {s.did}
+          </li>
+        ))}
+      </ul>
+      <h3 style={subHead}>For your CV or an interview</h3>
+      <p style={{ margin: 0, padding: "10px 14px", borderLeft: `4px solid ${T.player}`, background: T.panel2, borderRadius: "0 8px 8px 0", breakInside: "avoid" }}>{d.cv}</p>
+      <p style={{ margin: "6px 0 0", fontSize: 13.5, color: T.muted }}>In an interview, tell it as situation, task, action and result — and say it was a simulation: the method is what counts.</p>
+    </Section>
+  );
+}
+
+// The communication exercise: reply to the person who raised the ticket, for
+// a reader who isn't an analyst. Prints as text, or as lines to write on.
+function Reply({ reply, value, onChange }) {
+  const id = useId();
+  return (
+    <div style={{ breakInside: "avoid" }}>
+      <p style={{ margin: "0 0 8px" }}>
+        {reply.from} asked: <i>“{reply.subject}”</i> Write the reply you would send — three to five sentences they could forward to their manager. Say what happened, how sure you are, what should happen next and who should do it. If you use a word like “segment” or “conversion rate”, say what it means.
+      </p>
+      <label htmlFor={id} style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>Your reply to {reply.name}</label>
+      <textarea id={id} className="dd-noprint" rows={5} value={value} onChange={(e) => onChange(e.target.value)} placeholder="Your reply (optional) — it will be printed with the report"
+        style={{ width: "100%", padding: "8px 10px", border: `1px solid ${T.border}`, borderRadius: 8, background: T.panel2, font: "inherit", fontSize: 14.5, color: T.text, resize: "vertical" }} />
+      <div className="dd-print-only">
+        {value.trim()
+          ? <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{value}</p>
+          : Array.from({ length: 6 }, (_, i) => <div key={i} style={{ height: 26, borderBottom: "1px solid #9A9A9E" }} />)}
+      </div>
+    </div>
   );
 }

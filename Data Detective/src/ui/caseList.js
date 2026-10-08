@@ -6,8 +6,8 @@ import { FIELD_CASE } from "../engine/fieldcase-meta.js";
    field case's metadata is imported, never its data, so neither screen pulls
    in the 2015 archive. */
 export const ALL_CASES = [
-  ...CASES.map((c) => ({ id: c.id, n: c.n, difficulty: c.difficulty, title: c.title, lesson: c.lesson, field: false })),
-  { id: FIELD_CASE.id, n: FIELD_CASE.n, difficulty: FIELD_CASE.difficulty, title: FIELD_CASE.title, lesson: FIELD_CASE.lesson, field: true },
+  ...CASES.map((c) => ({ id: c.id, n: c.n, difficulty: c.difficulty, title: c.title, lesson: c.lesson, outcomes: c.outcomes, field: false })),
+  { id: FIELD_CASE.id, n: FIELD_CASE.n, difficulty: FIELD_CASE.difficulty, title: FIELD_CASE.title, lesson: FIELD_CASE.lesson, outcomes: FIELD_CASE.outcomes, field: true },
 ];
 export const caseAt = (idx) => ALL_CASES[idx];
 

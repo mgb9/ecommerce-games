@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import { GLOSSARY } from "../engine/engine.js";
+import { LEARNING_OUTCOMES } from "../engine/outcomes.js";
 import { T, PLAYER, card, btn, pickRow, selStyle } from "./theme.js";
 import { pct } from "./format.js";
 import { calibrationVerdict } from "./report/labels.js";
@@ -106,26 +107,9 @@ export function TermsHint() {
 }
 
 /* ---- learning outcomes -------------------------------------------- */
-export const LOS = {
-  LO1: { title: "Technology → solution", full: "LO1 — Select appropriate technologies and turn them into a solution for specific e-commerce use-cases." },
-  LO2: { title: "Design patterns & implementation", full: "LO2 — Apply design patterns and best practice, and implement the solution." },
-  LO3: { title: "Enhance UX & conversion", full: "LO3 — Evaluate functionalities to enhance user experience and conversions." },
-  LO4: { title: "Collaborative analysis & build", full: "LO4 — Collaboratively analyse, and build a live e-commerce site." },
-};
-export function LOBadges({ los }) {
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 18 }}>
-      <span style={{ fontSize: 12.5, color: T.muted, fontFamily: T.mono, letterSpacing: 1 }}>🎓 WM956-15</span>
-      {los.map((k) => (
-        <span key={k} title={LOS[k].full}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: T.panel2, border: `1px solid ${T.border}`, borderRadius: 999, padding: "3px 10px 3px 8px", fontSize: 13.5, cursor: "help", whiteSpace: "nowrap" }}>
-          <b style={{ color: T.amber, fontFamily: T.mono, fontWeight: 700 }}>{k}</b>
-          <span style={{ color: T.muted }}>{LOS[k].title}</span>
-        </span>
-      ))}
-    </div>
-  );
-}
+// The module specification's wording (engine/outcomes.js); `full` is for
+// tooltips. The visible statements are in the Outcomes components.
+export const LOS = Object.fromEntries(Object.entries(LEARNING_OUTCOMES).map(([k, lo]) => [k, { title: lo.short, full: `${k} — ${lo.text}` }]));
 export function Eyebrow({ children, title }) {
   return (
     <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
