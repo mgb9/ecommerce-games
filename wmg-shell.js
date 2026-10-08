@@ -84,6 +84,7 @@
           'padding:12px 6vw;background:#211F25;border-bottom:1px solid rgba(255,255,255,.09);}' +
         '.left{display:flex;align-items:center;gap:18px;min-width:0;}' +
         '.mark{display:flex;align-items:center;gap:11px;}' +
+        '.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}' +
         '.dots{display:grid;grid-template-columns:1fr 1fr;gap:3px;}' +
         '.dots span{width:11px;height:11px;display:block;}' +
         '.wm{font-weight:900;font-size:22px;letter-spacing:1px;color:#fff;line-height:1;}' +
@@ -119,10 +120,13 @@
 
         '<header class="bar" style="--gaccent:' + accent + '">' +
           '<div class="left">' +
-            '<a class="mark" href="' + hub + '" aria-label="WMG home">' +
-              '<span class="dots"><span style="background:#C1D82F"></span><span style="background:#EE3124"></span>' +
+            // The link's name is its visible text plus a hidden ", home" — not an
+            // aria-label, which would have to repeat the text exactly (WCAG 2.5.3).
+            '<a class="mark" href="' + hub + '">' +
+              '<span class="dots" aria-hidden="true"><span style="background:#C1D82F"></span><span style="background:#EE3124"></span>' +
                 '<span style="background:#009DDC"></span><span style="background:#FBB034"></span></span>' +
-              '<span><span class="wm">WMG</span><span class="desc">The University of Warwick</span></span>' +
+              '<span><span class="wm">WMG</span> <span class="desc">The University of Warwick</span></span>' +
+              '<span class="sr">, home</span>' +
             '</a>' +
             (isGame
               ? '<span class="sep"></span><a class="back" href="' + hub + '">&larr; All games</a>'

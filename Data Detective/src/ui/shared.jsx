@@ -3,7 +3,7 @@ import { GLOSSARY } from "../engine/engine.js";
 import { LEARNING_OUTCOMES } from "../engine/outcomes.js";
 import { T, PLAYER, card, btn, pickRow, selStyle } from "./theme.js";
 import { pct } from "./format.js";
-import { calibrationVerdict } from "./report/labels.js";
+import { calibrationVerdict, explanationSections } from "./report/labels.js";
 
 /* Building blocks shared by the generated cases (1–8) and the field-data
    case (9): plain-language mode, glossary terms, the header band, the
@@ -59,6 +59,7 @@ export function PlainModeProvider({ children }) {
   return <PlainCtx.Provider value={{ plain, toggle, shell }}>{children}</PlainCtx.Provider>;
 }
 export function PT({ rich, plain }) { return useContext(PlainCtx).plain ? plain : rich; }
+export const usePlain = () => useContext(PlainCtx).plain;
 function PlainToggle() {
   const { plain, toggle, shell } = useContext(PlainCtx);
   if (shell) return null; // the shell bar's switch drives the game
@@ -365,6 +366,20 @@ export function ConfidenceVerdict({ confidence, allCorrect, score, outOf, label 
   return (
     <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 10, background: { pos: T.posTint, neg: T.negTint, amber: T.amberTint }[tone], fontSize: 14, lineHeight: 1.5 }}>
       <b>You said: {label}.</b> You got {score} of {outOf}. {text}
+    </div>
+  );
+}
+// The four-part explanation of a case, in the student's chosen English.
+export function Explanation({ explanation }) {
+  const plain = usePlain();
+  return (
+    <div>
+      {explanationSections(explanation).map((s) => (
+        <div key={s.key} style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase", color: T.muted, marginBottom: 3 }}>{s.label}</div>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: T.text }}>{plain ? s.plain : s.text}</p>
+        </div>
+      ))}
     </div>
   );
 }

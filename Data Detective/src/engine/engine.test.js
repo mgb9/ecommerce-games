@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   generateCase, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod, scoreDiagnosis, reviewTrail, summariseSegments, summariseTopline, incidentFactorAt,
   DIMENSIONS, REPORTS, CASES, CAUSE_TYPES, FUNNEL_STAGES, TOTAL_DAYS, LENSES,
-  avgRange, EARLY_WINDOW, LATE_WINDOW,
+  avgRange, sumRange, EARLY_WINDOW, LATE_WINDOW,
 } from "./engine.js";
 import { EVERY_CASE_SKILLS, LEARNING_OUTCOMES, SKILLS } from "./outcomes.js";
-import { FIELD_CASE } from "./fieldcase-meta.js";
+import { FIELD_CASES_META } from "./fieldcase-meta.js";
 
 const CASE_ID = "paypal-gateway";
 const CASE2_ID = "mobile-safari-bug";
@@ -561,7 +561,7 @@ describe("case file", () => {
     }
   });
   it("every case says what it develops: LO3, honest 'partly' outcomes, real skills, a syllabus topic and a CV line", () => {
-    for (const c of [...CASES, FIELD_CASE]) {
+    for (const c of [...CASES, ...FIELD_CASES_META]) {
       const o = c.outcomes;
       expect(o.los, c.id).toEqual(["LO3"]);
       for (const lo of o.partly) expect(["LO1"], `${c.id} ${lo}`).toContain(lo);   // LO2 and LO4 are never claimed
@@ -907,5 +907,93 @@ describe("case 8 narrative matches the generated data", () => {
     expect(reviewTrail(c, ["country"], [], ["device:aov", "country:aov"]).usedLens).toBe(true);
     expect(reviewTrail(c, ["country"], [], ["country:revenue"]).usedLens).toBe(true);
     expect(reviewTrail(exact(CASE_ID), ["payment"], [], ["payment:aov"])).toMatchObject({ lens: null, usedLens: false });
+  });
+});
+
+/* ---- case 11: enterprise scale, a five-day outage that has healed --- */
+describe("case 11 narrative matches the generated data", () => {
+  const SEEDS = ["DD-2026", "A1", "B2", "C3", "cohort-x", "Z9", "q", "WM956", "S7919", "S15838"];
+  const ID = "enterprise-outage";
+  const between = (x, lo, hi, msg) => { expect(x, msg).toBeGreaterThan(lo); expect(x, msg).toBeLessThan(hi); };
+  const each = (v, fn) => SEEDS.forEach((seed) => fn(generateCase(ID, seed, { noise: 1.4, variant: v }), seed));
+  const outage = (cd) => { const i = cd.incident; return { win: [i.startDay, i.startDay + i.days - 1], before: [i.startDay - 7, i.startDay - 7 + i.days - 1], after: [i.startDay + i.days, i.startDay + 2 * i.days - 1] }; };
+  it("both tickets: about 70,000 sessions and £1.6m a week; the sitewide week dips only a few percent", () => [0, 1].forEach((v) => each(v, (cd, s) => {
+    const t = summariseTopline(cd.topline);
+    between(t.sessions.late / 7, 60000, 76000, s);
+    between(t.revenue.late, 1450000, 1750000, s);
+    between(t.revenue.pctChange, -0.08, 0.02, s);
+    expect(cd.scale).toEqual({ sessions: 25, aov: 2.2 });
+  })));
+  it("v0: Germany about 70% down for five days, then back to normal; roughly £160k lost; Checkout pinned; the week shows about a quarter", () => each(0, (cd, s) => {
+    const ser = cd.breakdowns.find((d) => d.key === "country").series.de, w = outage(cd);
+    between(avgRange(ser, w.win) / avgRange(ser, w.before) - 1, -0.76, -0.64, s);
+    between(avgRange(ser, w.after) / avgRange(ser, w.before) - 1, -0.12, 0.12, s);
+    between(sumRange(ser, w.before, "revenue") - sumRange(ser, w.win, "revenue"), 130000, 200000, s);
+    const f = buildFunnel(cd, [{ dim: "country", seg: "de" }], w.win, w.before);
+    expect(f.attributedStage, s).toBe("checkout"); expect(f.summary.checkout.pctChange, s).toBeLessThan(-0.6);
+    between(summariseSegments(cd.breakdowns.find((d) => d.key === "country")).find((r) => r.id === "de").pctChange, -0.36, -0.2, s);
+    for (const r of summariseSegments(cd.breakdowns.find((d) => d.key === "country")).filter((r) => r.id !== "de" && r.shareLate >= 0.1)) between(r.pctChange, -0.1, 0.1, `${s} ${r.id}`);
+  }));
+  it("v1: France about 75% down for four days, then back; roughly £95k lost; Purchase pinned; the week shows about a third", () => each(1, (cd, s) => {
+    const ser = cd.breakdowns.find((d) => d.key === "country").series.fr, w = outage(cd);
+    between(avgRange(ser, w.win) / avgRange(ser, w.before) - 1, -0.82, -0.68, s);
+    between(avgRange(ser, w.after) / avgRange(ser, w.before) - 1, -0.15, 0.15, s);
+    between(sumRange(ser, w.before, "revenue") - sumRange(ser, w.win, "revenue"), 75000, 115000, s);
+    const f = buildFunnel(cd, [{ dim: "country", seg: "fr" }], w.win, w.before);
+    expect(f.attributedStage, s).toBe("purchase");
+    between(summariseSegments(cd.breakdowns.find((d) => d.key === "country")).find((r) => r.id === "fr").pctChange, -0.42, -0.22, s);
+  }));
+  it("scale 1 is exactly the old engine (cases 1–8 unchanged); the outage shape heals after `days`", () => {
+    const base = generateCase(CASE_ID, "SEED-A", { noise: 1.4, variant: 0 });
+    expect(base.scale).toEqual({ sessions: 1, aov: 1 });
+    expect(incidentFactorAt(19, { shape: "spike-revert", startDay: 19, days: 5, factor: 0.3 })).toBe(0.3);
+    expect(incidentFactorAt(23, { shape: "spike-revert", startDay: 19, days: 5, factor: 0.3 })).toBe(0.3);
+    expect(incidentFactorAt(24, { shape: "spike-revert", startDay: 19, days: 5, factor: 0.3 })).toBe(1);
+  });
+});
+
+/* ---- case 12: the credit moved, the customers didn't ----------------- */
+describe("case 12 narrative matches the generated data", () => {
+  const SEEDS = ["DD-2026", "A1", "B2", "C3", "cohort-x", "Z9", "q", "WM956", "S7919", "S15838"];
+  const ID = "attribution-shift";
+  const between = (x, lo, hi, msg) => { expect(x, msg).toBeGreaterThan(lo); expect(x, msg).toBeLessThan(hi); };
+  const each = (v, fn) => SEEDS.forEach((seed) => fn(generateCase(ID, seed, { noise: 1.4, variant: v }), seed));
+  const lens = (cd, dim, id) => summariseSegments(cd.breakdowns.find((d) => d.key === dim)).find((r) => r.id === id).lens;
+  it("both variants: the sitewide conversion rate, revenue and the order book are flat; no funnel step", () => [0, 1].forEach((v) => each(v, (cd, s) => {
+    const t = summariseTopline(cd.topline);
+    for (const k of ["conversionRate", "purchases", "orders", "revenue"]) between(t[k].pctChange, -0.07, 0.07, `${s} ${k}`);
+    expect(buildFunnel(cd, [{ dim: cd.truth.dimension, seg: cd.truth.segment }]).attributedStage, s).toBeNull();
+  })));
+  it("the topline is unchanged to the last decimal by an attribution incident", () => {
+    // the same seed with the incident removed gives the same topline conversion
+    const withIt = generateCase(ID, "SEED-A", { noise: 0, variant: 0 });
+    const def = CASES.find((c) => c.id === ID), saved = def.variants[0].incident;
+    def.variants[0].incident = null;
+    try {
+      const without = generateCase(ID, "SEED-A", { noise: 0, variant: 0 });
+      for (let d = 0; d < TOTAL_DAYS; d++) expect(withIt.topline[d].conversionRate).toBeCloseTo(without.topline[d].conversionRate, 12);
+    } finally { def.variants[0].incident = saved; }
+  });
+  it("v0: email's sessions fall about 70% and its revenue with them, its rate holds on average; Direct's sessions roughly double", () => {
+    const rates = [];
+    each(0, (cd, s) => {
+      const em = lens(cd, "source", "email"), di = lens(cd, "source", "direct");
+      between(em.sessions.delta, -0.78, -0.62, s); between(em.revenue.delta, -0.9, -0.6, s);
+      between(di.sessions.delta, 0.85, 1.25, s); expect(di.revenue.delta, s).toBeGreaterThan(0.8);
+      rates.push(em.conversionRate.delta);
+    });
+    const mean = rates.reduce((a, b) => a + b, 0) / rates.length;
+    between(mean, -0.12, 0.12, "email's rate, averaged over seeds");
+  });
+  it("v1: retargeting's conversions about halve with its sessions unchanged; generic search's rise by half or more", () => each(1, (cd, s) => {
+    const rt = lens(cd, "campaign", "retargeting"), ge = lens(cd, "campaign", "generic");
+    between(rt.conversionRate.delta, -0.65, -0.42, s); between(rt.sessions.delta, -0.1, 0.1, s);
+    between(ge.conversionRate.delta, 0.3, 0.8, s); between(ge.sessions.delta, -0.1, 0.1, s);
+  }));
+  it("reviewTrail asks for the total: back-office orders, or the report by sessions/revenue", () => {
+    const c = generateCase(ID, "SEED-A", { noise: 0, variant: 0 });
+    expect(reviewTrail(c, ["source"], [], ["source:conversionRate"])).toMatchObject({ found: true, needsTotal: true, usedTotal: false });
+    expect(reviewTrail(c, ["source", "orders"], [], []).usedTotal).toBe(true);
+    expect(reviewTrail(c, ["source"], [], ["source:sessions"]).usedTotal).toBe(true);
   });
 });

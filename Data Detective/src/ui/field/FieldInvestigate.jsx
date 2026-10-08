@@ -1,22 +1,22 @@
 import React, { useCallback, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { FIELD_DATA, FIELD_CASE, FIELD_REPORTS, FIELD_REPORT_META, FIELD_REPORT_ROWS } from "../../engine/fieldcase.js";
+import { FIELD_DATA, FIELD_REPORTS, FIELD_REPORT_META, FIELD_REPORT_ROWS } from "../../engine/fieldcase.js";
 import { T, PLAYER, card, tipStyle } from "../theme.js";
 import { gbp, minSec, num, pct } from "../format.js";
 import { Chart, Dashboard, KpiTile, SectionTitle, ShareBar, SideNav, SortTh, Term, useNarrow, useSortable } from "../shared.jsx";
 
 const NAV_TOP = [["overview", "🏠 Overview"]];
 
-export default function FieldInvestigate({ activeReport, openReport, viewed, flags, onToggleFlag, onDiagnose }) {
+export default function FieldInvestigate({ def, activeReport, openReport, viewed, flags, onToggleFlag, onDiagnose }) {
   const meta = FIELD_REPORT_META[activeReport];
   return (
-    <Dashboard title="Analytics — 2015 archive" meta={`${FIELD_CASE.period} · 🚩 ${flags.length} flagged`}
+    <Dashboard title="Analytics — 2015 archive" meta={`${def.period} · 🚩 ${flags.length} flagged`}
       nav={
         <SideNav top={NAV_TOP} groups={FIELD_REPORTS} active={activeReport} viewed={viewed} onOpen={openReport} cta="Present findings →" onCta={onDiagnose}>
           <div style={{ fontSize: 12.5, color: T.muted, marginTop: 8, lineHeight: 1.5, padding: "0 4px" }}>Flag rows with 🚩 first — your evidence list is part of the score.</div>
         </SideNav>
       }>
-      {activeReport === "overview" ? <FieldOverview /> : (
+      {activeReport === "overview" ? <FieldOverview def={def} /> : (
         <div className="rise" style={card()}>
           <SectionTitle>{meta.title}</SectionTitle>
           <div style={{ fontSize: 13, color: T.muted, lineHeight: 1.5 }}>{meta.note} Click a column to sort. 🚩 flags a row as evidence.</div>
@@ -29,7 +29,13 @@ export default function FieldInvestigate({ activeReport, openReport, viewed, fla
 }
 
 /* ---- overview: KPI cards + the daily sessions series ---------------- */
-function FieldOverview() {
+// What to ask of the claim under audit — one nudge per case, with the
+// glossary terms it turns on.
+const NUDGE = {
+  "cold-case-2015": <> Sixteen percent. In consumer electronics. Ask yourself what kind of “visitor” converts one time in six, check that source's <Term term="aov">AOV</Term>, and remember this property has no <Term term="exclusionlist">referral exclusion list</Term> and no filters for <Term term="testtraffic">test traffic</Term> — nobody set them up.</>,
+  "christmas-plan-2015": <> Three claims, three reports. Read the Product report's row names and its “Qty / purchase” column before its totals; check the Age report's <Term term="coverage">coverage</Term> before you trust a “best-converting” group; and ask whether a busy <Term term="pla">Shopping-ad</Term> landing page is a page that sells.</>,
+};
+function FieldOverview({ def }) {
   const narrow = useNarrow();
   const t = FIELD_DATA.channels.total;
   const daily = FIELD_DATA.daily.map((d) => d.sessions);
@@ -49,7 +55,7 @@ function FieldOverview() {
         {kpis.map((k) => <KpiTile key={k.label} label={k.label} value={k.value} />)}
       </div>
       <div style={{ ...card(), marginTop: 16 }}>
-        <SectionTitle>Sessions per day — {FIELD_CASE.period}</SectionTitle>
+        <SectionTitle>Sessions per day — {def.period}</SectionTitle>
         <Chart label={`Line chart of sessions per day across ${daily.length} days, ranging between ${num(Math.min(...daily))} and ${num(Math.max(...daily))} a day, with no sudden cliff.`}>
         <ResponsiveContainer width="100%" height={230}>
           <LineChart data={FIELD_DATA.daily} margin={{ top: 8, right: 14, bottom: 0, left: -6 }}>
@@ -67,8 +73,8 @@ function FieldOverview() {
       </div>
       <div style={{ ...card(), marginTop: 16, fontSize: 14.5, lineHeight: 1.6 }}>
         <span style={{ color: T.muted }}>The claim under audit — </span>
-        <i>“Referral converts at 16% against Paid Search's 1.2% — cut the AdWords budget and invest in referral partnerships.”</i>
-        <span style={{ color: T.muted }}> Sixteen percent. In consumer electronics. Ask yourself what kind of “visitor” converts one time in six, check that source's <Term term="aov">AOV</Term>, and remember this property has no <Term term="exclusionlist">referral exclusion list</Term> and no filters for <Term term="testtraffic">test traffic</Term> — nobody set them up.</span>
+        <i>“{def.claim}”</i>
+        <span style={{ color: T.muted }}>{NUDGE[def.id]}</span>
       </div>
     </div>
   );

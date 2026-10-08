@@ -11,7 +11,7 @@ describe("progress", () => {
   it("records only the first attempt — a retry after the reveal can't overwrite it", () => {
     recordFirstAttempt("paypal-gateway", 2, 4, 90);
     recordFirstAttempt("paypal-gateway", 4, 4, 90);
-    expect(loadProgress()["paypal-gateway"]).toEqual({ first: 2, outOf: 4, confidence: 90 });
+    expect(loadProgress()["paypal-gateway"]).toMatchObject({ first: 2, outOf: 4, confidence: 90 });
   });
   it("a first attempt of 0 still counts as recorded", () => {
     recordFirstAttempt("traffic-mix", 0, 4, 50);

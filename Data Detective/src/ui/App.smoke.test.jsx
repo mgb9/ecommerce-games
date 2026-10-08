@@ -15,15 +15,18 @@ describe("App renders", () => {
     expect(html).toContain("Chrichton · case inbox");
     expect(html).toContain("Open case 01");
     expect(html).toContain("Open case 09");
+    expect(html).toContain("Open case 12");
   });
   it("?case=1 opens case 1's ticket, with a way back to the inbox", () => {
     const html = at("?case=1");
     expect(html).toContain("Find out what");
-    expect(html).toContain("Case 01 of 9");
+    expect(html).toContain("Case 01 of 12");
     expect(html).toContain("← All cases");
   });
-  it("?case=8 is the order-value case; ?case=9 the field case", () => {
+  it("?case=8 is the order-value case; ?case=9 and ?case=10 the field cases; ?case=11 the enterprise case", () => {
     expect(at("?case=8&seed=DD-2026")).toMatch(/Orders up, revenue down|More orders, less money/);
     expect(at("?case=9")).toContain("Opening the 2015 archive");
+    expect(at("?case=10")).toContain("Opening the 2015 archive");
+    expect(at("?case=11&seed=DD-2026")).toMatch(/Germany had its worst week|France fell off a cliff/);
   });
 });

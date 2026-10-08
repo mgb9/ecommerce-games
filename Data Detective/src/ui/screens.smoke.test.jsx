@@ -3,7 +3,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CASES, LENSES, REPORTS, TOTAL_DAYS, buildCrossTab, generateCase, scoreDiagnosis, summariseSegments } from "../engine/engine.js";
 import {
-  FIELD_REPORTS, FIELD_VERDICT_TRUTH, FIELD_GUN_TRUTH, FIELD_REMEDY_TRUTH, scoreFieldDiagnosis,
+  FIELD_CASES, FIELD_REPORTS, FIELD_VERDICT_TRUTH, FIELD_GUN_TRUTH, FIELD_REMEDY_TRUTH, fieldCaseById, scoreFieldDiagnosis,
 } from "../engine/fieldcase.js";
 import { PlainModeProvider } from "./shared.jsx";
 import Investigate from "./generated/Investigate.jsx";
@@ -17,6 +17,9 @@ import ReportPanel, { LENS_DEFS } from "./generated/ReportPanel.jsx";
 import SmallMultiples from "./generated/SmallMultiples.jsx";
 import Inbox from "./Inbox.jsx";
 import CaseFile from "./CaseFile.jsx";
+import AnswerSheet from "./AnswerSheet.jsx";
+import InstructorTally from "./InstructorTally.jsx";
+import SkillsRating from "./SkillsRating.jsx";
 import { generatedReport } from "./report/generatedReport.js";
 import { fieldReport } from "./field/fieldReport.js";
 
@@ -97,26 +100,50 @@ describe("report lenses and small multiples", () => {
   });
 });
 
+describe("instructor views and the self-rating render", () => {
+  it("the answer sheet lists every generated case's variants and the field cases' calls", () => {
+    const out = html(<AnswerSheet cfg={{ seed: "DD-2026", noise: 1.4 }} onBack={noop} />);
+    expect(out).toContain("Instructor answer sheet");
+    expect(out.match(/Variant A/g)).toHaveLength(CASES.length);
+    expect(out).toContain("first attempt for this seed");
+    expect(out).toContain("Case 09 · The 2015 cold case (real data");
+    expect(out).toContain("Case 12 · The channel that collapsed on paper");
+    expect(out).toContain("the sitewide total and back-office orders are flat");
+    expect(out).toContain("ends after 5 days");
+  });
+  it("the tally renders empty, and the rating form has six labelled groups", () => {
+    expect(html(<InstructorTally onBack={noop} />)).toContain("Nothing to tally yet");
+    const form = html(<SkillsRating title="Rate yourself" intro="x" onSave={noop} onSkip={noop} />);
+    expect(form.match(/<fieldset/g)).toHaveLength(6);
+    expect(form.match(/type="radio"/g)).toHaveLength(30);
+    expect(form).toContain("Skip for now");
+  });
+});
+
 describe("inbox and case file render", () => {
   const cfg = { seed: "DD-2026", noise: 1.4 };
   it("the inbox lists every case with an Open button", () => {
     const out = html(<Inbox cfg={cfg} attempts={{}} current={null} onOpen={noop} onReturn={noop} onCaseFile={noop} />);
     expect(out).toContain("Case <span");
     for (const n of ["01", "08", "09"]) expect(out).toContain(`Open case ${n}`);
-    expect(out.match(/>Open case \d\d →</g)).toHaveLength(9);
+    expect(out.match(/>Open case \d\d →</g)).toHaveLength(12);
     expect(out).toContain("What these cases develop");
-    expect(out).toContain("Partly, in cases 01, 02, 06, 09.");
+    expect(out).toContain("Partly, in cases 01, 02, 06, 09, 11, 12.");
+    expect(out).toMatch(/Germany had its worst week|France fell off a cliff/);   // case 11's ticket for this seed
+    expect(FIELD_CASES.map((c) => c.n)).toEqual([9, 10]);
     expect(out).toContain("Assessed through the group Website Build, not this game.");
     expect(out).toContain("LO3 · LO1 (partly)");
     expect(out).toContain("Next up");
+    expect(out).toContain("Before you start: rate yourself");   // no rating saved yet (no localStorage in tests)
     expect(out).toMatch(/Orders up, revenue down|More orders, less money/);   // case 8's ticket for this seed's variant
   });
   it("the case file, with cases played: skills record, CV lines, learning outcomes", () => {
     const store = { "dd-progress": JSON.stringify({ "paypal-gateway": { first: 4, outOf: 4, confidence: 90 }, "cold-case-2015": { first: 2, outOf: 3, confidence: 90 } }) };
     globalThis.localStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = v; }, removeItem: (k) => { delete store[k]; } };
     try {
-      const out = html(<CaseFile onBack={noop} />);
-      for (const s of ["Skills record", "Research and data analysis", "For your CV or an interview", CASES[0].outcomes.cv, "Learning outcomes", "played 2 of 9", "Using this in your assessment", "Well calibrated", "Overconfident"]) expect(out, s).toContain(s);
+      const out = html(<CaseFile cfg={{ seed: "DD-2026" }} onBack={noop} />);
+      for (const s of ["Skills record", "Research and data analysis", "For your CV or an interview", CASES[0].outcomes.cv, "Learning outcomes", "played 2 of 12", "Using this in your assessment", "Well calibrated", "Overconfident",
+        "How you rate yourself", "Share your results with your tutor", "DD3|DD-2026|1:4/4@90:-,9:2/3@90:-|S:-/-"]) expect(out, s).toContain(s);
     } finally { delete globalThis.localStorage; }
   });
   it("the case file with nothing played says so, and prints as a report", () => {
@@ -129,26 +156,36 @@ describe("inbox and case file render", () => {
 
 describe("field-case screens render", () => {
   const reportKeys = ["overview", ...FIELD_REPORTS.flatMap((g) => g.items.map((it) => it.key))];
+  const cold = fieldCaseById("cold-case-2015"), xmas = fieldCaseById("christmas-plan-2015");
 
   it.each(reportKeys)("investigate → %s", (key) => {
-    const out = html(<FieldInvestigate activeReport={key} openReport={noop} viewed={[]} flags={["ch-referral"]} onToggleFlag={noop} onDiagnose={noop} />);
+    const out = html(<FieldInvestigate def={cold} activeReport={key} openReport={noop} viewed={[]} flags={["ch-referral"]} onToggleFlag={noop} onDiagnose={noop} />);
     expect(out).toContain("Present findings");
+  });
+  it("case 10 frames its own claim on the overview, and its own calls", () => {
+    expect(html(<FieldInvestigate def={xmas} activeReport="overview" openReport={noop} viewed={[]} flags={[]} onToggleFlag={noop} onDiagnose={noop} />)).toContain("top ten products by revenue");
+    const guess = { verdict: xmas.verdictTruth, gun: xmas.gunTruth, remedy: xmas.remedyTruth, confidence: 70 };
+    expect(html(<FieldDiagnose def={xmas} guess={guess} setGuess={noop} flags={[]} onBack={noop} onSubmit={noop} />)).toContain("HP Care Pack");
+    const out = html(<FieldReveal def={xmas} guess={guess} result={scoreFieldDiagnosis(guess, ["pr-21"], xmas)} onAgain={noop} onExit={noop} />);
+    expect(out).toContain("CASE 10 — CLOSED");
+    expect(out).toContain("What should happen next");
+    expect(out).toContain("Service contracts at the top of the revenue ranking");
   });
 
   // Keyboard access (WCAG 2.1.1 / 4.1.2): sort headers and glossary terms
   // must be real buttons, not click handlers on a <th> or <span>.
   it("sort headers and glossary terms are buttons", () => {
-    const report = html(<FieldInvestigate activeReport="sourceMedium" openReport={noop} viewed={[]} flags={[]} onToggleFlag={noop} onDiagnose={noop} />);
+    const report = html(<FieldInvestigate def={cold} activeReport="sourceMedium" openReport={noop} viewed={[]} flags={[]} onToggleFlag={noop} onDiagnose={noop} />);
     expect(report.match(/<th[^>]*><button type="button"/g)).toHaveLength(10); // every Source/Medium column
-    const overview = html(<FieldInvestigate activeReport="overview" openReport={noop} viewed={[]} flags={[]} onToggleFlag={noop} onDiagnose={noop} />);
+    const overview = html(<FieldInvestigate def={cold} activeReport="overview" openReport={noop} viewed={[]} flags={[]} onToggleFlag={noop} onDiagnose={noop} />);
     expect(overview).toMatch(/<button type="button" aria-expanded="false"[^>]*>AOV<\/button>/);
   });
 
   it("diagnose and reveal", () => {
     const guess = { verdict: FIELD_VERDICT_TRUTH, gun: FIELD_GUN_TRUTH, remedy: FIELD_REMEDY_TRUTH };
     const flags = ["ch-referral", "sm-sandbox-paypal-com-referral"];
-    expect(html(<FieldDiagnose guess={guess} setGuess={noop} flags={flags} onBack={noop} onSubmit={noop} />)).toContain("sandbox.paypal.com");
-    const out = html(<FieldReveal guess={guess} result={scoreFieldDiagnosis(guess, flags)} flags={flags} onAgain={noop} onExit={noop} />);
+    expect(html(<FieldDiagnose def={cold} guess={guess} setGuess={noop} flags={flags} onBack={noop} onSubmit={noop} />)).toContain("sandbox.paypal.com");
+    const out = html(<FieldReveal def={cold} guess={guess} result={scoreFieldDiagnosis(guess, flags)} flags={flags} onAgain={noop} onExit={noop} />);
     expect(out).toContain("Open your case report (PDF)");
     expect(out).toContain("3/3 calls");
   });
@@ -162,7 +199,9 @@ describe("the case report renders, ready to save as a PDF", () => {
     for (const s of ["Save as PDF", "Case 01:", "At a glance", "The principle to remember", "What to work on next time", "How you investigated", "Reflection", "Words to know", "Not quite",
       "WM956-15 · LO3 · LO1 (partly)", "What this case developed", "Critically evaluate advanced eCommerce functionalities", "For your CV or an interview", "Your reply to Priya", "courses.warwick.ac.uk/modules/2026/WM956-15"]) expect(out, s).toContain(s);
     expect(out.match(/<textarea/g)).toHaveLength(5);   // the reply + four reflection answers
-    expect(out.match(/class="dd-print-only"/g).length).toBe(6);   // the name line, the reply, four answers
+    expect(out.match(/class="dd-print-only"/g).length).toBe(10);   // the name line, the reply, its four check boxes, four answers
+    expect(out).toContain("Check your reply");
+    expect(out).toContain("What should happen next");
     expect(out).toContain('<article class="dd-report"');
   });
   it("case 9: the clue chain and flagged rows", () => {

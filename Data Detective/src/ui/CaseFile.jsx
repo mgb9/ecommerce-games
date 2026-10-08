@@ -1,11 +1,13 @@
-import React, { useState } from "react";
-import { T, PLAYER } from "./theme.js";
+import React, { useId, useState } from "react";
+import { T, PLAYER, btn } from "./theme.js";
 import { pad2 } from "./format.js";
 import { CaseFrame } from "./shared.jsx";
 import { PrintBar, ReportArticle, Section, Tag, subHead, useDocumentTitle, useStudentName } from "./report/ReportView.jsx";
 import { calibrationShort, longDate } from "./report/labels.js";
 import { ALL_CASES, isPlayed } from "./caseList.js";
-import { CONFIDENCE, loadProgress } from "./progress.js";
+import { CONFIDENCE, loadProgress, loadSkills, saveSkills } from "./progress.js";
+import SkillsRating, { RatingsTable } from "./SkillsRating.jsx";
+import { resultCode } from "./cohort.js";
 import { MODULE, suiteCoverage } from "./outcomesModel.js";
 
 /* The case file: every case this browser has played, on one printable page
@@ -14,8 +16,10 @@ import { MODULE, suiteCoverage } from "./outcomesModel.js";
    held up across cases (calibration); and the principle from each case
    they have played. Unplayed cases' principles stay hidden: they'd give
    the answer away. */
-export default function CaseFile({ autoFocus, onBack }) {
+export default function CaseFile({ autoFocus, cfg = { seed: "" }, onBack }) {
   const [progress] = useState(loadProgress);
+  const [skills, setSkills] = useState(loadSkills);
+  const [rating, setRating] = useState(false);
   const [name, setName] = useStudentName();
   useDocumentTitle("Data Detective – Case file", name);
   const rec = (c) => progress[c.id];
@@ -63,6 +67,22 @@ export default function CaseFile({ autoFocus, onBack }) {
                   <li style={{ marginBottom: 6 }}><b>Business Report (70%)</b> — a report on an eCommerce transformation in a given industry. The method in these cases is the analysis such a report needs: split the headline number into its parts, segment the part that moved, and check that the measurement can be trusted before you act on it.</li>
                   <li><b>Website Build presentation (30%, LO4)</b> — when you set up your site's analytics, use what Cases 06 and 09 showed: make sure purchases are recorded on every device and browser, exclude your payment provider as a referrer, and keep test orders out of the live data.</li>
                 </ul>
+              </Section>
+              <Section title="How you rate yourself">
+                {skills.before || skills.after ? (
+                  <>
+                    <RatingsTable before={skills.before} after={skills.after} />
+                    <p style={{ margin: "8px 0 0", fontSize: 13.5, color: T.muted }}>{skills.before ? `Rated before your first case${skills.beforeAt ? ` (${skills.beforeAt})` : ""}` : "You skipped the rating before your first case"}{skills.after ? `, and again on ${skills.afterAt}` : ""}. Compare it with the skills record above: confidence should follow the evidence.</p>
+                  </>
+                ) : <p style={{ margin: 0, color: T.muted }}>You haven't rated yourself yet.</p>}
+                {rating ? (
+                  <SkillsRating style={{ marginTop: 14 }} title={skills.after ? "Rate yourself again" : "Rate yourself now"} initial={skills.after || skills.before} saveLabel="Save" onSkip={() => setRating(false)}
+                    intro="The same six statements. Answer for how you feel now, not how you think you should."
+                    onSave={(r) => { setSkills(saveSkills({ after: r, afterAt: new Date().toISOString().slice(0, 10) })); setRating(false); }} />
+                ) : <p className="dd-noprint" style={{ margin: "10px 0 0" }}><button onClick={() => setRating(true)} style={{ ...btn(T.hdrBg), padding: "9px 16px", fontSize: 14.5 }}>{skills.after ? "Rate yourself again" : "Rate yourself now"}</button></p>}
+              </Section>
+              <Section title="Share your results with your tutor">
+                <ResultCode code={resultCode(progress, skills, cfg.seed)} />
               </Section>
               <Section title="Principles from the cases you've played">
                 <ol role="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -225,5 +245,28 @@ function LearningOutcomes({ played }) {
       </ul>
       <p style={{ margin: "4px 0 0", fontSize: 14, color: T.muted }}>All the module's learning outcomes: <a href={MODULE.url} style={{ color: T.text, overflowWrap: "anywhere" }}>{MODULE.url.replace(/^https:\/\//, "")}</a></p>
     </>
+  );
+}
+
+// The result code: scores, confidence, calls, the reply check and the skills
+// ratings in one short string — no name — for the tutor's cohort tally.
+function ResultCode({ code }) {
+  const id = useId();
+  const [copied, setCopied] = useState(false);
+  async function copy(e) {
+    const input = e.currentTarget.previousSibling;
+    try { await navigator.clipboard.writeText(code); setCopied(true); } catch { input.focus(); input.select(); }
+  }
+  return (
+    <div>
+      <p style={{ margin: "0 0 8px" }}>If your tutor asks for it, send this code. It holds your scores, how sure you said you were, which calls you got right, your reply self-checks and your self-ratings — nothing else, and not your name.</p>
+      <label htmlFor={id} className="sr-only">Your result code</label>
+      <div className="dd-noprint" style={{ display: "flex", gap: 6 }}>
+        <input id={id} readOnly value={code} onFocus={(e) => e.target.select()} style={{ flex: 1, minWidth: 0, padding: "8px 10px", border: `1px solid ${T.border}`, borderRadius: 8, background: T.panel2, font: `13px ${T.mono}`, color: T.text }} />
+        <button onClick={copy} style={{ ...btn(T.hdrBg), padding: "8px 14px", fontSize: 14 }}>Copy</button>
+      </div>
+      <div role="status" className="dd-noprint" style={{ fontSize: 12.5, color: T.pos, marginTop: 4, minHeight: 18 }}>{copied ? "Copied." : ""}</div>
+      <p className="dd-print-only" style={{ margin: 0, fontFamily: T.mono, fontSize: 12.5, overflowWrap: "anywhere" }}>{code}</p>
+    </div>
   );
 }

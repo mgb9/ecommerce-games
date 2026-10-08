@@ -9,7 +9,7 @@ import { caseLink } from "../urlConfig.js";
 
    A modal dialog: focus moves in on open, Tab cycles inside, Escape or
    the backdrop closes it, and focus returns to whatever opened it. */
-export default function InstructorPanel({ cfg, caseN, onApply, onClose }) {
+export default function InstructorPanel({ cfg, caseN, onApply, onClose, onOpenView }) {
   const [seed, setSeed] = useState(cfg.seed);
   const [noise, setNoise] = useState(cfg.noise);
   const [copied, setCopied] = useState(false);
@@ -70,6 +70,13 @@ export default function InstructorPanel({ cfg, caseN, onApply, onClose }) {
           </div>
           <button onClick={() => onApply({ seed, noise })} style={{ width: "100%", background: A, color: T.onAccent, border: "none", borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 700, fontSize: 15 }}>{caseN ? "Apply & start this case afresh" : "Apply to every case"}</button>
 
+          {onOpenView && (
+            <div style={{ marginTop: 22, paddingTop: 16, borderTop: `1px solid ${T.border}`, display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 500 }}>For the seminar</div>
+              <button onClick={() => onOpenView("answers")} style={smallBtn}>Answer sheet for this seed (printable)</button>
+              <button onClick={() => onOpenView("tally")} style={smallBtn}>Cohort tally — paste students' result codes</button>
+            </div>
+          )}
           <div style={{ marginTop: 22, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
             <label htmlFor="dd-link" style={{ display: "block", fontSize: 14.5, fontWeight: 500, marginBottom: 4 }}>Link for your cohort</label>
             <div style={{ fontSize: 12.5, color: T.muted, marginBottom: 8, lineHeight: 1.45 }}>{caseN ? `Opens Case ${String(caseN).padStart(2, "0")} with this seed and noise level.` : "Opens the case inbox with this seed and noise level."}</div>

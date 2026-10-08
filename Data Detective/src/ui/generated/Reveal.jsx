@@ -3,7 +3,7 @@ import { CASEMAP, reviewTrail } from "../../engine/engine.js";
 import { T, card, btn } from "../theme.js";
 import { ordinal } from "../format.js";
 import { causeLabel, confidenceText, dimsText, segsText, startText } from "../report/labels.js";
-import { ConfidenceVerdict, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
+import { ConfidenceVerdict, Explanation, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
 import { SkillsPractised } from "../Outcomes.jsx";
 import { confidenceLine, replyName } from "../outcomesModel.js";
 
@@ -28,7 +28,7 @@ export default function Reveal({ caseData, diagnosis, result, viewed, pivots, le
         </div>
         <div style={card()}>
           <SectionTitle>What actually happened</SectionTitle>
-          <p style={{ fontSize: 15, lineHeight: 1.6, color: T.text }}>{truth.explanation}</p>
+          <Explanation explanation={truth.explanation} />
           <div style={{ marginTop: 14 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 7 }}>Timeline events, now revealed</div>
             {caseData.events.map((e, i) => (
@@ -79,6 +79,7 @@ function TrailCard({ review: r }) {
           : <>The signal was in <b>{r.decisive}</b>, which you never {r.compound ? "built" : "opened"}.{r.compound ? " Each single report only shows a diluted part of the drop." : ""}</>)}
       {r.funnelStage && line(r.usedFunnel, <>{r.usedFunnel ? "You used" : "You didn't use"} <b>Funnel exploration</b>. Filtered to the broken segment, it pins the drop to the <b>{r.funnelStage}</b> step — a strong clue to the cause.</>)}
       {r.needsBackOffice && line(r.usedBackOffice, <>{r.usedBackOffice ? "You checked" : "You didn't check"} <b>Back-office orders</b> — the ground truth that tells a broken tag from a broken shop.</>)}
+      {r.needsTotal && line(r.usedTotal, <>{r.usedTotal ? "You checked" : "You didn't check"} whether the <b>total</b> moved — Back-office orders, or {r.decisive} by sessions or revenue. When one segment falls and another rises by the same amount, the credit moved, not the customers.</>)}
       {r.lens && line(r.usedLens, <>{r.usedLens ? "You viewed" : "You never viewed"} <b>{r.decisive}</b> by <b>average order value</b> or revenue — the lens that shows where the money went when conversion didn't fall.</>)}
       {!r.noIncident && (
         <div style={{ fontSize: 13.5, color: T.muted, marginTop: 10, lineHeight: 1.5 }}>

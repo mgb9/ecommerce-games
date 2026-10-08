@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { CASES, generateCase, scoreDiagnosis } from "../../engine/engine.js";
-import { FIELD_VERDICT_TRUTH, FIELD_GUN_TRUTH, scoreFieldDiagnosis } from "../../engine/fieldcase.js";
+import { FIELD_VERDICT_TRUTH, FIELD_GUN_TRUTH, fieldCaseById, scoreFieldDiagnosis } from "../../engine/fieldcase.js";
 import { generatedReport } from "./generatedReport.js";
 import { fieldReport } from "../field/fieldReport.js";
 
@@ -70,6 +70,19 @@ describe("case report (cases 1–7)", () => {
 });
 
 describe("case report (case 9)", () => {
+  it("case 10 builds its own report: its calls, its clue chain, its reflection", () => {
+    const xmas = fieldCaseById("christmas-plan-2015");
+    const guess = { verdict: "top-revenue", gun: xmas.gunTruth, remedy: xmas.remedyTruth, confidence: 50 };
+    const m = fieldReport({ def: xmas, guess, result: scoreFieldDiagnosis(guess, ["pr-21", "pr-14"], xmas), flags: ["pr-21", "pr-14"], viewed: ["products"] });
+    expect(m.title).toMatch(/^Case 10:/);
+    expect(m.calls[0]).toMatchObject({ label: "Verdict", ok: false });
+    expect(m.calls[0].truth).toMatch(/^Rank by how many separate customers/);
+    expect(m.happened.clues).toHaveLength(9);
+    expect(m.happened.sections.map((s) => s.label)).toEqual(["What happened", "What the data showed", "What wasn't the cause", "What should happen next"]);
+    expect(m.trail[1].items[0]).toMatch(/HP Care Pack/);
+    expect(m.reflection[0]).toMatch(/Which column/);
+    expect(m.workOn.join(" ")).toMatch(/trade baskets at the top of the unit ranking/);
+  });
   it("wrong calls show the truth; flagged rows by name; the clue chain; missed core clues to work on", () => {
     const guess = { verdict: "agency-right", gun: FIELD_GUN_TRUTH, remedy: "rem-mobile", confidence: 90 };
     const flags = ["ch-referral"];

@@ -9,7 +9,7 @@ the latest state is in "Inbox, case file and order value" near the end.
 ```bash
 npm install
 npm run dev      # http://localhost:5176
-npm test         # 206 tests
+npm test         # 235 tests
 npm run build
 ```
 (From the repo root the dev server is wired in `.claude/launch.json` as `data-detective`.) A plain link opens
@@ -346,12 +346,68 @@ the evidence, and gives students words they can use.
 - Checked: axe-core clean on intro, reveal, report, inbox and case file; 320 px reflow on inbox, intro and case
   file. The hub's only axe finding is pre-existing, in the shared WMG shell ("WMG home" link name vs its text).
 
+## Twelve cases, self-rating, cohort tally (2026-10-08, "do all 12")
+The user asked for the whole improvement list. Numbering is **stable**: cases 1–9 kept their numbers; the new
+ones are 10 (second real-data case), 11 and 12 (generated). `ALL_CASES` (`src/ui/caseList.js`) is the play order
+by number with `kind: "generated" | "field"`; App's `caseIndex` indexes it (session record `v: 3`).
+- **Engine**: per-case `scale: { sessions, aov }` (scale 1 is byte-identical to before — checked by hashing every
+  variant); `spike-revert` takes `days`; a new **"attribution"** incident moves what analytics attributes between
+  two segments of one dimension with the topline, AOV product and order book unchanged to the last decimal —
+  `moves: "sessions"` (lost campaign tags: sessions and their conversions go to `to`, so the segment's own rate
+  holds and `to` becomes a blend) or `moves: "credit"` (a model change: conversions move, sessions don't). Two new
+  cause types: `fulfilment`, `attribution_change`. `reviewTrail` reports `needsTotal/usedTotal` (back-office
+  orders, or the report by sessions/revenue) for attribution cases.
+- **Case 11 "Five markets, two warehouses"** (Advanced, `scale 25 × 2.2` → ~68,000 sessions and £1.6m a week):
+  a five-day (v0, Germany, checkout) or four-day (v1, France, purchase) fulfilment-system outage that has
+  **already healed** when the ticket arrives; lost revenue ≈ £160k / £95k, pinned across 10 seeds; "last 7 days"
+  shows only part of it. Lesson: size it over the days it ran; a healed dip needs a post-mortem, not a rollback.
+- **Case 12 "The channel that collapsed on paper"** (Advanced): v0 newsletter template loses its campaign tags
+  (email sessions −70%, Direct's double, email's rate flat on average); v1 attribution model switched to
+  data-driven (retargeting's conversions halve, generic search's rise, sessions unchanged). Both: sitewide and
+  order book flat; no funnel step. Covers the matrix's digital-marketing gap (attribution).
+- **Case 10 "The Christmas plan"** (field data): the same six 2015 exports, marketing's question. Ranked by
+  revenue the top products are HP service contracts (£229,451 from 4 purchases, £57,363 each; five lines ≈ £504k,
+  ~15% of revenue); by units, trade baskets (343 SSDs in 4 purchases); the consumer sellers are the Samsung TVs,
+  bought one at a time (96/62/52/15). 65+ converts best (2.76%), not the 35–44s (2.44%), on 58% age coverage;
+  Shopping-ad landings bounce 82%. `fieldcase.js` is now **dataset + FIELD_QUESTIONS** (`FIELD_CASES`,
+  `fieldCaseById`, `scoreFieldDiagnosis(guess, flags, q)`); the UI takes `def`. Facts pinned in fieldcase.test.js.
+- **Explanations restructured** (item 6): every variant's `explanation` is `{ what, data, herrings, next, plain:{…} }`
+  — four short parts, each with a Simpler-English version (shorter sentences, same numbers). Rendered by
+  `Explanation` (shared.jsx) on reveals and as sub-headed sections in reports (`explanationSections` in labels.js).
+  Case 9's explanation likewise; `FIELD_EXPLANATION` is the joined string for the provenance test.
+- **Skills self-rating** (item 4, `SkillsRating.jsx`, `cohort.js` SKILL_STATEMENTS): six statements rated 1–5 —
+  the PTES skills questions in the game's words — asked once on the inbox before the first case (skippable,
+  re-openable) and again from the case file ("How you rate yourself": before vs now, with the change marked).
+  `dd-skills` in localStorage.
+- **Reply self-check** (item 7): four boxes under "Your reply to {sender}" in the case report; the count and
+  whether a reply was written are saved to the case's progress record (`recordReply`) and print as ☑/☐.
+- **Progress records** now keep `calls` (which calls were right) and `at`; old records still work.
+- **Result code + cohort tally** (item 11, `cohort.js`, `InstructorTally.jsx`): the case file's "Share your results
+  with your tutor" shows a code like `DD3|DD-2026|1:4/4@90:1111:r3,9:2/3@70:101|S:342534/443544` (scores,
+  confidence, calls, reply check, ratings — no name). The tutor pastes a batch into the tally (instructor panel →
+  "Cohort tally"): per case played / mean / fully right / call missed most / replies; confidence vs results;
+  ratings before and after; unreadable lines flagged; mixed seeds warned. Nothing leaves the browser. Tested
+  (cohort.test.js).
+- **Instructor answer sheet** (item 5, `AnswerSheet.jsx`, instructor panel → "Answer sheet for this seed"): every
+  case by number — each generated variant with which one this seed gives first, its ticket, answer, where it
+  shows, real event and "what happened"; the field cases' three calls and core clues. Printable.
+- **Bundle**: the instructor screens and the field cases load on demand (the answer sheet needs the field
+  questions, so it must stay lazy or the 2015 archive lands in the first download). First load is now ~104 KB
+  gzipped (was ~86 KB): the four-part explanations carry a Simpler-English copy of every variant, and there
+  are two more generated cases.
+- **Checked**: 235 tests; cases 1–7 byte-identical apart from the new fields; browser run-through of cases 10,
+  11, 12, the rating, the case file, both instructor views; axe clean on every new screen; 320 px reflow;
+  headless-Chrome print of the case file and a case report (tagged PDFs, A4, headings in order —
+  scratchpad `printcheck.mjs` drives Chrome over CDP, seeding progress first). VoiceOver script updated, not run.
+
 ## Deliberately deferred
 - **Which call a student gets wrong most** (dimension / segment / cause / start) across cases — with at most nine
   cases it would be noise, and it needs a progress-schema change.
-- **Case ids in links** (`?case=cold-case-2015`) so a renumbering never breaks a shared link. Renumbering the
-  field case to 9 means any `?case=8` link already sent now opens the AOV case.
+- **Case ids in links** (`?case=cold-case-2015`) so a renumbering never breaks a shared link. (Cases 10–12 were
+  added without renumbering, so no link changed this time.)
 - AOV spread on device / source / campaign / user type is kept near 1.0 so existing narratives hold; widening
   it means re-pinning those cases' revenue claims.
 - A cross-case reflection section in the case file (questions spanning several cases) — the case reports have
   per-case reflection already.
+- Rubric hooks for the Business Report (the user chose not to, 2026-10-08).
+- An "is it still happening?" field on the diagnosis form (Case 11 teaches it through the explanation instead).

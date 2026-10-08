@@ -24,6 +24,10 @@ export const pivotLabel = (p) => p.split("×").map(dimLabel).join(" × ");
 const LENS_NAMES = { conversionRate: "conversion rate", sessions: "sessions", revenue: "revenue", aov: "average order value" };
 export const lensLabel = (l) => { const [report, metric] = l.split(":"); return `${REPORT_LABELS[report] || report} by ${LENS_NAMES[metric] || metric}`; };
 
+// An explanation's four parts, in reading order, with their headings.
+export const EXPLANATION_PARTS = [["what", "What happened"], ["data", "What the data showed"], ["herrings", "What wasn't the cause"], ["next", "What should happen next"]];
+export const explanationSections = (ex) => EXPLANATION_PARTS.map(([key, label]) => ({ key, label, text: ex[key], plain: ex.plain?.[key] ?? ex[key] }));
+
 // Calibration: did the stated confidence match how the student did?
 // "Very sure" should mean right about nine times in ten. [text, tone].
 const VERDICTS = {
@@ -49,7 +53,7 @@ const WORD_NAMES = {
   gateway: "Payment gateway", pp: "Percentage points (pp)", crosstab: "Cross-tab", funnelstep: "Funnel step", conversion: "Conversion",
   cro: "CRO", mixshift: "Mix shift", masking: "Masking", selfreferral: "Self-referral", exclusionlist: "Referral exclusion list",
   testtraffic: "Test traffic", aov: "AOV (average order value)", pla: "PLA (Product Listing Ads)", groundtruth: "Ground truth",
-  calibration: "Calibration", noise: "Noise", revenuetree: "Revenue = sessions × conversion × AOV",
+  calibration: "Calibration", noise: "Noise", revenuetree: "Revenue = sessions × conversion × AOV", coverage: "Data coverage", attribution: "Attribution",
 };
 export const wordsFor = (keys) => keys.filter((k) => GLOSSARY[k]).map((k) => ({ term: WORD_NAMES[k] || k, def: GLOSSARY[k] }));
 

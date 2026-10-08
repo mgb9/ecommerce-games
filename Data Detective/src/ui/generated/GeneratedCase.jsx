@@ -7,6 +7,7 @@ import { recordFirstAttempt } from "../progress.js";
 import { useSessionState } from "../session.js";
 import { useDateRange } from "./dateRange.js";
 import { CaseOutcomes } from "../Outcomes.jsx";
+import { ALL_CASES } from "../caseList.js";
 
 // The dashboard (and its charting library, most of the bundle) loads on
 // demand: the intro paints without it, and starts fetching it straight away.
@@ -51,7 +52,7 @@ export default function GeneratedCase({ autoFocus, sessionKey, caseIndex, cfg, a
   function logPivot(primary, secondary) { if (secondary) setPivots(addOnce(`${primary}×${secondary}`)); }
   function submitDiagnosis() {
     const scored = scoreDiagnosis(diagnosis, caseData.truth);
-    if (attempt === 1) recordFirstAttempt(caseData.id, scored.fieldsCorrect, 4, diagnosis.confidence);
+    if (attempt === 1) recordFirstAttempt(caseData.id, scored.fieldsCorrect, 4, diagnosis.confidence, { calls: [scored.dimensionCorrect, scored.segmentCorrect, scored.causeTypeCorrect, scored.dateCorrect] });
     setResult(scored); setPhase("reveal");
   }
 
@@ -100,7 +101,7 @@ function Intro({ caseData, difficulty, outcomes, attempt, onInbox, onStart }) {
       <TicketCard ticket={caseData.ticket} style={{ marginTop: 20 }} />
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 22, flexWrap: "wrap" }}>
         <button onClick={onStart} style={btn(T.hdrBg)}>Open the dashboard →</button>
-        <span style={{ color: T.muted, fontSize: 15.5 }}>Case {pad2(caseData.n)} of {CASES.length + 1} · seed <b style={{ color: T.text, fontFamily: T.mono }}>{caseData.seed}</b>{attempt > 1 && <> · fresh variant (attempt {attempt}) — only your first attempt is scored</>}</span>
+        <span style={{ color: T.muted, fontSize: 15.5 }}>Case {pad2(caseData.n)} of {ALL_CASES.length} · seed <b style={{ color: T.text, fontFamily: T.mono }}>{caseData.seed}</b>{attempt > 1 && <> · fresh variant (attempt {attempt}) — only your first attempt is scored</>}</span>
       </div>
       <CaseOutcomes outcomes={outcomes} style={{ marginTop: 26 }} />
     </div>

@@ -1,10 +1,6 @@
 import React from "react";
-import {
-  FIELD_CASE, FIELD_VERDICTS, FIELD_VERDICT_TRUTH, FIELD_GUNS, FIELD_GUN_TRUTH,
-  FIELD_REMEDIES, FIELD_REMEDY_TRUTH, FIELD_EXPLANATION,
-} from "../../engine/fieldcase.js";
 import { T, card, btn } from "../theme.js";
-import { ConfidenceVerdict, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
+import { ConfidenceVerdict, Explanation, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
 import { confidenceText } from "../report/labels.js";
 import { SkillsPractised } from "../Outcomes.jsx";
 import { confidenceLine, replyName } from "../outcomesModel.js";
@@ -12,25 +8,26 @@ import { confidenceLine, replyName } from "../outcomesModel.js";
 const label = (opts, id) => opts.find((o) => o.id === id)?.label || "—";
 const short = (s) => (s.length > 110 ? s.slice(0, 107) + "…" : s);
 
-export default function FieldReveal({ guess, result, onAgain, onExit, onOpenReport }) {
+// The reveal of a field case (`def`: its truths, clues and explanation).
+export default function FieldReveal({ def, guess, result, onAgain, onExit, onOpenReport }) {
   const narrow = useNarrow();
   return (
     <div className="rise" style={{ marginTop: 22 }}>
-      <RevealHeadline kicker={`CASE ${FIELD_CASE.n} — CLOSED`} title={`${result.fieldsCorrect}/3 calls · ${result.cluesFound}/${result.clueTotal} clues found`}>
+      <RevealHeadline kicker={`CASE ${def.n} — CLOSED`} title={`${result.fieldsCorrect}/3 calls · ${result.cluesFound}/${result.clueTotal} clues found`}>
         {result.coreFound < result.coreTotal && <div style={{ color: T.amber, fontSize: 14.5 }}>You missed {result.coreTotal - result.coreFound} of the {result.coreTotal} core clues — the ones the whole case turns on.</div>}
       </RevealHeadline>
       <div style={{ display: "grid", gridTemplateColumns: narrow ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(0,1fr)", gap: 18 }}>
         <div style={card()}>
           <SectionTitle>Your calls vs the truth</SectionTitle>
-          <ResultRow long ok={result.verdictCorrect} label="Verdict" you={short(label(FIELD_VERDICTS, guess.verdict))} truth={short(label(FIELD_VERDICTS, FIELD_VERDICT_TRUTH))} />
-          <ResultRow long ok={result.gunCorrect} label="Smoking gun" you={label(FIELD_GUNS, guess.gun)} truth={label(FIELD_GUNS, FIELD_GUN_TRUTH)} />
-          <ResultRow long ok={result.remedyCorrect} label="First action" you={short(label(FIELD_REMEDIES, guess.remedy))} truth={short(label(FIELD_REMEDIES, FIELD_REMEDY_TRUTH))} />
+          <ResultRow long ok={result.verdictCorrect} label="Verdict" you={short(label(def.verdicts, guess.verdict))} truth={short(label(def.verdicts, def.verdictTruth))} />
+          <ResultRow long ok={result.gunCorrect} label="Smoking gun" you={label(def.guns, guess.gun)} truth={label(def.guns, def.gunTruth)} />
+          <ResultRow long ok={result.remedyCorrect} label="First action" you={short(label(def.remedies, guess.remedy))} truth={short(label(def.remedies, def.remedyTruth))} />
           <ConfidenceVerdict confidence={guess.confidence} label={confidenceText(guess.confidence)} allCorrect={result.allCorrect} score={result.fieldsCorrect} outOf={3} />
           <div style={{ marginTop: 12, fontSize: 13, color: T.muted }}>These were real exports from a real retailer's Google Analytics — every number you just argued about actually happened in autumn 2015.</div>
         </div>
         <div style={card()}>
           <SectionTitle>What actually happened</SectionTitle>
-          <p style={{ fontSize: 15, lineHeight: 1.6, color: T.text, marginTop: 0 }}>{FIELD_EXPLANATION}</p>
+          <Explanation explanation={def.explanation} />
         </div>
       </div>
       <div style={{ ...card(), marginTop: 18 }}>
@@ -47,7 +44,11 @@ export default function FieldReveal({ guess, result, onAgain, onExit, onOpenRepo
           ))}
         </div>
       </div>
-      <SkillsPractised outcomes={FIELD_CASE.outcomes} replyTo={replyName(FIELD_CASE.ticket.from)} confidence={confidenceLine(guess.confidence, result.fieldsCorrect, 3)} style={{ marginTop: 18 }} />
+      <div style={{ ...card(), marginTop: 18, borderLeft: `6px solid ${T.player}` }}>
+        <SectionTitle>The principle</SectionTitle>
+        <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6 }}>{def.lesson}</p>
+      </div>
+      <SkillsPractised outcomes={def.outcomes} replyTo={replyName(def.ticket.from)} confidence={confidenceLine(guess.confidence, result.fieldsCorrect, 3)} style={{ marginTop: 18 }} />
       <div style={{ textAlign: "center", marginTop: 22, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
         <button onClick={onAgain} style={btn(T.playerBtn)}>Work the case again ↺</button>
         <button onClick={onOpenReport} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Open your case report (PDF)</button>

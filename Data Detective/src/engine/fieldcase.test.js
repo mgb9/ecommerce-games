@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
-  FIELD_DATA, FIELD_CASE, FIELD_VERDICTS, FIELD_VERDICT_TRUTH, FIELD_GUNS, FIELD_GUN_TRUTH,
+  FIELD_DATA, FIELD_CASE, FIELD_CASES, FIELD_VERDICTS, FIELD_VERDICT_TRUTH, FIELD_GUNS, FIELD_GUN_TRUTH,
   FIELD_REMEDIES, FIELD_REMEDY_TRUTH, FIELD_CLUES, FIELD_REPORTS, FIELD_REPORT_META,
-  FIELD_EXPLANATION,
+  FIELD_EXPLANATION, fieldCaseById,
   scoreFieldDiagnosis,
 } from "./fieldcase.js";
 
@@ -158,5 +158,65 @@ describe("case 8 text quotes the verified Shopping-ad figures", () => {
     expect(clue).toContain("Fourteen Shopping ads drove 200+ visits");
     expect(clue).toContain(`landed ${pla.worst.sessions} visitors, ${Math.round(pla.worst.bounce * 100)}% of whom bounced`);
     expect(FIELD_EXPLANATION).toContain(`${pla.pages} exported Shopping-ad landing pages`);
+  });
+});
+
+/* ---- Case 10: the Christmas plan — its facts, pinned to the data ------ */
+describe("case 10: the Christmas plan", () => {
+  const q = fieldCaseById("christmas-plan-2015");
+  const pr = (id) => FIELD_DATA.products.rows.find((r) => r.id === id);
+  const age = (id) => [...FIELD_DATA.age.rows, FIELD_DATA.age.total].find((r) => r.id === id);
+  const lp = (id) => FIELD_DATA.landingPages.rows.find((r) => r.id === id);
+  it("is case 10, with its own calls, nine clue groups (three core) and a four-part explanation", () => {
+    expect(FIELD_CASES.map((c) => c.n)).toEqual([9, 10]);
+    expect(q.verdicts.some((v) => v.id === q.verdictTruth)).toBe(true);
+    expect(q.guns.some((v) => v.id === q.gunTruth)).toBe(true);
+    expect(q.remedies.some((v) => v.id === q.remedyTruth)).toBe(true);
+    expect(q.clues).toHaveLength(9);
+    expect(q.clues.filter((c) => c.core)).toHaveLength(3);
+    for (const k of ["what", "data", "herrings", "next"]) { expect(q.explanation[k].length).toBeGreaterThan(40); expect(q.explanation.plain[k].length).toBeGreaterThan(40); }
+    const ids = new Set([...FIELD_DATA.products.rows, ...FIELD_DATA.age.rows, FIELD_DATA.age.total, ...FIELD_DATA.landingPages.rows, ...FIELD_DATA.sourceMedium.rows].map((r) => r.id));
+    for (const c of q.clues) for (const r of c.rows) expect(ids.has(r), `clue row ${r}`).toBe(true);
+  });
+  it("the smoking gun: an HP support contract — £229,451 from 4 purchases, £57,363 each; the five contract lines are about £504k, ~15% of revenue", () => {
+    const g = pr("pr-21");
+    expect(g.name).toMatch(/HP Care Pack 4-hour 24x7/); expect(g.purchases).toBe(4);
+    expect(Math.round(g.revenue)).toBe(229451); expect(Math.round(g.avgPrice)).toBe(57363);
+    const contracts = ["pr-19", "pr-20", "pr-21", "pr-22", "pr-23"].map(pr);
+    for (const c of contracts) expect(c.name).toMatch(/HP (Care Pack|Foundation Care)/);
+    const rev = contracts.reduce((a, c) => a + c.revenue, 0), buys = contracts.reduce((a, c) => a + c.purchases, 0);
+    expect(Math.round(rev / 1000)).toBe(504); expect(buys).toBe(26);
+    expect(rev / FIELD_DATA.channels.total.revenue).toBeGreaterThan(0.14); expect(rev / FIELD_DATA.channels.total.revenue).toBeLessThan(0.16);
+  });
+  it("the unit ranking is trade baskets; the consumer sellers are bought one at a time", () => {
+    expect(pr("pr-0").qty).toBe(343); expect(pr("pr-0").purchases).toBe(4);
+    expect(pr("pr-2").qty).toBe(200); expect(pr("pr-2").purchases).toBe(1);
+    expect(pr("pr-15").qty).toBe(77); expect(pr("pr-15").purchases).toBe(1);
+    for (const [id, buys] of [["pr-14", 96], ["pr-16", 62], ["pr-17", 52], ["pr-18", 15]]) { expect(pr(id).purchases).toBe(buys); expect(pr(id).avgQty).toBeLessThan(1.05); }
+    expect(pr("pr-14").name).toMatch(/Samsung UE48H6400/); expect(Math.round(pr("pr-18").avgPrice)).toBe(1599);
+    expect(pr("pr-7").name).toBe("Custom Shipping Charge"); expect(pr("pr-7").purchases).toBe(104);
+    expect(pr("pr-12").name.slice(0, 30)).toBe(pr("pr-13").name.slice(0, 30));   // the same product, two rows
+  });
+  it("the age report: 65+ converts best, then 45–54, with 35–44 third; coverage is 58%", () => {
+    expect(age("age-65plus").conv).toBeGreaterThan(age("age-45-54").conv);
+    expect(age("age-45-54").conv).toBeGreaterThan(age("age-35-44").conv);
+    expect((age("age-65plus").conv * 100).toFixed(2)).toBe("2.76"); expect((age("age-45-54").conv * 100).toFixed(2)).toBe("2.60"); expect((age("age-35-44").conv * 100).toFixed(2)).toBe("2.44");
+    expect(age("age-35-44").sessions).toBeGreaterThan(age("age-25-34").sessions);   // the biggest group, not the best
+    expect(age("age-total").sessions).toBe(133539);
+    expect(Math.round((133539 / 230128) * 100)).toBe(58);
+  });
+  it("the busiest TV page's ad landing: 2,502 sessions, 71% bounce, 22 orders; the homepage 14,758 → 595 at 4.03%", () => {
+    const tv = lp("lp-2"), home = lp("lp-0"), cart = lp("lp-4");
+    expect(tv.name).toMatch(/ue48h6400.*\?ref=PLA$/); expect(tv.sessions).toBe(2502); expect(Math.round(tv.bounce * 100)).toBe(71); expect(tv.trans).toBe(22);
+    expect(home.sessions).toBe(14758); expect(home.trans).toBe(595); expect((home.conv * 100).toFixed(2)).toBe("4.03");
+    expect((cart.conv * 100).toFixed(1)).toBe("18.6");
+    expect(Math.round(FIELD_DATA.plaSummary.bounce * 100)).toBe(82); expect((FIELD_DATA.plaSummary.conv * 100).toFixed(2)).toBe("0.85");
+  });
+  it("scores like case 9: three calls plus clue groups, with the case's own truths", () => {
+    const perfect = { verdict: q.verdictTruth, gun: q.gunTruth, remedy: q.remedyTruth };
+    const s = scoreFieldDiagnosis(perfect, q.clues.flatMap((c) => c.rows), q);
+    expect(s.allCorrect).toBe(true); expect(s.cluesFound).toBe(9); expect(s.coreFound).toBe(3);
+    const trap = scoreFieldDiagnosis({ verdict: "top-revenue", gun: "gun-ssd", remedy: q.remedyTruth }, ["pr-21"], q);
+    expect(trap.fieldsCorrect).toBe(1); expect(trap.clueDetail.find((c) => c.id === "service-contracts").found).toBe(true);
   });
 });

@@ -1,12 +1,12 @@
-import { CASES } from "../engine/engine.js";
+import { ALL_CASES } from "./caseList.js";
 
 /* URL parameters let an instructor send a cohort straight to one case with
-   a fixed seed and noise level: ?case=3&seed=DD-2026&noise=1.4. Case 9 is
-   the field-data case. With no (valid) case the game opens on the case
+   a fixed seed and noise level: ?case=3&seed=DD-2026&noise=1.4. Cases 9
+   and 10 are the field-data cases. With no (valid) case the game opens on the case
    inbox; any other missing or invalid value falls back to its default, so
    a bad link still opens the game. */
 export const DEFAULT_CFG = { seed: "DD-2026", noise: 1.4 };
-const CASE_COUNT = CASES.length + 1;
+const CASE_COUNT = ALL_CASES.length;
 
 export function readUrlConfig(search = typeof location === "undefined" ? "" : location.search) {
   const q = new URLSearchParams(search);

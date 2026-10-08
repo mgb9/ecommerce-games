@@ -179,21 +179,22 @@ const CAUSE_TYPES = [
   { id: "tracking_bug", label: "A tracking/analytics bug — not a real drop" },
   { id: "inventory", label: "A stockout or inventory issue" },
   { id: "pricing_promo", label: "A pricing or promotion change" },
+  { id: "fulfilment", label: "A delivery, warehouse or fulfilment problem" },
+  { id: "attribution_change", label: "A reporting or attribution change — the credit moved, not the customers" },
   { id: "external_no_issue", label: "Nothing is broken — normal variation or a calendar effect" },
 ];
 
 const CASEMAP = Object.fromEntries(CASES.map((c) => [c.id, c]));
 
 /* ---- incident & session-shift shaping ------------------------
-   Built for the full eight-case arc even though case 1 only uses
-   'cliff': a sudden break holds at `factor`; 'gradual' ramps in over
-   10 days (a slow bleed); 'spike-revert' is a short-lived blip that
-   then heals on its own. */
+   A sudden break ('cliff') holds at `factor`; 'gradual' ramps in over
+   10 days (a slow bleed); 'spike-revert' is a short-lived blip — `days`
+   long, 5 by default — that then heals on its own. */
 function incidentFactorAt(day, incident) {
   if (!incident || day < incident.startDay) return 1;
   const { shape, factor, startDay } = incident;
   if (shape === "gradual") { const t = clamp((day - startDay) / 10, 0, 1); return 1 + (factor - 1) * t; }
-  if (shape === "spike-revert") return day < startDay + 5 ? factor : 1;
+  if (shape === "spike-revert") return day < startDay + (incident.days ?? 5) ? factor : 1;
   return factor; // cliff
 }
 function sessionShiftFactorAt(day, dimKey, segId, shiftEvents) {
@@ -202,9 +203,17 @@ function sessionShiftFactorAt(day, dimKey, segId, shiftEvents) {
   return f;
 }
 // Apply any active session-shift to one dimension's shares for a day,
-// renormalised back to summing to 1.
-function effectiveShares(dim, day, shiftEvents) {
+// renormalised back to summing to 1. An attribution incident that moves
+// SESSIONS (lost campaign tags) hands `segment`'s lost share straight to
+// `to` — the other segments don't change.
+function effectiveShares(dim, day, shiftEvents, incident = null) {
   const raw = dim.segments.map((s) => s.share * sessionShiftFactorAt(day, dim.key, s.id, shiftEvents));
+  if (incident?.type === "attribution" && incident.moves === "sessions" && incident.dimension === dim.key) {
+    const f = incidentFactorAt(day, incident);
+    const from = dim.segments.findIndex((s) => s.id === incident.segment), to = dim.segments.findIndex((s) => s.id === incident.to);
+    const moved = raw[from] * (1 - f);
+    raw[from] -= moved; raw[to] += moved;
+  }
   const total = raw.reduce((a, b) => a + b, 0);
   return dim.segments.map((s, i) => ({ ...s, share: raw[i] / total }));
 }
@@ -218,21 +227,46 @@ const isSegmentIncident = (incident) => incident && (incident.type === "rate" ||
 // NOT a segment incident above: the funnel has no step to pin it to.
 const hits = (incident, dim, seg) => incident.dimension === dim.key && incident.segment === seg.id;
 const rateFactorOf = (incident) => ({ ...incident, factor: incident.rateFactor ?? 1 });
-function effectiveMult(dim, seg, day, incident) {
+// An "attribution" incident moves what analytics ATTRIBUTES between two
+// segments of one dimension, from day `startDay`; customers don't change,
+// so the dimension's weighted average — and the topline, and the order
+// book — are unchanged to the last decimal.
+//   moves: "credit"   — an attribution-model change: `segment` keeps its
+//                       sessions but its conversions are scaled by `factor`
+//                       and the credit goes to `to`.
+//   moves: "sessions" — lost campaign tags: `segment`'s sessions (and their
+//                       conversions) are counted as `to`, so its own rate
+//                       holds while `to` becomes a blend of the two.
+function attributionMult(dim, seg, day, incident, shiftEvents) {
+  if (incident?.type !== "attribution" || incident.dimension !== dim.key) return null;
+  const f = incidentFactorAt(day, incident);
+  if (f === 1) return null;
+  const base = effectiveShares(dim, day, shiftEvents);   // shares before the move
+  const from = base.find((s) => s.id === incident.segment), to = base.find((s) => s.id === incident.to);
+  if (incident.moves === "sessions") {
+    if (seg.id !== incident.to) return null;
+    const moved = from.share * (1 - f);
+    return (to.share * to.mult + moved * from.mult) / (to.share + moved);
+  }
+  if (seg.id === incident.segment) return seg.mult * f;
+  if (seg.id === incident.to) return seg.mult + (from.share * from.mult * (1 - f)) / to.share;
+  return null;
+}
+function effectiveMult(dim, seg, day, incident, shiftEvents) {
   if (isSegmentIncident(incident) && hits(incident, dim, seg)) return seg.mult * incidentFactorAt(day, incident);
   if (incident?.type === "aov" && hits(incident, dim, seg)) return seg.mult * incidentFactorAt(day, rateFactorOf(incident));
-  return seg.mult;
+  return attributionMult(dim, seg, day, incident, shiftEvents) ?? seg.mult;
 }
 function effectiveAov(dim, seg, day, incident) {
   return incident?.type === "aov" && hits(incident, dim, seg) ? seg.aov * incidentFactorAt(day, incident) : seg.aov;
 }
 function weightedAvgMult(dim, day, incident, shiftEvents) {
-  return effectiveShares(dim, day, shiftEvents).reduce((a, s) => a + s.share * effectiveMult(dim, s, day, incident), 0);
+  return effectiveShares(dim, day, shiftEvents, incident).reduce((a, s) => a + s.share * effectiveMult(dim, s, day, incident, shiftEvents), 0);
 }
 // Σ share·mult·aov — divided by the dimension's W it is the PURCHASE-weighted
 // average order-value multiplier (buyers, not visitors, set the basket size).
 function weightedAovNum(dim, day, incident, shiftEvents) {
-  return effectiveShares(dim, day, shiftEvents).reduce((a, s) => a + s.share * effectiveMult(dim, s, day, incident) * effectiveAov(dim, s, day, incident), 0);
+  return effectiveShares(dim, day, shiftEvents, incident).reduce((a, s) => a + s.share * effectiveMult(dim, s, day, incident, shiftEvents) * effectiveAov(dim, s, day, incident), 0);
 }
 // Share-weighted average of a per-segment character (engagement, events).
 const avgCharOf = (dim, charOf) => dim.segments.reduce((a, s) => a + s.share * charOf(s.id), 0);
@@ -348,6 +382,9 @@ function generateCase(caseId, seed, opts = {}) {
   const incident = v.incident;
   const shifts = v.sessionShiftEvents || [];
   const joint = jointOf(incident);
+  // Enterprise-scale cases multiply the site's traffic and basket size;
+  // every other number flows from those, and the noise shrinks with √n.
+  const scale = { sessions: 1, aov: 1, ...(def.scale || {}) };
 
   // Calibration constant: BASE_CONVERSION is the topline rate with no
   // incident/shift active (day 0, forced clean) — solved once so the
@@ -359,7 +396,7 @@ function generateCase(caseId, seed, opts = {}) {
   for (const dim of DIMENSIONS) baselineProduct *= weightedAvgMult(dim, 0, null, null);
   const K = BASE_CONVERSION / baselineProduct;
   // …and likewise for order value: a clean day's AOV is exactly AOV (£42).
-  const K_AOV = AOV / dayWeights(0, null, null, null).aovProduct;
+  const K_AOV = (AOV * scale.aov) / dayWeights(0, null, null, null).aovProduct;
   // Order values have their own streams, so adding them changed no other
   // number in the case: sessions, conversion and purchases are as they were.
   const rngAov = makeRng(seed + ":" + caseId + ":aov");
@@ -387,7 +424,7 @@ function generateCase(caseId, seed, opts = {}) {
     const cal = calendarAt(day, v.calendarEvents);
     const sessNoise = (rngSess() * 2 - 1) * 0.05 * noiseScale;
     const convNoise = (rngConv() * 2 - 1) * 0.04 * noiseScale;
-    const sessions = BASE_SESSIONS * SEASONALITY[day % 7] * cal.sessions * (1 + sessNoise);
+    const sessions = BASE_SESSIONS * scale.sessions * SEASONALITY[day % 7] * cal.sessions * (1 + sessNoise);
     const engRate0 = clamp(BASE_ENG_RATE * (1 + (rngEng() * 2 - 1) * 0.04 * noiseScale), 0.1, 0.95);
     const engTime0 = BASE_ENG_TIME * (1 + (rngTime() * 2 - 1) * 0.06 * noiseScale);
     const evPer0 = BASE_EVENTS * (1 + (rngEv() * 2 - 1) * 0.05 * noiseScale);
@@ -411,14 +448,14 @@ function generateCase(caseId, seed, opts = {}) {
 
     for (const dim of DIMENSIONS) {
       const side = jointSide && jointSide[dim.key];
-      const segs = effectiveShares(dim, day, shifts);
+      const segs = effectiveShares(dim, day, shifts, incident);
       const expectedRate = (s) => {
         if (side) {
           const [ownTarget, otherDim, otherTarget] = side;
           const otherFactor = s.id === ownTarget.id ? dimW[otherDim] + otherTarget.share * otherTarget.mult * (jf - 1) : dimW[otherDim];
           return clamp((conversionRate * s.mult * otherFactor) / jointDenom, 0.0005, 0.98);
         }
-        return clamp((conversionRate * effectiveMult(dim, s, day, incident)) / dimW[dim.key], 0.0005, 0.98);
+        return clamp((conversionRate * effectiveMult(dim, s, day, incident, shifts)) / dimW[dim.key], 0.0005, 0.98);
       };
       // each segment's share wobbles like a binomial sample of the day's sessions
       const segSessions = rescaleTo(segs.map((s) => sessions * s.share * jitter(rngSeg, noiseScale * binomialSigma(s.share, sessions))), sessions);
@@ -447,7 +484,7 @@ function generateCase(caseId, seed, opts = {}) {
   // secondary dimension. We expose the incident + shift model (and the seed
   // and noise level, for its sampling noise) so it can.
   return {
-    id: def.id, n: def.n, seed: String(seed), noise: noiseScale, variant: variantIndex,
+    id: def.id, n: def.n, seed: String(seed), noise: noiseScale, variant: variantIndex, scale,
     ticket: v.ticket, topline, events: v.events, truth: { ...v.truth, lesson: def.lesson },
     breakdowns, incident, shiftEvents: shifts,
   };
@@ -502,7 +539,7 @@ function crossTabGrid(caseData, k1, k2) {
     const cells = [];
     for (const sa of A.segments) for (const sb of B.segments) {
       const isIncidentCell = jointPair && ((sa.id === incident.segA && sb.id === incident.segB) || (sa.id === incident.segB && sb.id === incident.segA));
-      const cellMult = effectiveMult(A, sa, day, incident) * effectiveMult(B, sb, day, incident) * (isIncidentCell ? jf : 1) * otherProd;
+      const cellMult = effectiveMult(A, sa, day, incident, shiftEvents) * effectiveMult(B, sb, day, incident, shiftEvents) * (isIncidentCell ? jf : 1) * otherProd;
       const rate = clamp((top.conversionRate * cellMult) / convMultProduct, 0.0005, 0.98);
       const sessions = (serA[sa.id][day].sessions * serB[sb.id][day].sessions) / top.sessions;
       const expected = sessions * rate;
@@ -753,12 +790,16 @@ function reviewTrail(caseData, viewed = [], pivots = [], lenses = []) {
   const usedBackOffice = viewed.includes("orders"), needsBackOffice = t.causeType === "tracking_bug";
   const lens = t.lens || null;
   const usedLens = !!lens && lenses.some((l) => l === `${t.dimension}:aov` || l === `${t.dimension}:revenue`);
+  // When credit moved rather than customers, the evidence is that the
+  // total didn't: Home's conversions card, or the order book.
+  const needsTotal = t.causeType === "attribution_change";
+  const usedTotal = viewed.includes("orders") || lenses.some((l) => l === `${t.dimension}:sessions` || l === `${t.dimension}:revenue`);
   if (!t.dimension) {
     // Nothing broke: the evidence is that every report moves together, so the
     // useful habit is checking several dimensions before calling it.
     return {
       noIncident: true, decisive: "no single report — the dip is the same in every segment", found: reports.length >= 3, foundAt: 0, compound: false,
-      reportsOpened: reports.length, pivotsBuilt: pivots.length, deadEnds: 0, usedFunnel: viewed.includes("funnel"), funnelStage: null, usedBackOffice, needsBackOffice, lens, usedLens,
+      reportsOpened: reports.length, pivotsBuilt: pivots.length, deadEnds: 0, usedFunnel: viewed.includes("funnel"), funnelStage: null, usedBackOffice, needsBackOffice, lens, usedLens, needsTotal, usedTotal,
     };
   }
   let foundAt = 0, decisive;
@@ -774,7 +815,7 @@ function reviewTrail(caseData, viewed = [], pivots = [], lenses = []) {
     decisive, found: foundAt > 0, foundAt, compound: !!t.secondary,
     reportsOpened: reports.length, pivotsBuilt: pivots.length,
     deadEnds: reports.filter((k) => k !== t.dimension && k !== t.secondary).length,
-    usedFunnel: viewed.includes("funnel"), funnelStage: stage, usedBackOffice, needsBackOffice, lens, usedLens,
+    usedFunnel: viewed.includes("funnel"), funnelStage: stage, usedBackOffice, needsBackOffice, lens, usedLens, needsTotal, usedTotal,
   };
 }
 
@@ -800,6 +841,8 @@ const GLOSSARY = {
   groundtruth: "A figure from the system of record \u2014 here, orders in the order database \u2014 rather than from analytics. If analytics and the ground truth disagree, trust the ground truth and suspect the tracking.",
   calibration: "How well your confidence matches how often you are right. If you say \u2018very sure\u2019 ten times, you should be right about nine of them.",
   noise: "Ordinary random variation. A small segment has few orders, so its figures swing a lot from week to week by chance. A real problem is bigger than that swing, confined to one group, and still there the next day.",
+  coverage: "Data coverage — the share of visits a report actually knows the answer for. In 2015 Google knew the age of only 58% of this site's visitors; a report built on part of the traffic can still be used, but not as if it were the whole.",
+  attribution: "Which marketing touch gets the credit for a sale. 'Last click' gives it all to the final visit; 'data-driven' shares it across the journey. Change the model and every channel's conversions change — without a single customer doing anything different.",
   pla: "Product Listing Ads — Google Shopping image ads that link straight to a product page. In this data a landing-page URL ending ?ref=PLA marks a Shopping ad click.",
 };
 

@@ -1,30 +1,34 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
-import { CASES } from "../engine/engine.js";
 import { T, GLOBAL_CSS } from "./theme.js";
 import { PlainModeProvider } from "./shared.jsx";
 import GeneratedCase from "./generated/GeneratedCase.jsx";
 import InstructorPanel from "./generated/InstructorPanel.jsx";
 import Inbox from "./Inbox.jsx";
 import CaseFile from "./CaseFile.jsx";
-import { caseAt, nextAttempt } from "./caseList.js";
+
+import { ALL_CASES, caseAt, isFieldAt, nextAttempt } from "./caseList.js";
 import { loadProgress } from "./progress.js";
 import { readUrlConfig } from "./urlConfig.js";
 import { clearCaseSessions, readSession, writeSession } from "./session.js";
 
-// Case 9 carries ~1,400 lines of real 2015 data: download it only when opened.
+// The field cases (9, 10) share ~1,400 lines of real 2015 data: download it only when one is opened.
 const FieldCase = lazy(() => import("./field/FieldCase.jsx"));
+// Instructor-only screens (the answer sheet also needs the field cases' questions): loaded on demand.
+const AnswerSheet = lazy(() => import("./AnswerSheet.jsx"));
+const InstructorTally = lazy(() => import("./InstructorTally.jsx"));
+const Loading = ({ what }) => <div role="status" style={{ maxWidth: 1180, margin: "48px auto", padding: "0 20px", color: T.muted, fontSize: 16 }}>{what}</div>;
 
 /* Root: which screen is on show — the case inbox, the case file, or one
-   case — and with what instructor config. caseIndex 0..CASES.length-1 are
-   the generated cases (1–8); CASES.length is the field-data case (9, real
-   2015 exports). Each case component owns its whole session; bumping `run`
+   case — and with what instructor config. caseIndex indexes ALL_CASES
+   (caseList.js): the generated cases and the two field-data cases, in case
+   order. Each case component owns its whole session; bumping `run`
    remounts it, which is how every "open a case" / "try again" / "apply
    instructor settings" starts afresh. Going back to the inbox keeps the
    case where it was, so the student can return to it. `attempts` counts
    tries per case, so a retry gets a fresh variant; `nav` counts screen
    changes, so focus moves to each new screen's heading (not on first load).
    All of this is mirrored to the tab's session so a refresh resumes it. */
-const VERSION = 2;   // saved records from before the inbox (field case = index 7) are ignored
+const VERSION = 3;   // saved records from before cases 10–12 (different case indexes) are ignored
 
 export default function App() {
   const [app, setApp] = useState(initialAppState);
@@ -50,7 +54,7 @@ export default function App() {
   const applyOnInbox = (c) => { clearCaseSessions(); setApp((a) => ({ ...a, cfg: c, attempts: {}, caseIndex: null })); };
 
   const autoFocus = nav > 0;
-  const isField = caseIndex === CASES.length;
+  const isField = caseIndex !== null && isFieldAt(caseIndex);
   const sessionKey = `r${run}:c${caseIndex}`;
   const toggleInstructor = instructor ? () => setShowInstructor((v) => !v) : undefined;
   const inCase = view === "case" && caseIndex !== null;
@@ -61,18 +65,21 @@ export default function App() {
         <style>{GLOBAL_CSS}</style>
         {view === "inbox" && <Inbox autoFocus={autoFocus} cfg={cfg} attempts={attempts} current={caseIndex} currentDone={["reveal", "report"].includes(readSession(`${sessionKey}:phase`))}
           onOpen={(i) => startCase(i)} onReturn={() => go("case")} onCaseFile={() => go("casefile")} onToggleInstructor={toggleInstructor} />}
-        {view === "casefile" && <CaseFile autoFocus={autoFocus} onBack={() => go("inbox")} />}
+        {view === "casefile" && <CaseFile autoFocus={autoFocus} cfg={cfg} onBack={() => go("inbox")} />}
+        {view === "answers" && instructor && <Suspense fallback={<Loading what="Preparing the answer sheet…" />}><AnswerSheet autoFocus={autoFocus} cfg={cfg} onBack={() => go(caseIndex === null ? "inbox" : "case")} /></Suspense>}
+        {view === "tally" && instructor && <Suspense fallback={<Loading what="Opening the tally…" />}><InstructorTally autoFocus={autoFocus} onBack={() => go(caseIndex === null ? "inbox" : "case")} /></Suspense>}
         {inCase && isField && (
-          <Suspense fallback={<div role="status" style={{ maxWidth: 1180, margin: "48px auto", padding: "0 20px", color: T.muted, fontSize: 16 }}>Opening the 2015 archive…</div>}>
-            <FieldCase key={run} sessionKey={sessionKey} autoFocus={autoFocus} onRestart={() => startCase(caseIndex)} onExit={() => go("inbox")} />
+          <Suspense fallback={<Loading what="Opening the 2015 archive…" />}>
+            <FieldCase key={run} fieldId={caseAt(caseIndex).fieldId} sessionKey={sessionKey} autoFocus={autoFocus} onRestart={() => startCase(caseIndex)} onExit={() => go("inbox")} />
           </Suspense>
         )}
         {inCase && !isField && (
-          <GeneratedCase key={run} sessionKey={sessionKey} autoFocus={autoFocus} caseIndex={caseIndex} cfg={cfg} attempt={attempts[caseIndex] || 1}
+          <GeneratedCase key={run} sessionKey={sessionKey} autoFocus={autoFocus} caseIndex={caseAt(caseIndex).genIndex} cfg={cfg} attempt={attempts[caseIndex] || 1}
             onInbox={() => go("inbox")} onRetry={() => startCase(caseIndex, cfg, { retry: true })} onToggleInstructor={toggleInstructor} />
         )}
         {showInstructor && (
           <InstructorPanel cfg={cfg} caseN={inCase ? caseAt(caseIndex).n : null} onClose={() => setShowInstructor(false)}
+            onOpenView={(v) => { setShowInstructor(false); go(v); }}
             onApply={(c) => { setShowInstructor(false); if (inCase) startCase(caseIndex, c); else applyOnInbox(c); }} />
         )}
       </div>
@@ -88,7 +95,7 @@ const currentSearch = () => (typeof location === "undefined" ? "" : location.sea
 function initialAppState() {
   const saved = readSession("app");
   if (saved?.v === VERSION && saved.search === currentSearch() && saved.cfg) {
-    return { view: saved.view, caseIndex: saved.caseIndex, cfg: saved.cfg, run: saved.run, attempts: saved.attempts || {}, nav: saved.nav || 0 };
+    return { view: ["answers", "tally"].includes(saved.view) ? "inbox" : saved.view, caseIndex: saved.caseIndex, cfg: saved.cfg, run: saved.run, attempts: saved.attempts || {}, nav: saved.nav || 0 };
   }
   clearCaseSessions();
   const { caseIndex, cfg } = readUrlConfig();

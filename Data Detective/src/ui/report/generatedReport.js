@@ -1,7 +1,7 @@
 import { CASES, reviewTrail } from "../../engine/engine.js";
 import { ordinal, pad2 } from "../format.js";
 import {
-  REPORT_LABELS, calibrationVerdict, causeLabel, confidenceText, dimsText, isNone, lensLabel, longDate, pivotLabel, segsText, startText, wordsFor,
+  REPORT_LABELS, calibrationVerdict, causeLabel, confidenceText, dimsText, explanationSections, isNone, lensLabel, longDate, pivotLabel, segsText, startText, wordsFor,
 } from "./labels.js";
 import { MODULE, confidenceLine, developed, losLabel } from "../outcomesModel.js";
 
@@ -42,6 +42,10 @@ export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result,
     if (review.usedBackOffice) wentWell.push("You checked Back-office orders — the ground truth that shows whether a drop is real.");
     else workOn.push("Before calling a drop real, compare analytics with Back-office orders.");
   }
+  if (review.needsTotal) {
+    if (review.usedTotal) wentWell.push("You checked whether the total moved — the question that separates a reporting change from a real one.");
+    else workOn.push("When a channel's figures fall, check the total first: Back-office orders, or the report by sessions and revenue. If the total is flat, the credit moved, not the customers.");
+  }
   if (review.lens) {
     if (review.usedLens) wentWell.push(`You viewed ${review.decisive} by average order value or revenue — where the money went when conversion didn't fall.`);
     else workOn.push(`When revenue falls but conversion doesn't, split revenue into sessions × conversion × average order value, then view ${review.decisive} by the one that moved.`);
@@ -55,6 +59,7 @@ export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result,
   // (the confidence verdict has its own box in "At a glance", so it isn't repeated here)
 
   return {
+    caseId: caseData.id,
     fileTitle: `Data Detective – Case ${pad2(caseData.n)} report`,
     tag: `${MODULE.code} · ${losLabel(def.outcomes)}`,
     title: `Case ${pad2(caseData.n)}: ${caseData.ticket.subject}`,
@@ -76,7 +81,7 @@ export function generatedReport({ caseData, cfg, attempt = 1, diagnosis, result,
       ...(lenses.some((l) => !l.endsWith(":conversionRate")) ? [{ heading: "Reports you viewed by another metric", items: lenses.filter((l) => !l.endsWith(":conversionRate")).map(lensLabel), empty: "None" }] : []),
     ],
     happened: {
-      text: t.explanation,
+      sections: explanationSections(t.explanation),
       events: caseData.events.map((e) => ({ label: e.label, tag: e.real ? "Real cause" : "Red herring", tone: e.real ? "pos" : "amber" })),
     },
     reflection: [

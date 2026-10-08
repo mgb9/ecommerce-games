@@ -1,7 +1,9 @@
 import React, { useEffect, useId, useState } from "react";
 import { T, btn, linkBtn } from "../theme.js";
 import { useSessionState } from "../session.js";
+import { recordReply } from "../progress.js";
 import { MODULE } from "../outcomesModel.js";
+import { usePlain } from "../shared.jsx";
 
 /* The case report: a printable document the student saves as a PDF with
    the browser's own "Save as PDF" — which, in Chrome, produces a tagged,
@@ -72,6 +74,7 @@ export function ReportArticle({ kicker, tag = "WM956-15 · LO3", title, meta, na
 
 export default function ReportView({ model, sessionKey, onBack }) {
   const [name, setName] = useStudentName();
+  const plain = usePlain();
   const [answers, setAnswers] = useSessionState(`${sessionKey}:answers`, {});
   useDocumentTitle(model.fileTitle, name);
 
@@ -141,7 +144,12 @@ export default function ReportView({ model, sessionKey, onBack }) {
         </Section>
 
         <Section title="What actually happened">
-          <p style={{ margin: "0 0 12px" }}>{model.happened.text}</p>
+          {model.happened.sections.map((s) => (
+            <div key={s.key} style={{ marginBottom: 10, breakInside: "avoid" }}>
+              <h3 style={subHead}>{s.label}</h3>
+              <p style={{ margin: 0 }}>{plain ? s.plain : s.text}</p>
+            </div>
+          ))}
           {model.happened.events && (
             <>
               <h3 style={subHead}>The timeline events</h3>
@@ -167,7 +175,9 @@ export default function ReportView({ model, sessionKey, onBack }) {
 
         {model.reply && (
           <Section title={`Your reply to ${model.reply.name}`}>
-            <Reply reply={model.reply} value={answers.reply || ""} onChange={(v) => setAnswers((a) => ({ ...a, reply: v }))} />
+            <Reply reply={model.reply} value={answers.reply || ""} checks={answers.replyChecks || []}
+              onChange={(v) => { setAnswers((a) => ({ ...a, reply: v })); recordReply(model.caseId, { written: v.trim().length > 0, checks: (answers.replyChecks || []).filter(Boolean).length }); }}
+              onChecks={(c) => { setAnswers((a) => ({ ...a, replyChecks: c })); recordReply(model.caseId, { written: (answers.reply || "").trim().length > 0, checks: c.filter(Boolean).length }); }} />
           </Section>
         )}
 
@@ -272,8 +282,17 @@ function Developed({ d }) {
 
 // The communication exercise: reply to the person who raised the ticket, for
 // a reader who isn't an analyst. Prints as text, or as lines to write on.
-function Reply({ reply, value, onChange }) {
+// The self-check is the brief turned into four boxes: tick them before
+// printing, and the case file counts them.
+export const REPLY_CHECKS = [
+  "It says what happened, in one or two sentences",
+  "It says how sure I am, and why",
+  "It says what should happen next, and who should do it",
+  "Every technical word in it is explained",
+];
+function Reply({ reply, value, checks, onChange, onChecks }) {
   const id = useId();
+  const ticked = REPLY_CHECKS.filter((_, i) => checks[i]).length;
   return (
     <div style={{ breakInside: "avoid" }}>
       <p style={{ margin: "0 0 8px" }}>
@@ -287,6 +306,21 @@ function Reply({ reply, value, onChange }) {
           ? <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{value}</p>
           : Array.from({ length: 6 }, (_, i) => <div key={i} style={{ height: 26, borderBottom: "1px solid #9A9A9E" }} />)}
       </div>
+      <fieldset style={{ border: `1px solid ${T.border}`, borderRadius: 10, padding: "8px 14px 10px", margin: "12px 0 0" }}>
+        <legend style={{ fontSize: 13.5, fontWeight: 700, padding: "0 6px" }}>Check your reply</legend>
+        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {REPLY_CHECKS.map((label, i) => (
+            <li key={i} style={{ marginBottom: 4 }}>
+              <label className="dd-noprint" style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer", fontSize: 14 }}>
+                <input type="checkbox" checked={!!checks[i]} onChange={(e) => { const next = [...checks]; next[i] = e.target.checked; onChecks(next); }} style={{ marginTop: 3 }} />
+                <span>{label}</span>
+              </label>
+              <span className="dd-print-only" style={{ fontSize: 14 }}><span aria-hidden="true">{checks[i] ? "☑" : "☐"}</span> {label}</span>
+            </li>
+          ))}
+        </ul>
+        <p style={{ margin: "6px 0 0", fontSize: 13, color: T.muted }}>{ticked} of {REPLY_CHECKS.length} checked. Your case file keeps the count.</p>
+      </fieldset>
     </div>
   );
 }
