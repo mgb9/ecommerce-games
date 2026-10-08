@@ -88,7 +88,7 @@ const FIELD_CLUES = [
   {
     id: "pla-waste", label: "Shopping ads that never convert",
     rows: ["lp-21", "lp-18", "lp-15", "lp-10", "lp-7", "lp-3", "lp-2"],
-    detail: "Landing pages tagged ?ref=PLA (Google Shopping) took ~70,600 sessions at an 82% bounce and 0.85% conversion. Fourteen products got 200+ paid clicks with zero sales — the Archos smart-home kit burned 509 clicks at a 91% bounce and 11-second visits. Paid Search has a real targeting problem, just a smaller one than the headline suggests.",
+    detail: "Across all the exported landing pages, those tagged ?ref=PLA (Google Shopping) took ~70,600 sessions at an 82% bounce and 0.85% conversion. Fourteen products got 200+ paid clicks with zero sales — the Archos smart-home kit burned 509 clicks at a 91% bounce and 11-second visits. Paid Search has a real targeting problem, just a smaller one than the headline suggests.",
   },
   {
     id: "bulk-orders", label: "Impossible basket sizes",
@@ -115,7 +115,7 @@ function scoreFieldDiagnosis(guess, flaggedIds) {
   return { verdictCorrect, gunCorrect, remedyCorrect, fieldsCorrect, clueDetail, cluesFound, clueTotal: FIELD_CLUES.length, coreFound, coreTotal: FIELD_CLUES.filter((c) => c.core).length, allCorrect: fieldsCorrect === 3 };
 }
 
-const FIELD_EXPLANATION = "The agency read the dashboard, not the data. Referral's 16% was three faults stacked up. First, payment-gateway self-referrals: customers left the site to pay at PayPal or SagePay, and Google Analytics counted their return as a new session “referred” by the gateway — so the gateway got the credit for 1,999 sales that Paid Search, Organic and Direct actually earned. (Today this is fixed with a referral exclusion list; in 2015 you had to know to do it.) Second, and worse: sandbox.paypal.com — PayPal's test environment — posted 76 fake transactions worth £386,975 into the live property. That is 11.8% of ALL reported revenue, at a £5,092 average order. The Product report corroborates it: 343 SSDs in 4 orders, 200 cables in one, 60 iPads in one. Third, staging servers and a private IP appear as traffic — there were no filters at all. Strip the contamination and Referral is a normal little channel (~424 real transactions, mostly price-comparison sites). Paid Search DOES have a genuine problem — 888 Shopping-ad landing pages bouncing at 82% and converting at 0.85% — and mobile genuinely underperforms. But you cannot size either problem, or move a single pound of budget, until the tracking is fixed and the data re-measured. The correct advice to the board was: fix the measurement first. Everything else is a guess wearing a percentage.";
+const FIELD_EXPLANATION = "The agency read the dashboard, not the data. Referral's 16% was three faults stacked up. First, payment-gateway self-referrals: customers left the site to pay at PayPal or SagePay, and Google Analytics counted their return as a new session “referred” by the gateway — so the gateways got the credit for 1,923 sales that Paid Search, Organic and Direct actually earned. (Today this is fixed with a referral exclusion list; in 2015 you had to know to do it.) Second, and worse: sandbox.paypal.com — PayPal's test environment — posted 76 fake transactions worth £386,975 into the live property. That is 11.8% of ALL reported revenue, at a £5,092 average order. The Product report corroborates it: 343 SSDs in 4 orders, 200 cables in one, 60 iPads in one. Third, staging servers and a private IP appear as traffic — there were no filters at all. Strip the contamination and Referral is a normal little channel (~424 real transactions, mostly price-comparison sites). Paid Search DOES have a genuine problem — 888 Shopping-ad landing pages bouncing at 82% and converting at 0.85% — and mobile genuinely underperforms. But you cannot size either problem, or move a single pound of budget, until the tracking is fixed and the data re-measured. The correct advice to the board was: fix the measurement first. Everything else is a guess wearing a percentage.";
 
 /* ---- report catalogue for the UI ---------------------------------- */
 const FIELD_REPORTS = [
@@ -130,6 +130,15 @@ const FIELD_REPORTS = [
   { group: "Behaviour", items: [{ key: "landingPages", label: "Landing pages" }] },
   { group: "Conversions", items: [{ key: "products", label: "Product performance" }] },
 ];
+
+// Each report's table rows as shown: the named rows, then its total row
+// if the export has one. Plus a lookup of any flaggable row's name by id
+// (ids are unique across reports — the evidence list relies on it).
+const FIELD_REPORT_ROWS = Object.fromEntries(FIELD_REPORTS.flatMap((g) => g.items).map(({ key }) => {
+  const d = FIELD_DATA[key];
+  return [key, d.total ? [...d.rows, d.total] : d.rows];
+}));
+const FIELD_ROW_NAMES = Object.fromEntries(Object.values(FIELD_REPORT_ROWS).flat().map((r) => [r.id, r.name]));
 
 // Column sets. `std` fits every session-metric report; products differ.
 const FIELD_COLS_STD = [
@@ -166,5 +175,5 @@ const FIELD_REPORT_META = {
 export {
   FIELD_DATA, FIELD_CASE, FIELD_VERDICTS, FIELD_VERDICT_TRUTH, FIELD_GUNS, FIELD_GUN_TRUTH,
   FIELD_REMEDIES, FIELD_REMEDY_TRUTH, FIELD_CLUES, FIELD_EXPLANATION, FIELD_REPORTS,
-  FIELD_REPORT_META, FIELD_COLS_STD, FIELD_COLS_PRODUCTS, scoreFieldDiagnosis,
+  FIELD_REPORT_ROWS, FIELD_ROW_NAMES, FIELD_REPORT_META, FIELD_COLS_STD, FIELD_COLS_PRODUCTS, scoreFieldDiagnosis,
 };

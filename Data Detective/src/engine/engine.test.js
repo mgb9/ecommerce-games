@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  generateCase, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod, scoreDiagnosis, summariseSegments, summariseTopline, incidentFactorAt,
+  generateCase, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod, scoreDiagnosis, reviewTrail, summariseSegments, summariseTopline, incidentFactorAt,
   DIMENSIONS, REPORTS, CASES, CAUSE_TYPES, FUNNEL_STAGES, TOTAL_DAYS,
   avgRange, EARLY_WINDOW, LATE_WINDOW,
 } from "./engine.js";
@@ -603,5 +603,71 @@ describe("masked incident (masked-desktop)", () => {
   });
   it("returning-user sessions surge — the masking red herring", () => {
     expect(rat(ut.returning, "sessions")).toBeGreaterThan(1.4);
+  });
+});
+
+/* ---- the case text must match the data ----------------------------
+   Tickets and reveal explanations quote magnitudes ("down about a
+   fifth", "fell by more than 90%", "UP about 12%"). Students check
+   them against the dashboard, so pin each one across a spread of
+   seeds at the default noise: retuning the engine must not silently
+   turn the narrative into a lie. Week 1 vs week 4, as the tables show. */
+describe("case narratives match the generated data", () => {
+  const SEEDS = ["DD-2026", "A1", "B2", "C3", "cohort-x", "Z9", "q", "WM956"];
+  const seg = (cd, dim, id) => summariseSegments(cd.breakdowns.find((d) => d.key === dim)).find((r) => r.id === id).pctChange;
+  const forEachSeed = (caseId, fn) => SEEDS.forEach((s) => fn(generateCase(caseId, s, { noise: 1.4 }), s));
+
+  it("case 1: revenue down 15–20%; PayPal down about two-thirds, the rest flat", () => {
+    forEachSeed(CASE_ID, (cd) => {
+      const rev = summariseTopline(cd.topline).revenue.pctChange;
+      expect(rev).toBeLessThan(-0.12); expect(rev).toBeGreaterThan(-0.23);
+      expect(seg(cd, "payment", "paypal")).toBeLessThan(-0.6); expect(seg(cd, "payment", "paypal")).toBeGreaterThan(-0.72);
+      for (const id of ["card", "applepay", "bank"]) expect(Math.abs(seg(cd, "payment", id))).toBeLessThan(0.06);
+    });
+  });
+  it("case 2: Mobile alone down about a fifth, Safari alone about a third, the cell >90%, other cells flat", () => {
+    forEachSeed(CASE2_ID, (cd) => {
+      expect(seg(cd, "device", "mobile")).toBeLessThan(-0.15); expect(seg(cd, "device", "mobile")).toBeGreaterThan(-0.28);
+      expect(seg(cd, "browser", "safari")).toBeLessThan(-0.27); expect(seg(cd, "browser", "safari")).toBeGreaterThan(-0.4);
+      const cells = summariseSegments(buildCrossTab(cd, "device", "browser"));
+      expect(cells.find((r) => r.id === "mobile__safari").pctChange).toBeLessThan(-0.9);
+      for (const r of cells.filter((r) => r.id !== "mobile__safari")) expect(Math.abs(r.pctChange)).toBeLessThan(0.06);
+    });
+  });
+  it("case 3: sitewide conversion down 5–10%ish; every traffic source moves together", () => {
+    forEachSeed(CASE3_ID, (cd) => {
+      const conv = summariseTopline(cd.topline).conversionRate.pctChange;
+      expect(conv).toBeLessThan(-0.04); expect(conv).toBeGreaterThan(-0.12);
+      const moves = summariseSegments(cd.breakdowns.find((d) => d.key === "source")).map((r) => r.pctChange);
+      expect(Math.max(...moves) - Math.min(...moves)).toBeLessThan(0.001);
+      expect(Math.abs(moves[0])).toBeLessThan(0.06);
+    });
+  });
+  it("case 4: topline down only a few percent; desktop down about 20%, mobile and tablet UP about 12%", () => {
+    forEachSeed(CASE4_ID, (cd) => {
+      const conv = summariseTopline(cd.topline).conversionRate.pctChange;
+      expect(conv).toBeLessThan(-0.02); expect(conv).toBeGreaterThan(-0.08);
+      expect(seg(cd, "device", "desktop")).toBeLessThan(-0.16); expect(seg(cd, "device", "desktop")).toBeGreaterThan(-0.24);
+      for (const id of ["mobile", "tablet"]) { expect(seg(cd, "device", id)).toBeGreaterThan(0.08); expect(seg(cd, "device", id)).toBeLessThan(0.16); }
+    });
+  });
+});
+
+/* ---- the debrief's review of the investigation trail ------------- */
+describe("reviewTrail", () => {
+  const c1 = generateCase(CASE_ID, "DD-2026"), c2 = generateCase(CASE2_ID, "DD-2026");
+  it("single-segment case: finds the decisive report and its position; counts dead ends", () => {
+    const r = reviewTrail(c1, ["funnel", "device", "source", "payment", "realtime"], []);
+    expect(r).toMatchObject({ found: true, foundAt: 3, reportsOpened: 3, deadEnds: 2, usedFunnel: true, compound: false, funnelStage: "Purchase" });
+    expect(r.decisive).toBe("the Payment method report");
+  });
+  it("compound case needs the cross-tab, in either order — the single reports alone don't count", () => {
+    expect(reviewTrail(c2, ["device", "browser"], []).found).toBe(false);
+    expect(reviewTrail(c2, ["device"], ["browser×device"])).toMatchObject({ found: true, foundAt: 1, compound: true, deadEnds: 0 });
+    expect(reviewTrail(c2, ["device"], ["device×country", "device×browser"]).foundAt).toBe(2);
+  });
+  it("an empty trail is handled; every case has a lesson", () => {
+    expect(reviewTrail(c1)).toMatchObject({ found: false, foundAt: 0, reportsOpened: 0, deadEnds: 0, usedFunnel: false });
+    for (const c of CASES) expect(c.truth.lesson.length).toBeGreaterThan(40);
   });
 });

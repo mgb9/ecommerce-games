@@ -111,6 +111,8 @@
         '.foot .a b{color:#fff;}' +
         '.foot .b{font-size:12px;color:#8d8d91;}' +
         '@media(max-width:820px){.mod,.desc,.gcat{display:none;}.tlabel{display:none;}.right{gap:14px;}.gname{font-size:17px;}}' +
+        // phones: the game names itself in its own header, so drop the duplicate rather than overlap "All games"
+        '@media(max-width:560px){.game,.sep{display:none;}.left{gap:12px;}}' +
         '</style>' +
 
         '<header class="bar" style="--gaccent:' + accent + '">' +

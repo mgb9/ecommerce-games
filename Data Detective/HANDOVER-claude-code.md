@@ -52,6 +52,12 @@ real, navigable GA4 property and — crucially — to make the investigation gen
   data (not just a popup label), `summariseSegments`/`summariseTopline`, the three incident shapes
   (cliff/gradual/spike-revert), `scoreDiagnosis`, and a full case-2-specific section proving the compound
   mechanic (see below).
+- **UI layout (refactored 2026-10)** — `src/ui/App.jsx` is now just the root (case selection, instructor
+  config, plain-language provider); each case component owns its session state and is remounted (`key`)
+  to start afresh. `theme.js` = tokens + style helpers, `shared.jsx` = components common to both case
+  types (header band, side nav, sortable-table hook, pick groups, reveal atoms), `generated/` = cases 1–4
+  (one file per phase/report view), `field/` = case 5. `screens.smoke.test.jsx` renders every screen.
+  The description below predates the split but still describes the behaviour.
 - `src/ui/App.jsx` — phases ticket → investigate → diagnose → reveal, now parameterised over `caseIndex`
   (the intro screen's case picker) rather than hardcoded to one case. Every place that used to iterate the
   static `DIMENSIONS` list (the dimension picker, investigation log, diagnose form, reveal labels) now
@@ -198,6 +204,30 @@ The remaining two of the four depth features, now built:
   that zoomed the chart and hid the incident's context. **Subtlety fixed:** count-metric % change is per-day
   normalised, so comparing a 21-day window to a 7-day baseline doesn't read as a fake +200% from summing 3×
   the days (the headline number stays the window total; only the delta normalises). Tested.
+
+## Student release pass (2026-10)
+- **Narrative = data.** Every magnitude a ticket or reveal quotes is pinned across eight seeds in
+  `engine.test.js` ("case narratives match the generated data"). Fixed claims that were wrong: case 1
+  PayPal fell ~65% (not "almost zero"); case 2 Mobile alone ≈ −20%, Safari alone ≈ −33% (not "a little
+  worse"); case 4 mobile/tablet RISE ~12% under the masking mix shift while desktop is ≈ −20%. Case 5
+  self-referrals are 1,923 transactions (1,999 included the 76 sandbox fakes). If you retune the engine,
+  those tests tell you which sentence to rewrite.
+- **Debrief.** Each case's `truth.lesson` is shown as "The principle"; `reviewTrail()` (engine) says whether
+  the student opened the view where the signal lives (the dimension's report, or the cross-tab for a
+  compound cause), its position in their trail, dead ends, and whether the funnel would have named the step.
+- **Case report download** (`src/ui/caseReport.js`): Markdown with calls vs truth, the trail in order, the
+  explanation, the principle and seminar reflection prompts (plan §8's assessable artifact). Case 5's lists
+  the flagged rows and the clue chain.
+- **Progress** (`src/ui/progress.js`): best score per case in `localStorage["dd-progress"]`, shown on the
+  case pills; finishing any case sets the hub's `wmg-games-progress.dd` flag.
+- **Cohort links** (`src/ui/urlConfig.js`): `?case=1–5&seed=…&noise=0.2–2`; the instructor panel copies one.
+- **Accessibility / small screens:** below 860px the report nav becomes a native `<select>` with optgroups
+  and two-column screens stack (`useNarrow()` in shared.jsx); checked at 320px. The game header no longer
+  sticks (the shell bar does); the report nav sticks below it via `--dd-shell-h`, published by App from the
+  shell's bar height. Phase changes scroll to top and focus the screen heading. Card titles are `<h3>`;
+  pickers/pills expose `aria-pressed`; charts are `role="img"` with text summaries; tables have row headers;
+  the instructor panel is a modal dialog. Small red text/buttons use `T.playerText`/`T.playerBtn` (#D6261B)
+  — #EE3124 is only 4.1:1 on white. Contrast + axe clean on every screen at 1280px and 375px.
 
 ## Deliberately deferred
 - Cases 3–8 from the plan's original table (country/traffic-quality/site-speed/false-alarm/inventory/

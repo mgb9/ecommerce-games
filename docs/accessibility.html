@@ -81,7 +81,7 @@
         <tr>
           <td>Charts in Marketplace Tycoon, Conversion Lab and Funnel Fixer are drawn as graphics with no text
               alternative or accompanying data table, so their content is unavailable to screen-reader users.
-              (Data Detective’s segment reports are already real data tables.)</td>
+              (Data Detective’s charts have text descriptions, and its segment reports are real data tables.)</td>
           <td>1.1.1 Non-text Content (A)</td>
           <td>Add an accessible summary and a toggleable data table beneath each chart. <code>[TO CONFIRM date]</code></td>
         </tr>
@@ -92,33 +92,39 @@
           <td>Add non-colour encoding (line style, direct labels) alongside the data tables. <code>[TO CONFIRM date]</code></td>
         </tr>
         <tr>
-          <td>Inside the games, many visual section headings are styled text rather than semantic headings, so
-              screen-reader users cannot navigate by heading.</td>
+          <td>Inside Marketplace Tycoon, Conversion Lab and Funnel Fixer, many visual section headings are styled
+              text rather than semantic headings, so screen-reader users cannot navigate by heading. (Data Detective
+              uses semantic headings.)</td>
           <td>1.3.1 Info and Relationships (A)</td>
           <td>Convert in-game section titles to semantic headings. <code>[TO CONFIRM date]</code></td>
         </tr>
         <tr>
-          <td>Results that appear after an action — test verdicts, weekly simulation outcomes, diagnosis scoring —
-              are not announced to screen readers.</td>
+          <td>In Marketplace Tycoon, Conversion Lab and Funnel Fixer, results that appear after an action — test
+              verdicts, weekly simulation outcomes — are not announced to screen readers. (In Data Detective, focus
+              moves to each new screen’s heading, so the diagnosis result is announced.)</td>
           <td>4.1.3 Status Messages (AA)</td>
           <td>Add live regions to result panels. <code>[TO CONFIRM date]</code></td>
         </tr>
         <tr>
-          <td>Each game keeps its own header directly beneath the shared WMG bar, and both stick to the top of
-              the screen. When the page is scrolled they overlap, which can reduce the clickable area of the
-              bar’s “All&nbsp;games” link. The link remains operable, but the overlap should be removed.</td>
+          <td>Marketplace Tycoon, Conversion Lab and Funnel Fixer each keep their own header directly beneath the
+              shared WMG bar, and both stick to the top of the screen. When the page is scrolled they overlap, which
+              can reduce the clickable area of the bar’s “All&nbsp;games” link. The link remains operable, but the
+              overlap should be removed. (Data Detective’s header no longer sticks, so it does not overlap.)</td>
           <td>2.5.8 Target Size (Minimum) (AA)</td>
           <td>Rework the two stacked sticky headers so they do not overlap. <code>[TO CONFIRM date]</code></td>
         </tr>
         <tr>
-          <td>The glossary definition popovers open on click but are not exposed as expandable controls to
-              assistive technology.</td>
-          <td>4.1.2 Name, Role, Value (A)</td>
-          <td>Rebuild as proper disclosure buttons. <code>[TO CONFIRM date]</code></td>
+          <td>In Marketplace Tycoon, Conversion Lab and Funnel Fixer, the glossary definition popovers open only
+              on a mouse click: they cannot be reached or opened with a keyboard, and are not exposed as
+              expandable controls to assistive technology. (Data Detective’s are already keyboard-operable
+              disclosure buttons.)</td>
+          <td>2.1.1 Keyboard (A)<br>4.1.2 Name, Role, Value (A)</td>
+          <td>Rebuild as proper disclosure buttons, as in Data Detective. <code>[TO CONFIRM date]</code></td>
         </tr>
         <tr>
-          <td>Some dense screens (the Data Detective dashboard and the Conversion Lab wireframe studio) have not
-              been verified for reflow at 320&nbsp;CSS&nbsp;pixels.</td>
+          <td>Some dense screens (such as the Conversion Lab wireframe studio) have not been verified for reflow at
+              320&nbsp;CSS&nbsp;pixels. (Data Detective has been checked at 320&nbsp;CSS&nbsp;pixels: every screen
+              reflows, and only its wide data tables scroll sideways, as data tables may.)</td>
           <td>1.4.10 Reflow (AA)</td>
           <td>Responsive audit and fixes on small viewports. <code>[TO CONFIRM date]</code></td>
         </tr>
