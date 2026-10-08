@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { T } from "../theme.js";
 import { caseLink } from "../urlConfig.js";
 
-/* Slide-over for the seed + noise behind cases 1–4. Applying starts a
+/* Slide-over for the seed + noise behind cases 1–7. Applying starts a
    new case; a shared seed gives a whole cohort an identical dashboard,
    and the link opens this case with these settings for everyone.
 

@@ -21,9 +21,9 @@ const noop = () => {};
 const range = { cur: [TOTAL_DAYS - 7, TOTAL_DAYS - 1], setCur: noop, cmp: [0, 6], cmpMode: "first", setCmpMode: noop, cmpName: "Wk1" };
 
 describe("generated-case screens render", () => {
-  const caseData = generateCase(CASES[1].id, "DD-2026");
+  const caseData = generateCase(CASES[1].id, "DD-2026", { variant: 0 });   // Mobile × Safari
   const truth = caseData.truth;
-  const reportKeys = ["home", "realtime", "funnel", ...REPORTS.flatMap((g) => g.items.map((it) => it.dim))];
+  const reportKeys = ["home", "realtime", "funnel", "orders", ...REPORTS.flatMap((g) => g.items.map((it) => it.dim))];
 
   it.each(reportKeys)("investigate → %s", (key) => {
     const out = html(<Investigate caseData={caseData} metric="conversionRate" setMetric={noop} activeReport={key} openReport={noop}
@@ -35,12 +35,33 @@ describe("generated-case screens render", () => {
     const diagnosis = truth; // case 2's truth is a cross-tab pair, the richest form
     expect(html(<Diagnose diagnosis={diagnosis} setDiagnosis={noop} onBack={noop} onSubmit={noop} />)).toContain("Submit your diagnosis");
     const result = scoreDiagnosis(diagnosis, truth);
-    const out = html(<Reveal caseData={caseData} cfg={{ seed: "DD-2026", noise: 1.4 }} diagnosis={diagnosis} result={result} viewed={["device"]} pivots={["device×browser"]} onRestart={noop} />);
+    const out = html(<Reveal caseData={caseData} cfg={{ seed: "DD-2026", noise: 1.4 }} diagnosis={{ ...diagnosis, confidence: 90 }} result={result} viewed={["device"]} pivots={["device×browser"]} onRetry={noop} />);
     expect(out).toContain("4/4 correct");
     expect(out).toContain("RED HERRING");
     expect(out).toContain("How you investigated");
     expect(out).toContain("your 1st cross-tab");
     expect(out).toContain(truth.lesson);
+    expect(out).toContain("Well calibrated");
+    expect(out).toContain("Try a fresh variant");
+  });
+
+  it("'nothing is broken' — the diagnosis form and the reveal", () => {
+    const calm = generateCase("normal-week", "DD-2026", { variant: 0 });
+    const guess = { dimension: "none", segment: null, secondary: null, segmentB: null, causeType: "external_no_issue", startDay: null, confidence: 70 };
+    const form = html(<Diagnose diagnosis={guess} setDiagnosis={noop} onBack={noop} onSubmit={noop} />);
+    expect(form).toContain("No start date");
+    expect(form).toContain("Nothing to pick");
+    const out = html(<Reveal caseData={calm} cfg={{ seed: "DD-2026", noise: 1.4 }} diagnosis={guess} result={scoreDiagnosis(guess, calm.truth)} viewed={["device", "browser", "payment"]} pivots={[]} onRetry={noop} />);
+    expect(out).toContain("4/4 correct");
+    expect(out).toContain("no broken segment to find");
+  });
+
+  it("a tracking false alarm's reveal points at the back office", () => {
+    const fake = generateCase("false-alarm-tracking", "DD-2026", { variant: 0 });
+    const guess = { dimension: "browser", segment: "safari", secondary: null, segmentB: null, causeType: "gateway_failure", startDay: 19, confidence: 90 };
+    const out = html(<Reveal caseData={fake} cfg={{ seed: "DD-2026", noise: 1.4 }} diagnosis={guess} result={scoreDiagnosis(guess, fake.truth)} viewed={["browser"]} pivots={[]} onRetry={noop} />);
+    expect(out).toContain("Back-office orders");
+    expect(out).toContain("Overconfident");
   });
 });
 

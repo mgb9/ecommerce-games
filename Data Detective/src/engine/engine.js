@@ -32,6 +32,8 @@
    seeded via makeRng(seed), recharts for the charts.
    ============================================================ */
 
+import { CASES } from "./cases.js";
+
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const gbp = (n) => "£" + Math.round(n).toLocaleString("en-GB");
 const pct = (p, dp = 1) => (p * 100).toFixed(dp) + "%";
@@ -170,138 +172,9 @@ const CAUSE_TYPES = [
   { id: "traffic_quality", label: "Low-quality or bot traffic" },
   { id: "tracking_bug", label: "A tracking/analytics bug — not a real drop" },
   { id: "inventory", label: "A stockout or inventory issue" },
-  { id: "external_no_issue", label: "Normal seasonality — no real incident" },
+  { id: "external_no_issue", label: "Nothing is broken — normal variation or a calendar effect" },
 ];
 
-/* ---- the case file ---------------------------------------------- */
-const CASES = [
-  {
-    id: "paypal-gateway", n: 1, difficulty: "Beginner",
-    ticket: {
-      channel: "#cro-team", from: "Priya · Ops",
-      subject: "Checkout looks broken?",
-      body: "Revenue is down 15–20% on a normal week and finance is asking. A few customers are saying payment \"didn\u2019t go through\". Can someone confirm whether checkout is actually broken \u2014 and for everyone, or just some people?",
-    },
-    // Deliberately moderate, not catastrophic: a glaring near-total
-    // wipeout is unmissable from the topline alone and needs no real
-    // segmentation. 0.35 still gives a clean, real, findable signal once
-    // the right dimension is checked, but the AGGREGATE effect (~15-20%
-    // amid day-to-day noise) doesn't scream "incident" on its own — it
-    // has to be found, not glanced at.
-    incident: { dimension: "payment", segment: "paypal", type: "rate", shape: "cliff", startDay: 18, factor: 0.35, stage: "purchase" },
-    sessionShiftEvents: [{ dimension: "source", segment: "email", days: [18, 19, 20], factor: 1.45 }],
-    // Event labels are deliberately oblique — a real changelog entry
-    // wouldn't pre-name the dimension/segment/cause for you. Three
-    // events across two nearby days (one a pure decoy with no data
-    // effect at all) so "what happened that week" isn't a shortcut to
-    // the answer; only the data can confirm which one, if any, lines up.
-    events: [
-      { day: 16, label: "Database maintenance window completed", real: false },
-      { day: 18, label: "Backend infrastructure patch deployed to production", real: true },
-      { day: 18, label: "Spring marketing campaign launched", real: false },
-    ],
-    truth: {
-      dimension: "payment", segment: "paypal", startDay: 18, shape: "cliff", causeType: "gateway_failure",
-      lesson: "Segment before you blame \u201ccheckout\u201d: one payment method failing can sink the whole funnel while every other route through it is fine \u2014 and the event that lines up best on the timeline is not automatically the cause.",
-      explanation: "The 'backend infrastructure patch' was really a PayPal system update. It broke payment for many customers paying with PayPal: PayPal's conversion rate fell by about two-thirds, while every other payment method stayed normal. PayPal was a quarter of all checkouts, so this one problem explains the whole revenue drop. The marketing campaign was real, and it did bring in more email visitors. But those visitors converted at the normal rate, so the campaign was not the cause. The database maintenance two days earlier changed nothing in the data.",
-    },
-  },
-  {
-    // The hard case: a genuine cross-dimension interaction. Checking
-    // Device alone shows Mobile a little soft; checking Browser alone
-    // shows Safari a little soft — NEITHER fully explains the drop, and
-    // both are easy to write off as noise. Only a Device × Browser
-    // cross-tab isolates the truth: it's specifically Mobile Safari,
-    // and there it's a real, dramatic collapse. This is the case where
-    // "check every report" beats "find the one report with a clean signal".
-    id: "mobile-safari-bug", n: 2, difficulty: "Intermediate",
-    ticket: {
-      channel: "#cro-team", from: "Priya · Ops",
-      subject: "Conversion is slowly falling — we cannot identify the cause",
-      body: "Nothing looks badly broken, but conversion has been lower for about two weeks, and revenue is behind target. Marketing says it is just the market. Engineering says nothing important changed. We need a clear answer for the board report.",
-    },
-    incident: { type: "rate-joint", dimA: "device", segA: "mobile", dimB: "browser", segB: "safari", shape: "cliff", startDay: 16, factor: 0.08, stage: "atc" },
-    // The red herring is itself a real, debunkable data point, not just a
-    // line in the ticket: paid-search session SHARE genuinely dips for a
-    // few days (shoppers searching the competitor's offer instead), but
-    // — like case 1's email bump — it's a session-volume effect with no
-    // conversion-quality story behind it.
-    sessionShiftEvents: [{ dimension: "source", segment: "paidsearch", days: [14, 15, 16], factor: 0.65 }],
-    events: [
-      { day: 14, label: "Competitor launched a price-match guarantee", real: false },
-      { day: 16, label: "Frontend release v4.2 shipped", real: true },
-      { day: 16, label: "Q2 brand refresh announced internally", real: false },
-    ],
-    truth: {
-      dimension: "device", segment: "mobile", secondary: "browser", segmentB: "safari", startDay: 16, shape: "cliff", causeType: "deploy_bug",
-      lesson: "Interaction effects hide in single-dimension reports. When two dimensions each look \u201ca bit off\u201d, cross-tab them: the real fault may live only in their intersection, diluted everywhere else.",
-      explanation: "Release v4.2 changed the checkout layout. This broke the 'Add to cart' button, but only in the Safari browser on mobile phones. This kind of bug is common: it affects mobile Safari only, not Safari on desktop and not Chrome or Firefox. If you check Device on its own, Mobile is down about a fifth — a real drop, but nowhere near a broken checkout, because three in four mobile visitors use other browsers and were not affected. If you check Browser on its own, Safari is down about a third, because about half of Safari visitors are on desktop and were fine. Each single report points at half of the answer, and either half on its own is the wrong diagnosis. Only the Device × Browser cross-tab isolates Mobile plus Safari, where conversion fell by more than 90% while every other combination stayed flat. The competitor's price-match offer was real and moved some paid-search visitors away. But the visitors who stayed converted normally, so this was a change in volume, not quality. The internal brand-refresh announcement had no effect on customers.",
-    },
-  },
-  {
-    // EXPERT — the composition / Simpson's-paradox trap. There is NO rate
-    // incident anywhere: every segment's own conversion rate is flat all
-    // month. The sitewide rate falls purely because a 3× paid-social push
-    // floods the site with low-intent traffic while high-intent organic
-    // dips — the MIX degrades. The "incident" the ticket describes is real
-    // in the aggregate but there is no broken segment to find. The correct
-    // call is "no site fault — traffic quality", and the discipline being
-    // tested is refusing to invent a bug: if no segment rate moved, nothing
-    // broke. (Implemented with session-shifts only, incident = null.)
-    id: "traffic-mix", n: 3, difficulty: "Intermediate",
-    ticket: {
-      channel: "#cro-team", from: "Dev · Growth Lead",
-      subject: "Conversion is down but the site looks fine",
-      body: "Sitewide conversion is down something like 5–10% over the last week and revenue is behind, but nobody has touched the checkout and error rates are normal. We did just scale up a new paid-social campaign. Is the site broken, or is something else going on? The board wants a definitive answer, with evidence.",
-    },
-    incident: null,
-    sessionShiftEvents: [
-      { dimension: "source", segment: "paidsocial", days: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27], factor: 2.8 },
-      { dimension: "source", segment: "organic", days: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27], factor: 0.72 },
-    ],
-    events: [
-      { day: 15, label: "Checkout microcopy A/B test started", real: false },
-      { day: 17, label: "Paid-social budget increased ~3× (new short-video campaign)", real: true },
-      { day: 19, label: "Analytics SDK updated to v9", real: false },
-    ],
-    truth: {
-      dimension: "source", segment: "paidsocial", startDay: 17, shape: "cliff", causeType: "traffic_quality",
-      lesson: "If no segment's own rate moved, nothing broke. A falling average can be pure mix shift (Simpson's paradox) \u2014 a conversation about traffic quality with marketing, not a bug hunt with engineering.",
-      explanation: "Nothing on the site broke. Check any traffic source's own conversion rate — including paid social's — and none of them fell by more than the ordinary week-to-week wobble; they all moved together, by the same small amount. What changed is the MIX of traffic. A 3× paid-social push flooded the site with low-intent visitors, and paid social converts far below organic and email; at the same time organic, your best-converting source, dipped. More visitors, lower-quality average. The sitewide rate fell only because the composition of traffic got worse — not because any page or checkout failed. This is a mix shift (a Simpson's-paradox effect): the aggregate moves even though no underlying group did. The trap is to go hunting for a broken segment; the honest finding is that there is none, and the conversation belongs with marketing about traffic quality and targeting, not with engineering. The checkout A/B test and the analytics SDK update were coincidences with no effect in the data.",
-    },
-  },
-  {
-    // EXPERT — a masked localized incident. A real desktop-only checkout bug
-    // craters desktop conversion, but a coincident loyalty push lifts
-    // returning-user and email share (both high-converting), so the TOPLINE
-    // only dips a few percent and looks like noise. The team even reads the
-    // returning-user surge as good news. The lesson: a calm aggregate can
-    // hide a severe localized incident that a favourable mix-shift is
-    // masking — you must segment, and you must not mistake the masking
-    // surge for the cause. (Rate incident on device:desktop + benign shifts.)
-    id: "masked-desktop", n: 4, difficulty: "Advanced",
-    ticket: {
-      channel: "#cro-team", from: "Priya · Ops",
-      subject: "Small dip, but revenue feels worse than it should",
-      body: "Sitewide conversion is only down a few percent — well within what we'd normally call noise — and returning-customer numbers are actually up after our loyalty push, so most of the team thinks we're fine. But revenue is softer than that small dip suggests, and a few customers mentioned checkout looked odd. Can you confirm there's really nothing wrong?",
-    },
-    incident: { dimension: "device", segment: "desktop", type: "rate", shape: "cliff", startDay: 18, factor: 0.72, stage: "checkout" },
-    sessionShiftEvents: [
-      { dimension: "userType", segment: "returning", days: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27], factor: 2.2 },
-      { dimension: "source", segment: "email", days: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27], factor: 1.8 },
-    ],
-    events: [
-      { day: 16, label: "Quarterly loyalty email blast sent to existing customers", real: false },
-      { day: 18, label: "Checkout layout refactor deployed to production", real: true },
-      { day: 20, label: "New homepage hero banner published", real: false },
-    ],
-    truth: {
-      dimension: "device", segment: "desktop", startDay: 18, shape: "cliff", causeType: "deploy_bug",
-      lesson: "A calm topline does not mean nothing is wrong. A favourable mix shift can mask a severe localised fault \u2014 segment anyway, and treat good news that arrives with a dip as possible camouflage.",
-      explanation: "There is a real, serious incident — it is just hidden. The desktop checkout refactor broke conversion on desktop from day 18. The sitewide number barely moved because the same week's loyalty email blast pulled in a surge of returning customers and email traffic, both of which convert well above average — that favourable mix shift lifted conversion on every device and masked the desktop collapse. Segment by device and the pattern is unmistakable: mobile and tablet are UP about 12%, carried by the returning-customer surge, while desktop is DOWN about 20% despite that same tailwind — so the bug itself cut desktop conversion by more than a quarter. The team read the returning-user surge as good news; it was actually camouflage. The loyalty blast and the returning-user surge were real but were NOT the cause — they were masking it. The homepage banner had no effect.",
-    },
-  },
-];
 const CASEMAP = Object.fromEntries(CASES.map((c) => [c.id, c]));
 
 /* ---- incident & session-shift shaping ------------------------
@@ -328,8 +201,12 @@ function effectiveShares(dim, day, shiftEvents) {
   const total = raw.reduce((a, b) => a + b, 0);
   return dim.segments.map((s, i) => ({ ...s, share: raw[i] / total }));
 }
+// A "tracking" incident (analytics stops recording some purchases) distorts
+// the MEASURED data exactly like a real rate incident; only back-office
+// orders tell them apart (see the topline's `orders`).
+const isSegmentIncident = (incident) => incident && (incident.type === "rate" || incident.type === "tracking");
 function effectiveMult(dim, seg, day, incident) {
-  if (incident && incident.type === "rate" && incident.dimension === dim.key && incident.segment === seg.id) return seg.mult * incidentFactorAt(day, incident);
+  if (isSegmentIncident(incident) && incident.dimension === dim.key && incident.segment === seg.id) return seg.mult * incidentFactorAt(day, incident);
   return seg.mult;
 }
 function weightedAvgMult(dim, day, incident, shiftEvents) {
@@ -365,6 +242,39 @@ function dayWeights(day, incident, shiftEvents, joint) {
   return { dimW, convMultProduct, jf, jointDenom };
 }
 
+/* ---- segment sampling noise ------------------------------------------
+   Real segments wobble like samples of their size: a big segment barely
+   moves from day to day, a small one (Tablet, Bank transfer, most cross-tab
+   cells) is noisy. Without this, every unaffected segment moved in exact
+   lockstep with the topline, so sorting a report by Δ handed over the
+   answer with no judgement about what counts as noise. Each dimension's
+   segments are rescaled afterwards to sum exactly to the topline, so the
+   reconciliation invariant still holds. Everything scales with the case's
+   noise level. */
+const SEG_RATE_NOISE = 0.5;   // σ of a segment's daily purchases ≈ this × noise / √(expected purchases)
+const TRACKING_COVERAGE = 0.96; // analytics normally records ~96% of back-office orders (ad blockers, consent)
+const jitter = (rng, sigma) => clamp(1 + (rng() * 2 - 1) * sigma * Math.sqrt(3), 0.05, 3); // uniform, sd = sigma
+const binomialSigma = (p, n) => Math.sqrt(Math.max(1 - p, 0) / Math.max(n * p, 1e-9));     // relative sd of a share/rate
+const rescaleTo = (values, total) => { const sum = values.reduce((a, b) => a + b, 0); return sum > 0 ? values.map((v) => (v * total) / sum) : values; };
+const purchaseSigma = (noise, expected) => (noise * SEG_RATE_NOISE) / Math.sqrt(Math.max(expected, 0.25));
+
+// Calendar effects (a bank holiday, a cup final on TV) move the whole site.
+function calendarAt(day, calendarEvents) {
+  const e = (calendarEvents || []).find((c) => c.day === day);
+  return { sessions: e?.sessions ?? 1, conversion: e?.conversion ?? 1 };
+}
+// The seed picks the variant, so a shared seed gives a cohort the same case.
+function pickVariant(def, seed) {
+  return Math.floor(makeRng(seed + ":" + def.id + ":variant")() * def.variants.length);
+}
+// Which variant attempt n at a case uses: the seed picks the first, and each
+// retry moves on to the next, so "try a fresh variant" never replays the
+// answer the reveal has just shown.
+function variantFor(caseId, seed, attempt = 1) {
+  const def = CASEMAP[caseId];
+  return (pickVariant(def, seed) + attempt - 1) % def.variants.length;
+}
+
 /* ---- THE GENERATOR -------------------------------------------- */
 //
 // "rate-joint" incidents — a compound/interaction segment, e.g. "Mobile
@@ -376,7 +286,7 @@ function dayWeights(day, incident, shiftEvents, joint) {
 // are hit. The expected-value algebra (verified against the engine's
 // exact-reconciliation invariant in tests):
 //
-//   topline(t)        = baseline(t) · [Wa(t)·Wb(t) + pJoint·(jf(t)-1)] · Π(other 4 dims)
+//   topline(t)        = baseline(t) · [Wa(t)·Wb(t) + pJoint·(jf(t)-1)] · Π(other dims)
 //   rate(segA, dimA)  = topline(t) · multA · [Wb(t) + shareB·multB·(jf(t)-1)] / jointDenom(t)
 //   rate(d≠segA,dimA) = topline(t) · mult_d · Wb(t) / jointDenom(t)
 //   (symmetric for dimB)
@@ -388,15 +298,20 @@ function dayWeights(day, incident, shiftEvents, joint) {
 // dimA and dimB ALONE each show only a diluted fraction of the true
 // effect (scaled by the other dimension's share), while a dedicated
 // "dimA × dimB" cross-tab breakdown shows the full, undiluted drop
-// isolated to exactly one cell. Finding it requires cross-referencing
-// both single-dimension reports, not just checking one.
+// isolated to exactly one cell. Segment sampling noise is layered on
+// top of these expected values (see above).
 function generateCase(caseId, seed, opts = {}) {
   const def = CASEMAP[caseId];
   if (!def) throw new Error("unknown case: " + caseId);
+  const variantIndex = opts.variant ?? pickVariant(def, seed);
+  const v = def.variants[variantIndex];
   const noiseScale = opts.noise ?? 1;
   const rngSess = makeRng(seed + ":" + caseId + ":sessions");
   const rngConv = makeRng(seed + ":" + caseId + ":conv");
-  const incident = def.incident;
+  const rngSeg = makeRng(seed + ":" + caseId + ":segments");
+  const rngOrders = makeRng(seed + ":" + caseId + ":orders");
+  const incident = v.incident;
+  const shifts = v.sessionShiftEvents || [];
   const joint = jointOf(incident);
 
   // Calibration constant: BASE_CONVERSION is the topline rate with no
@@ -429,92 +344,140 @@ function generateCase(caseId, seed, opts = {}) {
   for (const dim of DIMENSIONS) { series[dim.key] = {}; for (const s of dim.segments) series[dim.key][s.id] = []; }
 
   for (let day = 0; day < TOTAL_DAYS; day++) {
+    const cal = calendarAt(day, v.calendarEvents);
     const sessNoise = (rngSess() * 2 - 1) * 0.05 * noiseScale;
     const convNoise = (rngConv() * 2 - 1) * 0.04 * noiseScale;
-    const sessions = BASE_SESSIONS * SEASONALITY[day % 7] * (1 + sessNoise);
+    const sessions = BASE_SESSIONS * SEASONALITY[day % 7] * cal.sessions * (1 + sessNoise);
     const engRate0 = clamp(BASE_ENG_RATE * (1 + (rngEng() * 2 - 1) * 0.04 * noiseScale), 0.1, 0.95);
     const engTime0 = BASE_ENG_TIME * (1 + (rngTime() * 2 - 1) * 0.06 * noiseScale);
     const evPer0 = BASE_EVENTS * (1 + (rngEv() * 2 - 1) * 0.05 * noiseScale);
     const newUsers = sessions * NEW_SHARE * (1 + (rngNew() * 2 - 1) * 0.05 * noiseScale);
 
-    const { dimW, convMultProduct, jf, jointDenom } = dayWeights(day, incident, def.sessionShiftEvents, joint);
-    const conversionRate = clamp(K * convMultProduct * (1 + convNoise), 0.001, 0.95);
+    const { dimW, convMultProduct, jf, jointDenom } = dayWeights(day, incident, shifts, joint);
+    const conversionRate = clamp(K * convMultProduct * cal.conversion * (1 + convNoise), 0.001, 0.95);
     const purchases = sessions * conversionRate;
-    topline.push({ day, sessions, conversionRate, purchases, revenue: purchases * AOV, engagementRate: engRate0, engagedSessions: sessions * engRate0, avgEngagementTime: engTime0, events: sessions * evPer0, newUsers });
+    // Back-office orders come from the order database, not analytics. A
+    // tracking incident leaves them untouched; any real incident hits both.
+    const trueRate = incident?.type === "tracking"
+      ? clamp(K * dayWeights(day, null, shifts, null).convMultProduct * cal.conversion * (1 + convNoise), 0.001, 0.95)
+      : conversionRate;
+    const orders = ((sessions * trueRate) / TRACKING_COVERAGE) * (1 + (rngOrders() * 2 - 1) * 0.01 * noiseScale);
+    topline.push({ day, sessions, conversionRate, purchases, revenue: purchases * AOV, orders, boRevenue: orders * AOV, engagementRate: engRate0, engagedSessions: sessions * engRate0, avgEngagementTime: engTime0, events: sessions * evPer0, newUsers });
 
     for (const dim of DIMENSIONS) {
       const side = jointSide && jointSide[dim.key];
-      for (const s of effectiveShares(dim, day, def.sessionShiftEvents)) {
-        const segSessions = sessions * s.share;
-        let segRate;
+      const segs = effectiveShares(dim, day, shifts);
+      const expectedRate = (s) => {
         if (side) {
           const [ownTarget, otherDim, otherTarget] = side;
           const otherFactor = s.id === ownTarget.id ? dimW[otherDim] + otherTarget.share * otherTarget.mult * (jf - 1) : dimW[otherDim];
-          segRate = clamp((conversionRate * s.mult * otherFactor) / jointDenom, 0.0005, 0.98);
-        } else {
-          segRate = clamp((conversionRate * effectiveMult(dim, s, day, incident)) / dimW[dim.key], 0.0005, 0.98);
+          return clamp((conversionRate * s.mult * otherFactor) / jointDenom, 0.0005, 0.98);
         }
-        const segPurchases = segSessions * segRate;
-        const segEngRate = clamp((engRate0 * engMultOf(s.id)) / avgEng[dim.key], 0.05, 0.98);
-        const segEngTime = (engTime0 * engMultOf(s.id)) / avgEng[dim.key];
-        const segEvents = (segSessions * evPer0 * evMultOf(s.id)) / avgEv[dim.key];
-        series[dim.key][s.id].push({ day, sessions: segSessions, conversionRate: segRate, purchases: segPurchases, revenue: segPurchases * AOV, engagementRate: segEngRate, engagedSessions: segSessions * segEngRate, avgEngagementTime: segEngTime, events: segEvents });
-      }
+        return clamp((conversionRate * effectiveMult(dim, s, day, incident)) / dimW[dim.key], 0.0005, 0.98);
+      };
+      // each segment's share wobbles like a binomial sample of the day's sessions
+      const segSessions = rescaleTo(segs.map((s) => sessions * s.share * jitter(rngSeg, noiseScale * binomialSigma(s.share, sessions))), sessions);
+      const segPurchases = rescaleTo(segs.map((s, i) => { const e = segSessions[i] * expectedRate(s); return e * jitter(rngSeg, purchaseSigma(noiseScale, e)); }), purchases);
+      // engagement decoys get the same treatment, rescaled to the topline totals
+      const segEngaged = rescaleTo(segs.map((s, i) => {
+        const rate = clamp((engRate0 * engMultOf(s.id)) / avgEng[dim.key], 0.05, 0.98);
+        return segSessions[i] * rate * jitter(rngSeg, noiseScale * binomialSigma(rate, segSessions[i]));
+      }), sessions * engRate0);
+      const segTimeTotal = rescaleTo(segs.map((s, i) => segSessions[i] * ((engTime0 * engMultOf(s.id)) / avgEng[dim.key]) * jitter(rngSeg, (noiseScale * 0.8) / Math.sqrt(Math.max(segSessions[i], 1)))), sessions * engTime0);
+      const segEvents = rescaleTo(segs.map((s, i) => ((segSessions[i] * evPer0 * evMultOf(s.id)) / avgEv[dim.key]) * jitter(rngSeg, noiseScale / Math.sqrt(Math.max(segSessions[i] * evPer0, 1)))), sessions * evPer0);
+      segs.forEach((s, i) => series[dim.key][s.id].push({
+        day, sessions: segSessions[i], conversionRate: segPurchases[i] / segSessions[i], purchases: segPurchases[i], revenue: segPurchases[i] * AOV,
+        engagementRate: segEngaged[i] / segSessions[i], engagedSessions: segEngaged[i], avgEngagementTime: segTimeTotal[i] / segSessions[i], events: segEvents[i],
+      }));
     }
   }
 
   const breakdowns = DIMENSIONS.map((d) => ({ key: d.key, label: d.label, segments: d.segments, series: series[d.key] }));
 
-  // The compound/cross-tab view is no longer pre-baked as a giveaway "report"
-  // — `buildCrossTab` computes any pair on demand when the analyst adds a
-  // secondary dimension. We expose the incident + shift model so it can.
-  return { id: def.id, n: def.n, ticket: def.ticket, topline, events: def.events, truth: def.truth, breakdowns, incident, shiftEvents: def.sessionShiftEvents || [] };
+  // The compound/cross-tab view is not pre-baked as a giveaway "report" —
+  // `buildCrossTab` computes any pair on demand when the analyst adds a
+  // secondary dimension. We expose the incident + shift model (and the seed
+  // and noise level, for its sampling noise) so it can.
+  return {
+    id: def.id, n: def.n, seed: String(seed), noise: noiseScale, variant: variantIndex,
+    ticket: v.ticket, topline, events: v.events, truth: { ...v.truth, lesson: def.lesson },
+    breakdowns, incident, shiftEvents: shifts,
+  };
 }
 
 /* ---- buildCrossTab: pivot ANY report by a secondary dimension ----
    The GA "secondary dimension" power-move, computed on demand. A session's
-   conversion rate, conditioned on being in segment a of dim A AND segment b
-   of dim B, is the topline rate that day scaled by how far that cell's true
-   multiplier sits from the population mean:
+   expected conversion rate, conditioned on being in segment a of dim A AND
+   segment b of dim B, is the topline rate that day scaled by how far that
+   cell's true multiplier sits from the population mean:
        rate(a,b,t) = r0(t) · M(a,b,t) / convMultProduct(t)
    where M(a,b) = effMultA(a)·effMultB(b)·jointFactor(a,b)·Π(other dims' W).
-   This is exact for both incident types and reconciles to the topline (shown
-   in tests). It means: cross-tabbing the two dims a joint incident lives in
-   isolates the true cell; cross-tabbing anything else just spreads a
-   single-dim incident evenly — so the analyst has to pick the RIGHT pivot. */
-function buildCrossTab(caseData, aKey, bKey) {
-  const A = DMAP[aKey], B = DMAP[bKey];
+   Cross-tabbing the two dims a joint incident lives in isolates the true
+   cell; cross-tabbing anything else just spreads a single-dim incident
+   evenly — so the analyst has to pick the RIGHT pivot.
+
+   Cells get the same sampling noise as segments, and are then raked
+   (iterative proportional fitting) so every row and column sums exactly to
+   the marginal reports the student has already seen — the cross-tab never
+   contradicts the single-dimension reports. Cell sessions are the product
+   of the two marginals' (noisy) shares, so they reconcile by construction.
+   The grid is built in a canonical orientation, so A × B and B × A give
+   identical numbers. */
+function crossTabGrid(caseData, k1, k2) {
+  const A = DMAP[k1], B = DMAP[k2];
   const incident = caseData.incident, shiftEvents = caseData.shiftEvents || [];
   const joint = jointOf(incident);
-  const jointPair = joint && ((joint.dimA === aKey && joint.dimB === bKey) || (joint.dimA === bKey && joint.dimB === aKey));
-
-  const cells = [];
-  for (const sa of A.segments) for (const sb of B.segments) cells.push({ id: `${sa.id}__${sb.id}`, name: `${sa.name} / ${sb.name}`, aId: sa.id, bId: sb.id, sa, sb });
-  const out = { key: `${aKey}__${bKey}`, label: `${A.label} × ${B.label}`, segments: cells.map((c) => ({ id: c.id, name: c.name })), series: {}, isCrossTab: true, primary: aKey, secondary: bKey };
-  cells.forEach((c) => (out.series[c.id] = []));
+  const jointPair = joint && ((joint.dimA === k1 && joint.dimB === k2) || (joint.dimA === k2 && joint.dimB === k1));
+  const seriesOf = (key) => caseData.breakdowns.find((d) => d.key === key).series;
+  const serA = seriesOf(k1), serB = seriesOf(k2);
+  const noise = caseData.noise ?? 1;
+  const rng = makeRng(`${caseData.seed}:${caseData.id}:x:${k1}:${k2}`);
   const avgEngA = avgCharOf(A, engMultOf), avgEngB = avgCharOf(B, engMultOf);
   const avgEvA = avgCharOf(A, evMultOf), avgEvB = avgCharOf(B, evMultOf);
+  const grid = {};
+  for (const sa of A.segments) for (const sb of B.segments) grid[`${sa.id}__${sb.id}`] = [];
 
   for (let day = 0; day < TOTAL_DAYS; day++) {
-    const r0 = caseData.topline[day].conversionRate;
-    const sess = caseData.topline[day].sessions;
+    const top = caseData.topline[day];
     const { dimW, convMultProduct, jf } = dayWeights(day, incident, shiftEvents, joint);
-    const otherProd = DIMENSIONS.filter((d) => d.key !== aKey && d.key !== bKey).reduce((p, d) => p * dimW[d.key], 1);
-    const shareA = Object.fromEntries(effectiveShares(A, day, shiftEvents).map((s) => [s.id, s.share]));
-    const shareB = Object.fromEntries(effectiveShares(B, day, shiftEvents).map((s) => [s.id, s.share]));
-    for (const c of cells) {
-      const mA = effectiveMult(A, c.sa, day, incident);
-      const mB = effectiveMult(B, c.sb, day, incident);
-      const isIncidentCell = jointPair && ((c.aId === incident.segA && c.bId === incident.segB) || (c.aId === incident.segB && c.bId === incident.segA));
-      const cellMult = mA * mB * (isIncidentCell ? jf : 1) * otherProd;
-      const rate = clamp((r0 * cellMult) / convMultProduct, 0.0005, 0.98);
-      const cellSessions = sess * shareA[c.aId] * shareB[c.bId];
-      const top = caseData.topline[day];
-      const engFactor = (engMultOf(c.aId) / avgEngA) * (engMultOf(c.bId) / avgEngB);
-      const cellEng = clamp(top.engagementRate * engFactor, 0.05, 0.98);
-      const cellEvents = cellSessions * (top.events / top.sessions) * (evMultOf(c.aId) / avgEvA) * (evMultOf(c.bId) / avgEvB);
-      out.series[c.id].push({ day, sessions: cellSessions, conversionRate: rate, purchases: cellSessions * rate, revenue: cellSessions * rate * AOV, engagementRate: cellEng, engagedSessions: cellSessions * cellEng, avgEngagementTime: top.avgEngagementTime * engFactor, events: cellEvents });
+    const otherProd = DIMENSIONS.filter((d) => d.key !== k1 && d.key !== k2).reduce((p, d) => p * dimW[d.key], 1);
+    // expected purchases per cell, with sampling noise
+    const cells = [];
+    for (const sa of A.segments) for (const sb of B.segments) {
+      const isIncidentCell = jointPair && ((sa.id === incident.segA && sb.id === incident.segB) || (sa.id === incident.segB && sb.id === incident.segA));
+      const cellMult = effectiveMult(A, sa, day, incident) * effectiveMult(B, sb, day, incident) * (isIncidentCell ? jf : 1) * otherProd;
+      const rate = clamp((top.conversionRate * cellMult) / convMultProduct, 0.0005, 0.98);
+      const sessions = (serA[sa.id][day].sessions * serB[sb.id][day].sessions) / top.sessions;
+      const expected = sessions * rate;
+      cells.push({ sa, sb, sessions, purchases: expected * jitter(rng, purchaseSigma(noise, expected)) });
     }
+    // rake to the marginal reports: rows to dim A's purchases, columns to dim B's
+    for (let it = 0; it < 40; it++) {
+      for (const sa of A.segments) { const row = cells.filter((c) => c.sa === sa), sum = row.reduce((a, c) => a + c.purchases, 0); row.forEach((c) => (c.purchases *= serA[sa.id][day].purchases / sum)); }
+      for (const sb of B.segments) { const col = cells.filter((c) => c.sb === sb), sum = col.reduce((a, c) => a + c.purchases, 0); col.forEach((c) => (c.purchases *= serB[sb.id][day].purchases / sum)); }
+    }
+    for (const c of cells) {
+      const engFactor = (engMultOf(c.sa.id) / avgEngA) * (engMultOf(c.sb.id) / avgEngB);
+      const engRate = clamp(top.engagementRate * engFactor * jitter(rng, noise * binomialSigma(top.engagementRate * engFactor, c.sessions)), 0.05, 0.98);
+      const events = c.sessions * (top.events / top.sessions) * (evMultOf(c.sa.id) / avgEvA) * (evMultOf(c.sb.id) / avgEvB) * jitter(rng, noise / Math.sqrt(Math.max(c.sessions * 5, 1)));
+      grid[`${c.sa.id}__${c.sb.id}`].push({
+        day, sessions: c.sessions, conversionRate: c.purchases / c.sessions, purchases: c.purchases, revenue: c.purchases * AOV,
+        engagementRate: engRate, engagedSessions: c.sessions * engRate,
+        avgEngagementTime: top.avgEngagementTime * engFactor * jitter(rng, (noise * 0.8) / Math.sqrt(Math.max(c.sessions, 1))), events,
+      });
+    }
+  }
+  return grid;
+}
+function buildCrossTab(caseData, aKey, bKey) {
+  const A = DMAP[aKey], B = DMAP[bKey];
+  const flipped = aKey > bKey;
+  const grid = flipped ? crossTabGrid(caseData, bKey, aKey) : crossTabGrid(caseData, aKey, bKey);
+  const out = { key: `${aKey}__${bKey}`, label: `${A.label} × ${B.label}`, segments: [], series: {}, isCrossTab: true, primary: aKey, secondary: bKey };
+  for (const sa of A.segments) for (const sb of B.segments) {
+    const id = `${sa.id}__${sb.id}`;
+    out.segments.push({ id, name: `${sa.name} / ${sb.name}` });
+    out.series[id] = grid[flipped ? `${sb.id}__${sa.id}` : id];
   }
   return out;
 }
@@ -559,7 +522,7 @@ function filterMatchesIncident(incident, filters) {
   if (!incident) return false;
   const fset = new Set(filters.map((f) => `${f.dim}:${f.seg}`));
   if (incident.type === "rate-joint") return fset.has(`${incident.dimA}:${incident.segA}`) && fset.has(`${incident.dimB}:${incident.segB}`);
-  if (incident.type === "rate") return fset.has(`${incident.dimension}:${incident.segment}`);
+  if (isSegmentIncident(incident)) return fset.has(`${incident.dimension}:${incident.segment}`);
   return false;
 }
 // Resolve the conversionRate series for 0/1/2 segment filters.
@@ -646,6 +609,8 @@ function summariseTopline(topline, earlyWindow = EARLY_WINDOW, lateWindow = LATE
     conversionRate: stat("conversionRate", false),
     purchases: stat("purchases", true),
     revenue: stat("revenue", true),
+    orders: stat("orders", true),
+    boRevenue: stat("boRevenue", true),
   };
 }
 
@@ -669,13 +634,22 @@ function realtimeSnapshot(caseData, seed = "rt") {
 function pairKey(dim, seg) { return dim ? `${dim}:${seg}` : null; }
 function dimSet(pairs) { return pairs.map((p) => p[0]).filter(Boolean).sort().join("|"); }
 function segSig(pairs) { return pairs.map((p) => pairKey(p[0], p[1])).filter(Boolean).sort().join("|"); }
+// When nothing broke (truth.dimension is null), the right call names no
+// segment (the "none" option) and so no start date; the cause is scored as
+// usual. A slow bleed's onset is fuzzy, so its truth may widen the date window.
 function scoreDiagnosis(guess, truth) {
+  if (!truth.dimension) {
+    const none = guess.dimension === "none";
+    const causeTypeCorrect = guess.causeType === truth.causeType;
+    const fieldsCorrect = [none, none, causeTypeCorrect, none].filter(Boolean).length;
+    return { dimensionCorrect: none, segmentCorrect: none, causeTypeCorrect, dateCorrect: none, fieldsCorrect, allCorrect: fieldsCorrect === 4 };
+  }
   const truthPairs = [[truth.dimension, truth.segment], [truth.secondary || null, truth.segmentB || null]];
   const guessPairs = [[guess.dimension, guess.segment], [guess.secondary || null, guess.segmentB || null]];
   const dimensionCorrect = dimSet(truthPairs) === dimSet(guessPairs);
   const segmentCorrect = dimensionCorrect && segSig(truthPairs) === segSig(guessPairs);
   const causeTypeCorrect = guess.causeType === truth.causeType;
-  const dateCorrect = Math.abs((guess.startDay ?? -999) - truth.startDay) <= 2;
+  const dateCorrect = Math.abs((guess.startDay ?? -999) - truth.startDay) <= (truth.dateTolerance ?? 2);
   const fieldsCorrect = [dimensionCorrect, segmentCorrect, causeTypeCorrect, dateCorrect].filter(Boolean).length;
   return { dimensionCorrect, segmentCorrect, causeTypeCorrect, dateCorrect, fieldsCorrect, allCorrect: fieldsCorrect === 4 };
 }
@@ -691,6 +665,15 @@ function scoreDiagnosis(guess, truth) {
 function reviewTrail(caseData, viewed = [], pivots = []) {
   const t = caseData.truth;
   const reports = viewed.filter((k) => DMAP[k]);
+  const usedBackOffice = viewed.includes("orders"), needsBackOffice = t.causeType === "tracking_bug";
+  if (!t.dimension) {
+    // Nothing broke: the evidence is that every report moves together, so the
+    // useful habit is checking several dimensions before calling it.
+    return {
+      noIncident: true, decisive: "no single report — the dip is the same in every segment", found: reports.length >= 3, foundAt: 0, compound: false,
+      reportsOpened: reports.length, pivotsBuilt: pivots.length, deadEnds: 0, usedFunnel: viewed.includes("funnel"), funnelStage: null, usedBackOffice, needsBackOffice,
+    };
+  }
   let foundAt = 0, decisive;
   if (t.secondary) {
     decisive = `the ${DMAP[t.dimension].label} \u00d7 ${DMAP[t.secondary].label} cross-tab`;
@@ -704,7 +687,7 @@ function reviewTrail(caseData, viewed = [], pivots = []) {
     decisive, found: foundAt > 0, foundAt, compound: !!t.secondary,
     reportsOpened: reports.length, pivotsBuilt: pivots.length,
     deadEnds: reports.filter((k) => k !== t.dimension && k !== t.secondary).length,
-    usedFunnel: viewed.includes("funnel"), funnelStage: stage,
+    usedFunnel: viewed.includes("funnel"), funnelStage: stage, usedBackOffice, needsBackOffice,
   };
 }
 
@@ -733,6 +716,6 @@ export {
   clamp, gbp, pct, pp, makeRng,
   TOTAL_DAYS, BASE_SESSIONS, BASE_CONVERSION, AOV, EARLY_WINDOW, LATE_WINDOW, dayShort, dayLong,
   DIMENSIONS, DMAP, REPORTS, CAUSE_TYPES, CASES, CASEMAP, FUNNEL_STAGES,
-  incidentFactorAt, generateCase, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod,
+  incidentFactorAt, generateCase, variantFor, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod,
   avgRange, sumRange, summariseSegments, summariseTopline, scoreDiagnosis, reviewTrail, GLOSSARY,
 };

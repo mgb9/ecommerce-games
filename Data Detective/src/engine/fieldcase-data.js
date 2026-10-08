@@ -1383,5 +1383,113 @@ export const FIELD_DATA = {
         "avgQty": 2.11
       }
     ]
+  },
+  "plaSummary": {
+    "basis": "Named ?ref=PLA rows in the 1,000-row Landing Pages export only; GA truncated the long tail (pages under 29 sessions), so these aggregates are a lower bound on all Shopping-ad traffic.",
+    "exportedRows": 1000,
+    "exportedSessions": 102363,
+    "reportSessions": 230128,
+    "pages": 888,
+    "products": 874,
+    "sessions": 70591,
+    "bounce": 0.8237,
+    "dur": 53.96,
+    "trans": 602,
+    "revenue": 247891.04,
+    "conv": 0.0085,
+    "zeroSaleOver200": 14,
+    "zeroSaleOver200Products": 14,
+    "zeroSaleOver200Pages": [
+      {
+        "name": "/502660-archos-smart-home-starter-pack--home-automation-kit--wireless--bluetooth-40-le.p1121802.html?ref=PLA",
+        "sessions": 509,
+        "bounce": 0.9116,
+        "dur": 11.1
+      },
+      {
+        "name": "/1004615-binatone-eclipse-plus--white-single-phone.p908498.html?ref=PLA",
+        "sessions": 411,
+        "bounce": 0.9294,
+        "dur": 10.71
+      },
+      {
+        "name": "/580adbq-venue-keyboard.p1128068.html?ref=PLA",
+        "sessions": 310,
+        "bounce": 0.8839,
+        "dur": 15.56
+      },
+      {
+        "name": "/g803000lscgb2-cherry-classic-line-g803000--keyboard--ps2-usb--uk--black.p575022.html?ref=PLA",
+        "sessions": 302,
+        "bounce": 0.8576,
+        "dur": 28.75
+      },
+      {
+        "name": "/90msvdy0g0eay20t-z9ped8-ws-2xs2011-atx.p1081074.html?ref=PLA",
+        "sessions": 299,
+        "bounce": 0.9231,
+        "dur": 23.31
+      },
+      {
+        "name": "/s3520bu33er-startechcom-usb-3-esata-dual-35-sata-iii-hdd-raid-enclosure-uasp--hard-drive-array--2-bays--sata600---superspeed-usb-30-serial-ata600-external.p1009327.html?ref=PLA",
+        "sessions": 278,
+        "bounce": 0.9065,
+        "dur": 11.51
+      },
+      {
+        "name": "/ls34e790cnsen-ls34e790cnsen-34-curved-monitor-3440x1440-uwqhd-30001-4ms-300cdm2-219-60hz.p1111477.html?ref=PLA",
+        "sessions": 274,
+        "bounce": 0.9307,
+        "dur": 13.63
+      },
+      {
+        "name": "/90ms0071m00150-asus-bbone-gaming-core-i7--4510-processor.p1088650.html?ref=PLA",
+        "sessions": 260,
+        "bounce": 0.9115,
+        "dur": 10.75
+      },
+      {
+        "name": "/780003b21-hp-dl360-gen9-e52699v3-kit.p1094378.html?ref=PLA",
+        "sessions": 259,
+        "bounce": 0.9459,
+        "dur": 12.28
+      },
+      {
+        "name": "/smg925fzgabtu-samsung-galaxy-s6-edge--smg925f--4g--32-gb--51--2560-x-1440-pixels--577-ppi---super-amoled--16-mpix--5mpix-front-camera---android--emerald-green.p1161407.html?ref=PLA",
+        "sessions": 257,
+        "bounce": 0.8249,
+        "dur": 44.53
+      },
+      {
+        "name": "/f8w305vfc00-belkin-vans-waffle-sole-case--protective-case-for-digital-player--silicone--for-apple-ipod-touch-5g.p945881.html?ref=PLA",
+        "sessions": 235,
+        "bounce": 0.9787,
+        "dur": 1.46
+      },
+      {
+        "name": "/g20ajuk007s-g20i74790-16gb-128gb-ssd-2tb-w81.p1146217.html?ref=PLA",
+        "sessions": 221,
+        "bounce": 0.8914,
+        "dur": 20.05
+      },
+      {
+        "name": "/si10x-wharsi10x.p1060567.html?ref=PLA",
+        "sessions": 218,
+        "bounce": 0.9633,
+        "dur": 30.8
+      },
+      {
+        "name": "/smn915fzkybtu-samsung-note-edge-32gb-56-display-quad-core--super-amoled-android-battery--3000-mah-removable-3gb-ram-micro-sd-up-to-128gb-resolution-560-x-1440160-quad-hd-camera-cmo.p1153586.html?ref=PLA",
+        "sessions": 212,
+        "bounce": 0.9057,
+        "dur": 21.21
+      }
+    ],
+    "worst": {
+      "name": "/502660-archos-smart-home-starter-pack--home-automation-kit--wireless--bluetooth-40-le.p1121802.html?ref=PLA",
+      "sessions": 509,
+      "bounce": 0.9116,
+      "dur": 11.1
+    }
   }
 };

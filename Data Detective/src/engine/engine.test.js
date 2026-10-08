@@ -10,6 +10,12 @@ const CASE2_ID = "mobile-safari-bug";
 const CASE3_ID = "traffic-mix";
 const CASE4_ID = "masked-desktop";
 
+// Mechanics tests describe one specific variant (PayPal, Mobile Safari, …)
+// and the exact expected-value model, so they pin the variant and switch
+// sampling noise off. The noise itself, and every variant's narrative,
+// have their own tests further down.
+const exact = (id, seed = "SEED-A", variant = 0) => generateCase(id, seed, { noise: 0, variant });
+
 /* ---- basics ----------------------------------------------------- */
 describe("generateCase basics", () => {
   it("produces TOTAL_DAYS of finite, in-range topline data", () => {
@@ -49,7 +55,7 @@ describe("determinism", () => {
 
 /* ---- the core invariant: breakdowns reconcile with the topline --- */
 describe("internal consistency", () => {
-  const c = generateCase(CASE_ID, "SEED-A");
+  const c = exact(CASE_ID, "SEED-A");
   it("every dimension's segment purchases sum to topline purchases, every day", () => {
     for (const dim of c.breakdowns) for (let day = 0; day < TOTAL_DAYS; day++) {
       const sum = dim.segments.reduce((a, s) => a + dim.series[s.id][day].purchases, 0);
@@ -66,7 +72,7 @@ describe("internal consistency", () => {
 
 /* ---- THE sanity test: the signal is isolated to the true dimension */
 describe("the incident is isolated to its true dimension", () => {
-  const c = generateCase(CASE_ID, "SEED-A");
+  const c = exact(CASE_ID, "SEED-A");
   const { truth } = c;
   const avg = (rows) => rows.reduce((a, r) => a + r.conversionRate, 0) / rows.length;
   const before = (rows) => avg(rows.filter((r) => r.day < truth.startDay));
@@ -100,7 +106,7 @@ describe("the incident is isolated to its true dimension", () => {
 
 /* ---- the red herring is genuinely debunkable by the data --------- */
 describe("the red herring", () => {
-  const c = generateCase(CASE_ID, "SEED-A");
+  const c = exact(CASE_ID, "SEED-A");
   const before = (rows) => rows.filter((r) => r.day < 18);
   const shift = (rows) => rows.filter((r) => r.day >= 18 && r.day <= 20);
   const avg = (rows, key) => rows.reduce((a, r) => a + r[key], 0) / rows.length;
@@ -124,7 +130,7 @@ describe("the red herring", () => {
 
 /* ---- summariseSegments: the investigation-workspace tool --------- */
 describe("summariseSegments", () => {
-  const c = generateCase(CASE_ID, "SEED-A");
+  const c = exact(CASE_ID, "SEED-A");
   it("computes a large, correct drop for the true segment — but doesn't rank it first by default", () => {
     // Difficulty matters here: the default order is by SHARE (like a real
     // analytics table), not by size-of-anomaly. Handing the answer to row
@@ -161,7 +167,7 @@ describe("summariseSegments", () => {
 
 /* ---- summariseTopline: the GA-style KPI cards --------------------- */
 describe("summariseTopline", () => {
-  const c = generateCase(CASE_ID, "SEED-A");
+  const c = exact(CASE_ID, "SEED-A");
   it("conversion rate and revenue both reflect the incident's drop", () => {
     const s = summariseTopline(c.topline);
     expect(s.conversionRate.pctChange).toBeLessThan(-0.15);
@@ -187,7 +193,7 @@ describe("summariseTopline", () => {
    should fully isolate it; only the Device × Browser cross-tab does.
    ==================================================================== */
 describe("case 2: the topline is real but deliberately subtle", () => {
-  const c = generateCase(CASE2_ID, "SEED-A", { noise: 1.4 });
+  const c = exact(CASE2_ID, "SEED-A");
   it("conversion and revenue are down, but nowhere near case 1's scale", () => {
     const s = summariseTopline(c.topline);
     expect(s.conversionRate.pctChange).toBeLessThan(-0.03);
@@ -197,7 +203,7 @@ describe("case 2: the topline is real but deliberately subtle", () => {
 });
 
 describe("case 2: Device alone and Browser alone are each inconclusive", () => {
-  const c = generateCase(CASE2_ID, "SEED-A", { noise: 1.4 });
+  const c = exact(CASE2_ID, "SEED-A");
   it("Mobile (device) shows a real but partial dip — diluted, not the full story", () => {
     const row = summariseSegments(c.breakdowns.find((d) => d.key === "device")).find((r) => r.id === "mobile");
     expect(row.pctChange).toBeLessThan(-0.05);  // real signal...
@@ -225,7 +231,7 @@ describe("case 2: Device alone and Browser alone are each inconclusive", () => {
 });
 
 describe("case 2: a Device × Browser cross-tab (built on demand) isolates the true cause", () => {
-  const c = generateCase(CASE2_ID, "SEED-A", { noise: 1.4 });
+  const c = exact(CASE2_ID, "SEED-A");
   const joint = buildCrossTab(c, "device", "browser");
   const id = (a, b) => `${a}__${b}`;
   it("there is NO pre-baked compound report — the analyst must pivot to build it", () => {
@@ -273,7 +279,7 @@ describe("case 2: a Device × Browser cross-tab (built on demand) isolates the t
 });
 
 describe("buildCrossTab reconciles for case 1's single-dimension incident too", () => {
-  const c = generateCase("paypal-gateway", "SEED-A", { noise: 1.4 });
+  const c = exact("paypal-gateway", "SEED-A");
   it("cross-tabbing payment × device spreads the PayPal collapse evenly across devices", () => {
     const ct = buildCrossTab(c, "payment", "device");
     const summary = summariseSegments(ct);
@@ -293,7 +299,7 @@ describe("buildCrossTab reconciles for case 1's single-dimension incident too", 
 });
 
 describe("case 2: every uninvolved dimension is a clean dead end", () => {
-  const c = generateCase(CASE2_ID, "SEED-A", { noise: 1.4 });
+  const c = exact(CASE2_ID, "SEED-A");
   it("country/source/payment/page all move uniformly with the topline — no differential signal", () => {
     const toplineSummary = summariseTopline(c.topline);
     for (const key of ["country", "source", "payment", "page"]) {
@@ -305,7 +311,7 @@ describe("case 2: every uninvolved dimension is a clean dead end", () => {
 });
 
 describe("case 2: the red herring is real but debunkable", () => {
-  const c = generateCase(CASE2_ID, "SEED-A", { noise: 1.4 });
+  const c = exact(CASE2_ID, "SEED-A");
   const before = (rows) => rows.filter((r) => r.day < 14);
   const dip = (rows) => rows.filter((r) => r.day >= 14 && r.day <= 16);
   const avg = (rows, key) => rows.reduce((a, r) => a + r[key], 0) / rows.length;
@@ -320,7 +326,7 @@ describe("case 2: the red herring is real but debunkable", () => {
 });
 
 describe("case 2: scoring works for a compound (primary + secondary) answer", () => {
-  const { truth } = generateCase(CASE2_ID, "SEED-A");
+  const { truth } = exact(CASE2_ID, "SEED-A");
   it("the correct compound answer scores 4/4", () => {
     const s = scoreDiagnosis({ dimension: truth.dimension, segment: truth.segment, secondary: truth.secondary, segmentB: truth.segmentB, causeType: truth.causeType, startDay: truth.startDay }, truth);
     expect(s.allCorrect).toBe(true);
@@ -351,7 +357,7 @@ describe("REPORTS nav metadata is well-formed", () => {
 
 /* ---- the extra GA4 engagement metrics (more data + decoys) -------- */
 describe("engagement metrics", () => {
-  const c = generateCase(CASE_ID, "SEED-A", { noise: 1.4 });
+  const c = exact(CASE_ID, "SEED-A");
   it("topline and every segment carry engagement rate, time and events, all finite & in range", () => {
     for (const row of c.topline) {
       expect(row.engagementRate).toBeGreaterThan(0.1); expect(row.engagementRate).toBeLessThan(0.95);
@@ -387,7 +393,7 @@ describe("engagement metrics", () => {
 
 describe("more dimensions", () => {
   it("region, age and gender exist as full reports", () => {
-    const c = generateCase(CASE_ID, "SEED-A");
+    const c = exact(CASE_ID, "SEED-A");
     for (const key of ["region", "age", "gender"]) {
       const dim = c.breakdowns.find((d) => d.key === key);
       expect(dim, key).toBeTruthy();
@@ -398,8 +404,8 @@ describe("more dimensions", () => {
 
 /* ---- the multi-stage funnel -------------------------------------- */
 describe("buildFunnel", () => {
-  const c1 = generateCase(CASE_ID, "SEED-A", { noise: 1.4 });        // PayPal, breaks 'purchase'
-  const c2 = generateCase("mobile-safari-bug", "SEED-A", { noise: 1.4 }); // Mobile Safari, breaks 'atc'
+  const c1 = exact(CASE_ID, "SEED-A");        // PayPal, breaks 'purchase'
+  const c2 = exact("mobile-safari-bug", "SEED-A"); // Mobile Safari, breaks 'atc'
   const dropStage = (summary) => Object.entries(summary).filter(([k]) => k !== "overall").sort((a, b) => a[1].pctChange - b[1].pctChange)[0][0];
 
   it("the four step-rates multiply to the overall conversion rate, every day", () => {
@@ -443,7 +449,7 @@ describe("precedingPeriod", () => {
     expect(precedingPeriod([0, 6])).toEqual([0, 0]); // clamped
   });
   it("summaries accept an arbitrary current/comparison window", () => {
-    const c = generateCase(CASE_ID, "SEED-A", { noise: 1.4 });
+    const c = exact(CASE_ID, "SEED-A");
     // a window placed entirely BEFORE the incident should show ~no conversion drop
     const clean = summariseTopline(c.topline, [0, 6], [7, 13]);
     expect(Math.abs(clean.conversionRate.pctChange)).toBeLessThan(0.1);
@@ -452,7 +458,7 @@ describe("precedingPeriod", () => {
     expect(real.conversionRate.pctChange).toBeLessThan(-0.1);
   });
   it("count-metric % change is per-day normalised, so unequal window lengths don't read as a fake jump", () => {
-    const c = generateCase(CASE_ID, "SEED-A", { noise: 1.4 });
+    const c = exact(CASE_ID, "SEED-A");
     // comparing a 21-day window to the clean first week: sessions/day are
     // roughly flat, so the delta must be small — NOT ~+200% from summing 3× the days
     const s = summariseTopline(c.topline, [0, 6], [7, 27]);
@@ -463,7 +469,7 @@ describe("precedingPeriod", () => {
 
 describe("realtimeSnapshot (flavour only)", () => {
   it("is deterministic per seed and returns active users + a 30-bucket trend", () => {
-    const c = generateCase(CASE_ID, "SEED-A");
+    const c = exact(CASE_ID, "SEED-A");
     const a = realtimeSnapshot(c, "SEED-A"), b = realtimeSnapshot(c, "SEED-A");
     expect(a).toEqual(b);
     expect(a.perMinute.length).toBe(30);
@@ -497,7 +503,7 @@ describe("incident shapes", () => {
 
 /* ---- scoring -------------------------------------------------------- */
 describe("scoreDiagnosis", () => {
-  const { truth } = generateCase(CASE_ID, "SEED-A");
+  const { truth } = exact(CASE_ID, "SEED-A");
   it("a fully correct guess scores 4/4", () => {
     const s = scoreDiagnosis({ dimension: truth.dimension, segment: truth.segment, causeType: truth.causeType, startDay: truth.startDay }, truth);
     expect(s.allCorrect).toBe(true);
@@ -519,41 +525,50 @@ describe("scoreDiagnosis", () => {
 });
 
 /* ---- case file integrity ------------------------------------------- */
+const VARIANTS = CASES.flatMap((c) => c.variants.map((v, i) => ({ c, v, i, label: `${c.id} v${i}` })));
 describe("case file", () => {
-  // Look up dimensions via the GENERATED case (generateCase's own
-  // `breakdowns`), not the static DIMENSIONS list — a case can target a
-  // compound/cross-tab dimension (e.g. "device_browser") that only
-  // exists once generated, not as one of the six base dimensions.
-  it("every case's truth references a real dimension, segment and cause type", () => {
-    for (const c of CASES) {
-      const generated = generateCase(c.id, "SEED-A");
-      const dim = generated.breakdowns.find((d) => d.key === c.truth.dimension);
-      expect(dim, c.id).toBeTruthy();
-      expect(dim.segments.some((s) => s.id === c.truth.segment), c.id).toBe(true);
-      expect(CAUSE_TYPES.some((t) => t.id === c.truth.causeType), c.id).toBe(true);
+  it("every variant's truth references a real dimension, segment and cause type (or, when nothing broke, none)", () => {
+    for (const { v, label } of VARIANTS) {
+      const t = v.truth;
+      expect(CAUSE_TYPES.some((x) => x.id === t.causeType), label).toBe(true);
+      if (!t.dimension) { expect(t.causeType, label).toBe("external_no_issue"); continue; }
+      for (const [d, sg] of [[t.dimension, t.segment], ...(t.secondary ? [[t.secondary, t.segmentB]] : [])]) {
+        const dim = DIMENSIONS.find((x) => x.key === d);
+        expect(dim, label).toBeTruthy();
+        expect(dim.segments.some((x) => x.id === sg), label).toBe(true);
+      }
     }
   });
   it("ticket-time event labels don't name the true dimension/segment — that's for the data to reveal", () => {
     // A real changelog entry wouldn't pre-announce the diagnosis. If a
-    // segment's own name (or a dead giveaway like the cause-type's words)
-    // appears in an event label, the puzzle can be solved from the ticket
-    // text alone, without ever touching the dashboard.
-    for (const c of CASES) {
-      const generated = generateCase(c.id, "SEED-A");
-      const dim = generated.breakdowns.find((d) => d.key === c.truth.dimension);
-      const giveaways = [...dim.label.split(" × "), ...dim.segments.map((s) => s.name).flatMap((n) => n.split(" + ")), "gateway"];
-      for (const e of c.events) for (const word of giveaways) {
-        expect(e.label.toLowerCase(), `"${e.label}" contains "${word}"`).not.toContain(word.toLowerCase());
+    // segment's own name (or a dead giveaway like "gateway") appears in an
+    // event label, the puzzle can be solved from the ticket text alone.
+    for (const { v, label } of VARIANTS) {
+      const dims = [v.truth.dimension, v.truth.secondary].filter(Boolean).map((k) => DIMENSIONS.find((d) => d.key === k));
+      const giveaways = [...dims.flatMap((d) => [d.label, ...d.segments.map((s) => s.name)]), "gateway"];
+      for (const e of v.events) for (const word of giveaways) {
+        expect(e.label.toLowerCase(), `${label}: "${e.label}" contains "${word}"`).not.toContain(word.toLowerCase());
       }
     }
+  });
+  it("every case has at least two variants, and the seed reaches all of them", () => {
+    for (const c of CASES) {
+      expect(c.variants.length, c.id).toBeGreaterThanOrEqual(2);
+      const seen = new Set(Array.from({ length: 40 }, (_, k) => generateCase(c.id, "seed-" + k).variant));
+      expect(seen.size, c.id).toBe(c.variants.length);
+    }
+  });
+  it("cause types that are never the answer would teach students to rule them out — every cause is used", () => {
+    const used = new Set(VARIANTS.map(({ v }) => v.truth.causeType));
+    for (const t of CAUSE_TYPES) expect(used.has(t.id), t.id).toBe(true);
   });
 });
 
 /* ---- every case reconciles (incl. the two Expert cases) --------- */
-describe("all cases reconcile to the topline", () => {
-  for (const def of CASES) {
-    it(`${def.id}: segment purchases sum to topline every day`, () => {
-      const c = generateCase(def.id, "SEED-A");
+describe("all cases reconcile to the topline (with sampling noise on)", () => {
+  for (const { c: def, i, label } of VARIANTS) {
+    it(`${label}: segment purchases sum to topline every day`, () => {
+      const c = generateCase(def.id, "SEED-A", { noise: 1.4, variant: i });
       for (const dim of c.breakdowns) for (let day = 0; day < TOTAL_DAYS; day++) {
         const sum = dim.segments.reduce((a, s) => a + dim.series[s.id][day].purchases, 0);
         expect(Math.abs(sum - c.topline[day].purchases)).toBeLessThan(1e-6);
@@ -566,11 +581,11 @@ const rat = (rows, key = "conversionRate") => avgRange(rows, LATE_WINDOW, key) /
 
 /* ---- EXPERT case 3: composition / mix-shift trap ---------------- */
 describe("composition trap (traffic-mix)", () => {
-  const c = generateCase(CASE3_ID, "SEED-A");
+  const c = exact(CASE3_ID, "SEED-A");
   const src = c.breakdowns.find((d) => d.key === "source").series;
   it("has no rate incident at all", () => { expect(c.incident).toBeNull(); });
-  it("the sitewide conversion rate falls", () => {
-    expect(rat(c.topline)).toBeLessThan(0.94);
+  it("the sitewide conversion rate falls (by the mix shift alone, in the exact model)", () => {
+    expect(rat(c.topline)).toBeLessThan(0.97);
   });
   it("yet NO segment craters faster than the topline (nothing is 'broken')", () => {
     const tl = rat(c.topline);
@@ -588,7 +603,7 @@ describe("composition trap (traffic-mix)", () => {
 
 /* ---- EXPERT case 4: masked localized incident ------------------- */
 describe("masked incident (masked-desktop)", () => {
-  const c = generateCase(CASE4_ID, "SEED-A");
+  const c = exact(CASE4_ID, "SEED-A");
   const dev = c.breakdowns.find((d) => d.key === "device").series;
   const ut = c.breakdowns.find((d) => d.key === "userType").series;
   it("the topline barely moves (the incident is masked)", () => {
@@ -608,54 +623,79 @@ describe("masked incident (masked-desktop)", () => {
 
 /* ---- the case text must match the data ----------------------------
    Tickets and reveal explanations quote magnitudes ("down about a
-   fifth", "fell by more than 90%", "UP about 12%"). Students check
-   them against the dashboard, so pin each one across a spread of
-   seeds at the default noise: retuning the engine must not silently
-   turn the narrative into a lie. Week 1 vs week 4, as the tables show. */
+   fifth", "fell by around 90%", "about three-quarters"). Students check
+   them against the dashboard, so pin each one, per variant, across a
+   spread of seeds at the default noise (1.4) with sampling noise on:
+   retuning the engine must not silently turn the narrative into a lie.
+   Week 1 vs week 4, as the tables show by default. */
 describe("case narratives match the generated data", () => {
-  const SEEDS = ["DD-2026", "A1", "B2", "C3", "cohort-x", "Z9", "q", "WM956"];
+  const SEEDS = ["DD-2026", "A1", "B2", "C3", "cohort-x", "Z9", "q", "WM956", "S7919", "S15838"];
+  const gen = (id, v, seed) => generateCase(id, seed, { noise: 1.4, variant: v });
   const seg = (cd, dim, id) => summariseSegments(cd.breakdowns.find((d) => d.key === dim)).find((r) => r.id === id).pctChange;
-  const forEachSeed = (caseId, fn) => SEEDS.forEach((s) => fn(generateCase(caseId, s, { noise: 1.4 }), s));
+  const big = (cd, dim, except) => summariseSegments(cd.breakdowns.find((d) => d.key === dim)).filter((r) => r.id !== except && r.shareLate >= 0.2);
+  const conv = (cd) => summariseTopline(cd.topline).conversionRate.pctChange;
+  const rev = (cd) => summariseTopline(cd.topline).revenue.pctChange;
+  const orders = (cd) => summariseTopline(cd.topline).orders.pctChange;
+  const between = (x, lo, hi, msg) => { expect(x, msg).toBeGreaterThan(lo); expect(x, msg).toBeLessThan(hi); };
+  const each = (id, v, fn) => SEEDS.forEach((seed) => fn(gen(id, v, seed), seed));
 
-  it("case 1: revenue down 15–20%; PayPal down about two-thirds, the rest flat", () => {
-    forEachSeed(CASE_ID, (cd) => {
-      const rev = summariseTopline(cd.topline).revenue.pctChange;
-      expect(rev).toBeLessThan(-0.12); expect(rev).toBeGreaterThan(-0.23);
-      expect(seg(cd, "payment", "paypal")).toBeLessThan(-0.6); expect(seg(cd, "payment", "paypal")).toBeGreaterThan(-0.72);
-      for (const id of ["card", "applepay", "bank"]) expect(Math.abs(seg(cd, "payment", id))).toBeLessThan(0.06);
-    });
-  });
-  it("case 2: Mobile alone down about a fifth, Safari alone about a third, the cell >90%, other cells flat", () => {
-    forEachSeed(CASE2_ID, (cd) => {
-      expect(seg(cd, "device", "mobile")).toBeLessThan(-0.15); expect(seg(cd, "device", "mobile")).toBeGreaterThan(-0.28);
-      expect(seg(cd, "browser", "safari")).toBeLessThan(-0.27); expect(seg(cd, "browser", "safari")).toBeGreaterThan(-0.4);
-      const cells = summariseSegments(buildCrossTab(cd, "device", "browser"));
-      expect(cells.find((r) => r.id === "mobile__safari").pctChange).toBeLessThan(-0.9);
-      for (const r of cells.filter((r) => r.id !== "mobile__safari")) expect(Math.abs(r.pctChange)).toBeLessThan(0.06);
-    });
-  });
-  it("case 3: sitewide conversion down 5–10%ish; every traffic source moves together", () => {
-    forEachSeed(CASE3_ID, (cd) => {
-      const conv = summariseTopline(cd.topline).conversionRate.pctChange;
-      expect(conv).toBeLessThan(-0.04); expect(conv).toBeGreaterThan(-0.12);
-      const moves = summariseSegments(cd.breakdowns.find((d) => d.key === "source")).map((r) => r.pctChange);
-      expect(Math.max(...moves) - Math.min(...moves)).toBeLessThan(0.001);
-      expect(Math.abs(moves[0])).toBeLessThan(0.06);
-    });
-  });
-  it("case 4: topline down only a few percent; desktop down about 20%, mobile and tablet UP about 12%", () => {
-    forEachSeed(CASE4_ID, (cd) => {
-      const conv = summariseTopline(cd.topline).conversionRate.pctChange;
-      expect(conv).toBeLessThan(-0.02); expect(conv).toBeGreaterThan(-0.08);
-      expect(seg(cd, "device", "desktop")).toBeLessThan(-0.16); expect(seg(cd, "device", "desktop")).toBeGreaterThan(-0.24);
-      for (const id of ["mobile", "tablet"]) { expect(seg(cd, "device", id)).toBeGreaterThan(0.08); expect(seg(cd, "device", id)).toBeLessThan(0.16); }
-    });
-  });
+  it("case 1 v0: revenue down 15–20%; PayPal down about two-thirds; big methods flat", () => each(CASE_ID, 0, (cd, s) => {
+    between(rev(cd), -0.24, -0.11, s); between(seg(cd, "payment", "paypal"), -0.75, -0.57, s);
+    for (const r of big(cd, "payment", "paypal")) between(r.pctChange, -0.08, 0.08, `${s} ${r.id}`);
+  }));
+  it("case 1 v1: revenue down 10–15%; Apple Pay down more than 90%; big methods flat", () => each(CASE_ID, 1, (cd, s) => {
+    between(rev(cd), -0.19, -0.06, s); expect(seg(cd, "payment", "applepay"), s).toBeLessThan(-0.9);
+    for (const r of big(cd, "payment", "applepay")) between(r.pctChange, -0.16, 0.12, `${s} ${r.id}`);
+  }));
+  const cells = (cd, a, b) => summariseSegments(buildCrossTab(cd, a, b));
+  it("case 2 v0: Mobile alone about a fifth, Safari alone about a third, the cell around 90%", () => each(CASE2_ID, 0, (cd, s) => {
+    between(seg(cd, "device", "mobile"), -0.36, -0.12, s); between(seg(cd, "browser", "safari"), -0.46, -0.2, s);
+    expect(cells(cd, "device", "browser").find((r) => r.id === "mobile__safari").pctChange, s).toBeLessThan(-0.84);
+  }));
+  it("case 2 v1: Desktop alone about a fifth, Safari alone about half, the cell more than 80%", () => each(CASE2_ID, 1, (cd, s) => {
+    between(seg(cd, "device", "desktop"), -0.31, -0.11, s); between(seg(cd, "browser", "safari"), -0.62, -0.38, s);
+    expect(cells(cd, "device", "browser").find((r) => r.id === "desktop__safari").pctChange, s).toBeLessThan(-0.79);
+  }));
+  it("case 2: every big other combination moves only within normal wobble", () => [0, 1].forEach((v) => each(CASE2_ID, v, (cd, s) => {
+    const t = cd.truth;
+    for (const r of cells(cd, "device", "browser").filter((r) => r.id !== `${t.segment}__${t.segmentB}` && r.shareLate >= 0.2)) between(r.pctChange, -0.2, 0.2, `${s} ${r.id}`);
+  })));
+  it("case 3: sitewide conversion has slipped; no segment's own rate in the shifted dimension falls more than its wobble", () => [0, 1].forEach((v) => each(CASE3_ID, v, (cd, s) => {
+    between(conv(cd), -0.12, -0.01, s);
+    for (const r of summariseSegments(cd.breakdowns.find((d) => d.key === cd.truth.dimension)).filter((r) => r.shareLate >= 0.2)) expect(r.pctChange, `${s} ${r.id}`).toBeGreaterThan(-0.18);
+  })));
+  it("case 4 v0: topline down a few percent; mobile UP 10–20%ish; desktop down about a fifth", () => each(CASE4_ID, 0, (cd, s) => {
+    between(conv(cd), -0.09, 0, s); between(seg(cd, "device", "mobile"), 0.02, 0.3, s); between(seg(cd, "device", "desktop"), -0.28, -0.1, s);
+  }));
+  it("case 4 v1: topline down a few percent; desktop UP 10–15%ish; mobile down more than a third", () => each(CASE4_ID, 1, (cd, s) => {
+    between(conv(cd), -0.09, 0, s); between(seg(cd, "device", "desktop"), 0.02, 0.24, s); between(seg(cd, "device", "mobile"), -0.46, -0.27, s);
+  }));
+  it("case 5: the affected landings are down about half by the last week; the rest hold", () => [0, 1].forEach((v) => each("stockout-slow-bleed", v, (cd, s) => {
+    const t = cd.truth;
+    between(seg(cd, t.dimension, t.segment), -0.67, -0.4, s);
+    for (const r of big(cd, t.dimension, t.segment)) between(r.pctChange, -0.17, 0.25, `${s} ${r.id}`);   // "held": none of them fell
+  })));
+  it("case 6: analytics says crash, back-office orders say nothing happened", () => [0, 1].forEach((v) => each("false-alarm-tracking", v, (cd, s) => {
+    const t = cd.truth;
+    if (v === 0) { between(conv(cd), -0.25, -0.15, s); expect(seg(cd, t.dimension, t.segment), s).toBeLessThan(-0.84); }
+    else { between(conv(cd), -0.34, -0.24, s); expect(seg(cd, t.dimension, t.segment), s).toBeLessThan(-0.8); }
+    between(orders(cd), -0.08, 0.14, s);   // "never dipped": within normal wobble
+    const cov = (lo, hi) => { const r = cd.topline.filter((x) => x.day >= lo && x.day <= hi); return r.reduce((a, x) => a + x.purchases, 0) / r.reduce((a, x) => a + x.orders, 0); };
+    between(cov(0, t.startDay - 1), 0.94, 0.98, `${s} before`);
+    between(cov(t.startDay, TOTAL_DAYS - 1), v === 0 ? 0.72 : 0.63, v === 0 ? 0.79 : 0.71, `${s} after`);   // "about three-quarters" / "about two-thirds"
+  })));
+  it("case 7: the calendar day is the lowest day; the week is within a few percent; some small segment looks alarming", () => [0, 1].forEach((v) => each("normal-week", v, (cd, s) => {
+    const day = CASES.find((c) => c.id === "normal-week").variants[v].calendarEvents[0].day;
+    expect(cd.topline.every((r) => r.conversionRate >= cd.topline[day].conversionRate), s).toBe(true);
+    between(conv(cd), -0.08, 0.03, s);
+    const worst = Math.max(...cd.breakdowns.flatMap((b) => summariseSegments(b).map((r) => Math.abs(r.pctChange))));
+    expect(worst, s).toBeGreaterThan(0.12);   // "a swing of 20% or more" is common; at least one segment always swings
+  })));
 });
 
 /* ---- the debrief's review of the investigation trail ------------- */
 describe("reviewTrail", () => {
-  const c1 = generateCase(CASE_ID, "DD-2026"), c2 = generateCase(CASE2_ID, "DD-2026");
+  const c1 = exact(CASE_ID, "DD-2026"), c2 = exact(CASE2_ID, "DD-2026");
   it("single-segment case: finds the decisive report and its position; counts dead ends", () => {
     const r = reviewTrail(c1, ["funnel", "device", "source", "payment", "realtime"], []);
     expect(r).toMatchObject({ found: true, foundAt: 3, reportsOpened: 3, deadEnds: 2, usedFunnel: true, compound: false, funnelStage: "Purchase" });
@@ -668,6 +708,97 @@ describe("reviewTrail", () => {
   });
   it("an empty trail is handled; every case has a lesson", () => {
     expect(reviewTrail(c1)).toMatchObject({ found: false, foundAt: 0, reportsOpened: 0, deadEnds: 0, usedFunnel: false });
-    for (const c of CASES) expect(c.truth.lesson.length).toBeGreaterThan(40);
+    for (const c of CASES) expect(c.lesson.length).toBeGreaterThan(40);
+  });
+});
+
+/* ---- sampling noise: no more lockstep ------------------------------ */
+describe("segment sampling noise", () => {
+  const cd = generateCase(CASE_ID, "SEED-A", { noise: 1.4, variant: 0 });
+  it("unaffected segments no longer move in lockstep — sorting by Δ isn't a free answer", () => {
+    for (const key of ["payment", "device", "country"]) {
+      const moves = summariseSegments(cd.breakdowns.find((d) => d.key === key)).filter((r) => r.id !== "paypal").map((r) => r.pctChange);
+      expect(Math.max(...moves) - Math.min(...moves), key).toBeGreaterThan(0.01);
+    }
+  });
+  it("small segments are noisier than big ones (sample size matters)", () => {
+    const spread = (dim, id) => { const rows = cd.breakdowns.find((d) => d.key === dim).series[id].slice(0, 18).map((r) => r.conversionRate); const m = rows.reduce((a, b) => a + b, 0) / rows.length; return Math.sqrt(rows.reduce((a, r) => a + (r - m) ** 2, 0) / rows.length) / m; };
+    expect(spread("device", "tablet")).toBeGreaterThan(spread("device", "desktop"));
+    expect(spread("payment", "bank")).toBeGreaterThan(spread("payment", "card"));
+  });
+  it("noise 0 reproduces the exact expected-value model (lockstep again)", () => {
+    const flat = generateCase(CASE_ID, "SEED-A", { noise: 0, variant: 0 });
+    const moves = summariseSegments(flat.breakdowns.find((d) => d.key === "device")).map((r) => r.pctChange);
+    expect(Math.max(...moves) - Math.min(...moves)).toBeLessThan(1e-9);
+  });
+  it("cross-tabs are noisy too, yet reconcile exactly to BOTH marginal reports, and A × B equals B × A", () => {
+    const c2 = generateCase(CASE2_ID, "SEED-A", { noise: 1.4, variant: 0 });
+    const ab = buildCrossTab(c2, "device", "browser"), ba = buildCrossTab(c2, "browser", "device");
+    const dev = c2.breakdowns.find((d) => d.key === "device").series, br = c2.breakdowns.find((d) => d.key === "browser").series;
+    for (const day of [0, 13, 27]) {
+      for (const d of Object.keys(dev)) expect(Object.keys(br).reduce((a, b) => a + ab.series[`${d}__${b}`][day].purchases, 0)).toBeCloseTo(dev[d][day].purchases, 6);
+      for (const b of Object.keys(br)) expect(Object.keys(dev).reduce((a, d) => a + ab.series[`${d}__${b}`][day].purchases, 0)).toBeCloseTo(br[b][day].purchases, 6);
+      expect(ab.series.desktop__chrome[day]).toEqual(ba.series.chrome__desktop[day]);
+    }
+  });
+});
+
+/* ---- tracking incidents and back-office orders --------------------- */
+describe("back-office orders (the ground truth)", () => {
+  it("normally track analytics purchases at ~96% coverage", () => {
+    const cd = generateCase(CASE_ID, "SEED-A", { noise: 1.4, variant: 0 });
+    for (const r of cd.topline) expect(r.purchases / r.orders).toBeGreaterThan(0.93);
+  });
+  it("a real incident shows in both; a tracking incident only in analytics", () => {
+    const real = generateCase(CASE_ID, "SEED-A", { noise: 0, variant: 0 }), fake = generateCase("false-alarm-tracking", "SEED-A", { noise: 0, variant: 0 });
+    expect(summariseTopline(real.topline).orders.pctChange).toBeLessThan(-0.1);
+    expect(summariseTopline(fake.topline).purchases.pctChange).toBeLessThan(-0.1);
+    expect(Math.abs(summariseTopline(fake.topline).orders.pctChange)).toBeLessThan(0.01);
+  });
+  it("the funnel pins a tracking fault to Purchase — just like a gateway failure", () => {
+    const fake = generateCase("false-alarm-tracking", "SEED-A", { noise: 0, variant: 0 });
+    expect(buildFunnel(fake, [{ dim: "browser", seg: "safari" }]).attributedStage).toBe("purchase");
+  });
+});
+
+/* ---- calendar effects -------------------------------------------- */
+describe("calendar effects", () => {
+  it("move the whole site for one day, every segment together", () => {
+    const cd = generateCase("normal-week", "SEED-A", { noise: 0, variant: 0 });
+    const before = cd.topline[14].conversionRate, holiday = cd.topline[21].conversionRate;
+    expect(holiday / before).toBeLessThan(0.9);
+    for (const id of ["desktop", "mobile", "tablet"]) {
+      const rows = cd.breakdowns.find((d) => d.key === "device").series[id];
+      expect(rows[21].conversionRate / rows[14].conversionRate).toBeCloseTo(holiday / before, 6);
+    }
+  });
+});
+
+/* ---- scoring: nothing broken, and fuzzy onsets -------------------- */
+describe("scoreDiagnosis edge cases", () => {
+  const none = CASES.find((c) => c.id === "normal-week").variants[0].truth;
+  it("when nothing broke, naming no segment and 'nothing is broken' scores 4/4", () => {
+    expect(scoreDiagnosis({ dimension: "none", segment: null, causeType: "external_no_issue", startDay: null }, none).fieldsCorrect).toBe(4);
+  });
+  it("…and inventing a broken segment scores only the cause, if that", () => {
+    expect(scoreDiagnosis({ dimension: "device", segment: "tablet", causeType: "deploy_bug", startDay: 21 }, none).fieldsCorrect).toBe(0);
+  });
+  it("saying 'none' when something DID break gets the segment fields wrong", () => {
+    const t = exact(CASE_ID).truth;
+    const r = scoreDiagnosis({ dimension: "none", segment: null, causeType: t.causeType, startDay: null }, t);
+    expect(r).toMatchObject({ dimensionCorrect: false, segmentCorrect: false, causeTypeCorrect: true, dateCorrect: false });
+  });
+  it("a slow bleed accepts a date within ±3 days; a cliff within ±2", () => {
+    const slow = CASES.find((c) => c.id === "stockout-slow-bleed").variants[0].truth;
+    expect(scoreDiagnosis({ ...slow, startDay: slow.startDay + 3 }, slow).dateCorrect).toBe(true);
+    const cliff = exact(CASE_ID).truth;
+    expect(scoreDiagnosis({ ...cliff, startDay: cliff.startDay + 3 }, cliff).dateCorrect).toBe(false);
+  });
+  it("reviewTrail: no-incident cases reward checking several dimensions; tracking cases note the back office", () => {
+    const n = generateCase("normal-week", "SEED-A", { noise: 0, variant: 0 });
+    expect(reviewTrail(n, ["device", "browser"], [])).toMatchObject({ noIncident: true, found: false });
+    expect(reviewTrail(n, ["device", "browser", "payment"], []).found).toBe(true);
+    const f = generateCase("false-alarm-tracking", "SEED-A", { noise: 0, variant: 0 });
+    expect(reviewTrail(f, ["browser", "orders"], [])).toMatchObject({ found: true, needsBackOffice: true, usedBackOffice: true });
   });
 });

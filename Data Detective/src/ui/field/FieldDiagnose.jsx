@@ -2,10 +2,13 @@ import React from "react";
 import { FIELD_VERDICTS, FIELD_GUNS, FIELD_REMEDIES, FIELD_ROW_NAMES } from "../../engine/fieldcase.js";
 import { T, card, linkBtn } from "../theme.js";
 import { PickGroup, ScreenTitle, SectionTitle, SubmitBar, useNarrow } from "../shared.jsx";
+import { CONFIDENCE } from "../progress.js";
+
+const CONFIDENCE_OPTIONS = CONFIDENCE.map((c) => ({ id: c.id, label: `${c.label} — ${c.hint}` }));
 
 export default function FieldDiagnose({ guess, setGuess, flags, onBack, onSubmit }) {
   const pick = (field) => (id) => setGuess((g) => ({ ...g, [field]: id }));
-  const ready = guess.verdict && guess.gun && guess.remedy;
+  const ready = guess.verdict && guess.gun && guess.remedy && guess.confidence;
   const narrow = useNarrow();
   return (
     <div className="rise" style={{ marginTop: 22, maxWidth: 980, marginLeft: "auto", marginRight: "auto" }}>
@@ -17,6 +20,7 @@ export default function FieldDiagnose({ guess, setGuess, flags, onBack, onSubmit
           <PickGroup long title="1 · Your verdict to the board" options={FIELD_VERDICTS} value={guess.verdict} onChange={pick("verdict")} />
           <PickGroup long title="2 · The smoking gun — the one row that proves the revenue figure cannot be trusted" options={FIELD_GUNS} value={guess.gun} onChange={pick("gun")} />
           <PickGroup long title="3 · The first action" options={FIELD_REMEDIES} value={guess.remedy} onChange={pick("remedy")} />
+          <PickGroup title="4 · How sure are you that all three calls are right?" options={CONFIDENCE_OPTIONS} value={guess.confidence} onChange={pick("confidence")} />
         </div>
         <div style={{ ...card(), alignSelf: "start" }}>
           <SectionTitle>🚩 Your evidence ({flags.length})</SectionTitle>
@@ -32,7 +36,7 @@ export default function FieldDiagnose({ guess, setGuess, flags, onBack, onSubmit
           )}
         </div>
       </div>
-      <SubmitBar ready={ready} onSubmit={onSubmit} label="Submit findings →" notReadyLabel="Make all three calls to continue" />
+      <SubmitBar ready={ready} onSubmit={onSubmit} label="Submit findings →" notReadyLabel="Make all three calls, and say how sure you are" />
     </div>
   );
 }

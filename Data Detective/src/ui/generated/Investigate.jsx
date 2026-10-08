@@ -1,25 +1,13 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from "recharts";
-import { REPORTS, TOTAL_DAYS, realtimeSnapshot, precedingPeriod, summariseTopline, avgRange, dayShort, dayLong } from "../../engine/engine.js";
+import { REPORTS, TOTAL_DAYS, realtimeSnapshot, summariseTopline, avgRange, dayShort, dayLong } from "../../engine/engine.js";
+import { PRESETS } from "./dateRange.js";
 import { T, PLAYER, SEG_COLORS, card, pillBtn, tipStyle } from "../theme.js";
 import { gbp, num, pct, secs } from "../format.js";
-import { Chart, Dashboard, KpiTile, SectionTitle, SideNav, useNarrow } from "../shared.jsx";
+import { Chart, Dashboard, KpiTile, LegendLine, SectionTitle, SideNav, useNarrow } from "../shared.jsx";
 import ReportPanel from "./ReportPanel.jsx";
 import FunnelView from "./FunnelView.jsx";
 
-/* ---- date range ------------------------------------------------------
-   GA-style: a current window (last 7/14/21 days) compared against either
-   the first week or the equal-length period just before it. Positioning
-   the window matters — one that straddles the incident start, or a
-   comparison that's also affected, dilutes the delta. The state is owned
-   by GeneratedCase so it survives a trip to the diagnosis screen. */
-const PRESETS = [7, 14, 21].map((n) => ({ label: `Last ${n} days`, win: [TOTAL_DAYS - n, TOTAL_DAYS - 1] }));
-export function useDateRange() {
-  const [cur, setCur] = useState(PRESETS[0].win);
-  const [cmpMode, setCmpMode] = useState("first");   // "first" week | "preceding" period
-  const cmp = useMemo(() => (cmpMode === "first" ? [0, 6] : precedingPeriod(cur)), [cmpMode, cur]);
-  return { cur, setCur, cmp, cmpMode, setCmpMode, cmpName: cmpMode === "first" ? "Wk1" : "prev" };
-}
 const winLabel = ([lo, hi]) => `${dayShort(lo)}–${dayShort(hi)}`;
 function DateRangeBar({ range }) {
   const { cur, setCur, cmp, cmpMode, setCmpMode } = range;
@@ -41,7 +29,7 @@ function DateRangeBar({ range }) {
 }
 
 /* ---- the dashboard shell -------------------------------------------- */
-const NAV_TOP = [["home", "🏠 Home overview"], ["realtime", "🟢 Realtime"], ["funnel", "🔻 Funnel exploration"]];
+const NAV_TOP = [["home", "🏠 Home overview"], ["realtime", "🟢 Realtime"], ["funnel", "🔻 Funnel exploration"], ["orders", "🧾 Back-office orders"]];
 const NAV_GROUPS = REPORTS.map((g) => ({ group: g.group, items: g.items.map((it) => ({ key: it.dim, label: it.label })) }));
 
 export default function Investigate({ caseData, metric, setMetric, activeReport, openReport, onPivot, viewed, pivots, range, onDiagnose }) {
@@ -53,6 +41,7 @@ export default function Investigate({ caseData, metric, setMetric, activeReport,
       {activeReport === "home" && <HomeOverview caseData={caseData} metric={metric} setMetric={setMetric} range={range} />}
       {activeReport === "realtime" && <RealtimeView caseData={caseData} />}
       {activeReport === "funnel" && <FunnelView caseData={caseData} range={range} />}
+      {activeReport === "orders" && <OrdersView caseData={caseData} range={range} />}
       {reportDim && <ReportPanel key={reportDim.key} caseData={caseData} reportDim={reportDim} onPivot={onPivot} range={range} />}
     </Dashboard>
   );
@@ -183,6 +172,52 @@ function RealtimeView({ caseData }) {
       </div>
       <div style={{ ...card(), marginTop: 16, fontSize: 14, color: T.muted, lineHeight: 1.5 }}>
         Realtime only shows the last 30 minutes. This is useful for finding a sudden outage while it is happening. To find a slow decline over several weeks, use the historical reports.
+      </div>
+    </div>
+  );
+}
+
+/* ---- BACK-OFFICE ORDERS: the ground truth ------------------------------
+   Orders from the order database, not from analytics. Analytics normally
+   records about 96% of them (ad blockers and cookie refusals hide the
+   rest). Comparing the two is how an analyst tells a broken shop from a
+   broken tag. Present in every case, so its existence gives nothing away. */
+function OrdersView({ caseData, range }) {
+  const { cur, cmp, cmpName } = range;
+  const narrow = useNarrow();
+  const sum = useMemo(() => summariseTopline(caseData.topline, cmp, cur), [caseData, cmp, cur]);
+  const coverage = (win) => { const rows = caseData.topline.filter((r) => r.day >= win[0] && r.day <= win[1]); return rows.reduce((a, r) => a + r.purchases, 0) / rows.reduce((a, r) => a + r.orders, 0); };
+  const covCmp = coverage(cmp), covCur = coverage(cur);
+  const label = `Line chart of daily back-office orders and analytics conversions over the four weeks. In the comparison period (${winLabel(cmp)}) analytics recorded ${pct(covCmp, 0)} of orders; in the current period (${winLabel(cur)}), ${pct(covCur, 0)}.`;
+  return (
+    <div className="rise">
+      <div style={{ display: "grid", gridTemplateColumns: narrow ? "minmax(0,1fr)" : "repeat(3,minmax(0,1fr))", gap: narrow ? 10 : 14 }}>
+        <KpiTile label="Orders (back office)" value={num(sum.orders.late)}><DeltaTag pctChange={sum.orders.pctChange} suffix={`vs ${cmpName}`} /></KpiTile>
+        <KpiTile label="Conversions (analytics)" value={num(sum.purchases.late)}><DeltaTag pctChange={sum.purchases.pctChange} suffix={`vs ${cmpName}`} /></KpiTile>
+        <KpiTile label="Orders seen by analytics" value={`${pct(covCmp, 0)} → ${pct(covCur, 0)}`}><span style={{ fontSize: 13, color: T.muted }}>{cmpName} → current</span></KpiTile>
+      </div>
+      <div style={{ ...card(), marginTop: 16 }}>
+        <SectionTitle>🧾 Back-office orders vs analytics conversions</SectionTitle>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 13.5, color: T.muted, marginBottom: 6 }}>
+          <LegendLine color={T.text} label="Orders (order database)" />
+          <LegendLine color={PLAYER} dash="6 4" label="Conversions (analytics)" />
+        </div>
+        <Chart label={label}>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={caseData.topline} margin={{ top: 8, right: 14, bottom: 0, left: -6 }}>
+              <CartesianGrid stroke={T.border} strokeDasharray="3 3" />
+              <XAxis dataKey="day" tickLine={false} tickFormatter={dayShort} interval={3} type="number" domain={[0, TOTAL_DAYS - 1]} />
+              <YAxis tickLine={false} width={48} tickFormatter={num} />
+              <Tooltip contentStyle={tipStyle} formatter={(v, k) => [num(v), k === "orders" ? "Orders (back office)" : "Conversions (analytics)"]} labelFormatter={dayLong} />
+              <ReferenceArea x1={cur[0]} x2={cur[1]} fill={PLAYER} fillOpacity={0.08} />
+              <Line type="monotone" dataKey="orders" stroke={T.text} strokeWidth={2.3} dot={false} isAnimationActive={false} />
+              <Line type="monotone" dataKey="purchases" stroke={PLAYER} strokeWidth={2.3} strokeDasharray="6 4" dot={false} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </Chart>
+        <p style={{ fontSize: 14, color: T.muted, lineHeight: 1.55, margin: "10px 0 0" }}>
+          Back-office orders come from the order database, not from analytics. Analytics normally records about 96% of them — ad blockers and cookie refusals hide the rest. The order system can't tell you which device, browser or campaign an order came from; analytics can.
+        </p>
       </div>
     </div>
   );

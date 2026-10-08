@@ -1,7 +1,7 @@
 import { CASES } from "../engine/engine.js";
 
 /* URL parameters let an instructor send a cohort straight to one case with
-   a fixed seed and noise level: ?case=3&seed=DD-2026&noise=1.4. Case 5 is
+   a fixed seed and noise level: ?case=3&seed=DD-2026&noise=1.4. Case 8 is
    the field-data case. Anything missing or invalid falls back to the
    defaults, so a bad link still opens the game. */
 export const DEFAULT_CFG = { seed: "DD-2026", noise: 1.4 };

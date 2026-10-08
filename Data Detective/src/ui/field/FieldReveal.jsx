@@ -4,9 +4,10 @@ import {
   FIELD_REMEDIES, FIELD_REMEDY_TRUTH, FIELD_EXPLANATION,
 } from "../../engine/fieldcase.js";
 import { T, card, btn } from "../theme.js";
-import { ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
+import { ConfidenceVerdict, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
 import { pad2 } from "../format.js";
-import { fieldCaseReport, downloadText } from "../caseReport.js";
+import { confidenceText, downloadText } from "../caseReport.js";
+import { fieldCaseReport } from "./fieldReport.js";
 
 const label = (opts, id) => opts.find((o) => o.id === id)?.label || "—";
 const short = (s) => (s.length > 110 ? s.slice(0, 107) + "…" : s);
@@ -25,6 +26,7 @@ export default function FieldReveal({ guess, result, flags, onAgain, onExit }) {
           <ResultRow long ok={result.verdictCorrect} label="Verdict" you={short(label(FIELD_VERDICTS, guess.verdict))} truth={short(label(FIELD_VERDICTS, FIELD_VERDICT_TRUTH))} />
           <ResultRow long ok={result.gunCorrect} label="Smoking gun" you={label(FIELD_GUNS, guess.gun)} truth={label(FIELD_GUNS, FIELD_GUN_TRUTH)} />
           <ResultRow long ok={result.remedyCorrect} label="First action" you={short(label(FIELD_REMEDIES, guess.remedy))} truth={short(label(FIELD_REMEDIES, FIELD_REMEDY_TRUTH))} />
+          <ConfidenceVerdict confidence={guess.confidence} label={confidenceText(guess.confidence)} allCorrect={result.allCorrect} score={result.fieldsCorrect} outOf={3} />
           <div style={{ marginTop: 12, fontSize: 13, color: T.muted }}>These were real exports from a real retailer's Google Analytics — every number you just argued about actually happened in autumn 2015.</div>
         </div>
         <div style={card()}>
@@ -51,7 +53,7 @@ export default function FieldReveal({ guess, result, flags, onAgain, onExit }) {
         <button onClick={download} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Download case report</button>
         <button onClick={onExit} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Back to the generated cases</button>
       </div>
-      <p style={{ textAlign: "center", fontSize: 13.5, color: T.muted, marginTop: 10 }}>The report lists your calls, the rows you flagged, the clue chain and reflection questions for the seminar.</p>
+      <p style={{ textAlign: "center", fontSize: 13.5, color: T.muted, marginTop: 10 }}>The report lists your calls, the rows you flagged, the clue chain and reflection questions for the seminar. The data is real, so working the case again replays it — only your first attempt's score is kept.</p>
     </div>
   );
 }

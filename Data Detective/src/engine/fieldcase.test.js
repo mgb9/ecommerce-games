@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   FIELD_DATA, FIELD_CASE, FIELD_VERDICTS, FIELD_VERDICT_TRUTH, FIELD_GUNS, FIELD_GUN_TRUTH,
   FIELD_REMEDIES, FIELD_REMEDY_TRUTH, FIELD_CLUES, FIELD_REPORTS, FIELD_REPORT_META,
+  FIELD_EXPLANATION,
   scoreFieldDiagnosis,
 } from "./fieldcase.js";
 
@@ -137,5 +138,25 @@ describe("scoring", () => {
   it("flagging aggregate/non-clue rows earns nothing", () => {
     const s = scoreFieldDiagnosis(perfect, ["sm-other", "lp-other", "pr-other", "ch-paidsearch"]);
     expect(s.cluesFound).toBe(0);
+  });
+});
+
+/* The PLA clue and the explanation quote figures that only exist in the
+   full export; plaSummary (pinned in fieldcase-provenance.test.js) carries
+   them, and this ties the words on screen to those numbers. */
+describe("case 8 text quotes the verified Shopping-ad figures", () => {
+  const pla = FIELD_DATA.plaSummary;
+  const clue = FIELD_CLUES.find((c) => c.id === "pla-waste").detail;
+  const fmt = (n) => n.toLocaleString("en-GB");
+  it("sessions, bounce and conversion in the clue match plaSummary", () => {
+    expect(clue).toContain(`~${fmt(Math.round(pla.sessions / 100) * 100)} sessions`);
+    expect(clue).toContain(`${Math.round(pla.bounce * 100)}% bounce`);
+    expect(clue).toContain(`${(pla.conv * 100).toFixed(2)}% conversion`);
+  });
+  it("the zero-order count and the worst page match", () => {
+    expect(pla.zeroSaleOver200).toBe(14);   // the clue spells it out: "Fourteen Shopping ads…"
+    expect(clue).toContain("Fourteen Shopping ads drove 200+ visits");
+    expect(clue).toContain(`landed ${pla.worst.sessions} visitors, ${Math.round(pla.worst.bounce * 100)}% of whom bounced`);
+    expect(FIELD_EXPLANATION).toContain(`${pla.pages} exported Shopping-ad landing pages`);
   });
 });

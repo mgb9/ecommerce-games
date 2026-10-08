@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { CASES, generateCase, scoreDiagnosis, reviewTrail } from "../engine/engine.js";
 import { FIELD_VERDICT_TRUTH, FIELD_GUN_TRUTH, scoreFieldDiagnosis } from "../engine/fieldcase.js";
-import { generatedCaseReport, fieldCaseReport } from "./caseReport.js";
+import { generatedCaseReport } from "./caseReport.js";
+import { fieldCaseReport } from "./field/fieldReport.js";
 
 describe("downloadable case report", () => {
   it("generated case: calls vs truth, the trail in order, the lesson and reflection prompts", () => {
-    const caseData = generateCase(CASES[1].id, "DD-2026");
+    const caseData = generateCase(CASES[1].id, "DD-2026", { variant: 0 });   // Mobile × Safari
     const diagnosis = { dimension: "browser", segment: "safari", secondary: null, segmentB: null, causeType: "deploy_bug", startDay: 16 };
     const viewed = ["device", "funnel", "browser"], pivots = ["browser×device"];
     const md = generatedCaseReport({ caseData, cfg: { seed: "DD-2026", noise: 1.4 }, diagnosis, result: scoreDiagnosis(diagnosis, caseData.truth), viewed, pivots, review: reviewTrail(caseData, viewed, pivots) });

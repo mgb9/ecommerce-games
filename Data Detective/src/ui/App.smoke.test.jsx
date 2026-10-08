@@ -10,6 +10,7 @@ describe("App renders", () => {
     const html = renderToStaticMarkup(<App />);
     expect(html).toContain("Data");
     expect(html).toContain("Find out what");
-    expect(html).toContain("Checkout");
+    expect(html).toContain("Case 01 of 8");
+    expect(html).toContain("Case 08 · Field data");
   });
 });

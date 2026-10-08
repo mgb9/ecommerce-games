@@ -5,8 +5,9 @@ describe("cohort links", () => {
   it("no parameters → case 1 with the default seed and noise", () => {
     expect(readUrlConfig("")).toEqual({ caseIndex: 0, cfg: DEFAULT_CFG });
   });
-  it("reads case, seed and noise; case 5 is the field case (index 4)", () => {
+  it("reads case, seed and noise; case 8 is the field case (index 7)", () => {
     expect(readUrlConfig("?case=3&seed=WM956-B&noise=0.6")).toEqual({ caseIndex: 2, cfg: { seed: "WM956-B", noise: 0.6 } });
+    expect(readUrlConfig("?case=8").caseIndex).toBe(7);
     expect(readUrlConfig("?case=5").caseIndex).toBe(4);
   });
   it("ignores anything out of range or malformed", () => {

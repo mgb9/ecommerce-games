@@ -1,7 +1,7 @@
 /* ============================================================
-   DATA DETECTIVE — Case 5 "The Cold Case" (field data).
+   DATA DETECTIVE — Case 8 "The Cold Case" (field data).
 
-   Unlike cases 1–4, nothing here is generated: the six reports are
+   Unlike cases 1–7, nothing here is generated: the six reports are
    REAL Google Analytics exports from a UK electronics retailer,
    25 Aug – 3 Nov 2015 (merchant anonymised to Chrichton, the
    suite's fictional company). The pedagogy inverts the other
@@ -24,16 +24,8 @@
    investigating. Pure module: no React, no I/O.
    ============================================================ */
 import { FIELD_DATA } from "./fieldcase-data.js";
+import { FIELD_CASE } from "./fieldcase-meta.js";
 
-const FIELD_CASE = {
-  id: "cold-case-2015", n: 5, difficulty: "Field data",
-  ticket: {
-    channel: "#cro-team", from: "Priya · Ops",
-    subject: "Cold case: audit the 2015 channel decision",
-    body: "Training exercise — but a real one. While migrating the data warehouse we found the full analytics exports from autumn 2015, back when Chrichton was a pure IT reseller. That autumn, the agency told the board: “Referral converts at 16% against Paid Search's 1.2% — cut the AdWords budget and invest in referral partnerships.” The decision was never audited. Work the data like a detective: was the recommendation sound? Flag the rows you'd put in front of the board. Fair warning — these are raw, real exports. Nobody has cleaned them for you.",
-  },
-  period: "25 Aug – 3 Nov 2015 · 71 days · real exported data",
-};
 
 /* ---- the three picks --------------------------------------------- */
 const FIELD_VERDICTS = [
@@ -88,7 +80,7 @@ const FIELD_CLUES = [
   {
     id: "pla-waste", label: "Shopping ads that never convert",
     rows: ["lp-21", "lp-18", "lp-15", "lp-10", "lp-7", "lp-3", "lp-2"],
-    detail: "Across all the exported landing pages, those tagged ?ref=PLA (Google Shopping) took ~70,600 sessions at an 82% bounce and 0.85% conversion. Fourteen products got 200+ paid clicks with zero sales — the Archos smart-home kit burned 509 clicks at a 91% bounce and 11-second visits. Paid Search has a real targeting problem, just a smaller one than the headline suggests.",
+    detail: "Across all the exported landing pages, those tagged ?ref=PLA (Google Shopping) took ~70,600 sessions at an 82% bounce and 0.85% conversion. Fourteen Shopping ads drove 200+ visits each without producing a single order — the Archos smart-home kit's ad landed 509 visitors, 91% of whom bounced, in visits averaging 11 seconds. Paid Search has a real targeting problem, just a smaller one than the headline suggests.",
   },
   {
     id: "bulk-orders", label: "Impossible basket sizes",
@@ -115,7 +107,7 @@ function scoreFieldDiagnosis(guess, flaggedIds) {
   return { verdictCorrect, gunCorrect, remedyCorrect, fieldsCorrect, clueDetail, cluesFound, clueTotal: FIELD_CLUES.length, coreFound, coreTotal: FIELD_CLUES.filter((c) => c.core).length, allCorrect: fieldsCorrect === 3 };
 }
 
-const FIELD_EXPLANATION = "The agency read the dashboard, not the data. Referral's 16% was three faults stacked up. First, payment-gateway self-referrals: customers left the site to pay at PayPal or SagePay, and Google Analytics counted their return as a new session “referred” by the gateway — so the gateways got the credit for 1,923 sales that Paid Search, Organic and Direct actually earned. (Today this is fixed with a referral exclusion list; in 2015 you had to know to do it.) Second, and worse: sandbox.paypal.com — PayPal's test environment — posted 76 fake transactions worth £386,975 into the live property. That is 11.8% of ALL reported revenue, at a £5,092 average order. The Product report corroborates it: 343 SSDs in 4 orders, 200 cables in one, 60 iPads in one. Third, staging servers and a private IP appear as traffic — there were no filters at all. Strip the contamination and Referral is a normal little channel (~424 real transactions, mostly price-comparison sites). Paid Search DOES have a genuine problem — 888 Shopping-ad landing pages bouncing at 82% and converting at 0.85% — and mobile genuinely underperforms. But you cannot size either problem, or move a single pound of budget, until the tracking is fixed and the data re-measured. The correct advice to the board was: fix the measurement first. Everything else is a guess wearing a percentage.";
+const FIELD_EXPLANATION = "The agency read the dashboard, not the data. Referral's 16% was three faults stacked up. First, payment-gateway self-referrals: customers left the site to pay at PayPal or SagePay, and Google Analytics counted their return as a new session “referred” by the gateway — so the gateways got the credit for 1,923 sales that Paid Search, Organic and Direct actually earned. (Today this is fixed with a referral exclusion list; in 2015 you had to know to do it.) Second, and worse: sandbox.paypal.com — PayPal's test environment — posted 76 fake transactions worth £386,975 into the live property. That is 11.8% of ALL reported revenue, at a £5,092 average order. The Product report corroborates it: 343 SSDs in 4 orders, 200 cables in one, 60 iPads in one. Third, staging servers and a private IP appear as traffic — there were no filters at all. Strip the contamination and Referral is a normal little channel (~424 real transactions, mostly price-comparison sites). Paid Search DOES have a genuine problem — 888 exported Shopping-ad landing pages bouncing at 82% and converting at 0.85% — and mobile genuinely underperforms. But you cannot size either problem, or move a single pound of budget, until the tracking is fixed and the data re-measured. The correct advice to the board was: fix the measurement first. Everything else is a guess wearing a percentage.";
 
 /* ---- report catalogue for the UI ---------------------------------- */
 const FIELD_REPORTS = [

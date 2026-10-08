@@ -229,6 +229,36 @@ The remaining two of the four depth features, now built:
   the instructor panel is a modal dialog. Small red text/buttons use `T.playerText`/`T.playerBtn` (#D6261B)
   — #EE3124 is only 4.1:1 on white. Contrast + axe clean on every screen at 1280px and 375px.
 
+## Rigour pass (2026-10-08) — supersedes parts of the release pass above
+- **Case content lives in `src/engine/cases.js`**; engine.js is mechanics only. Each case has ≥2 **variants**
+  (different segment, day, ticket and explanation); the seed picks one (`pickVariant`), so a cohort can't pass
+  the answer round but a shared seed still gives a class the same variant. `variantFor(id, seed, attempt)`
+  moves each retry on to the next variant, with a derived seed (`DD-2026·2`).
+- **Segment sampling noise.** Segments used to move in exact lockstep with the topline, so sorting by Δ gave the
+  answer away. Each segment's sessions, purchases and engagement now wobble like a sample of its size
+  (`SEG_RATE_NOISE`, scaled by the noise level) and are rescaled so every dimension still sums exactly to the
+  topline. Cross-tab cells get the same noise and are raked (IPF) to BOTH marginal reports, built in a
+  canonical orientation so A × B ≡ B × A. `noise: 0` reproduces the old exact model — the mechanics tests use
+  it (`exact()` in engine.test.js); the narrative tests use 1.4 with noise on.
+- **Three new cases** (5 stockout slow bleed — `gradual` shape, ±3-day date window; 6 tracking false alarm —
+  incident `type: "tracking"` hits analytics only, while the topline's `orders` (back office, ~96% coverage)
+  doesn't move; 7 normal week — no incident, a `calendarEvents` dip, truth `dimension: null`). Every cause type
+  is now the answer somewhere (tested). The diagnosis form has "None — nothing is broken". The field case is
+  now **Case 8** (metadata in `fieldcase-meta.js`).
+- **Back-office orders** report (`orders` in the nav, every case): orders vs analytics conversions + coverage.
+- **First attempt only** is scored and shown (`recordFirstAttempt`); students state **confidence** (50/70/90)
+  before submitting; the reveal gives a calibration verdict and the intro a running calibration summary.
+- **Refresh-proof**: App + case state mirror to `sessionStorage` (`src/ui/session.js`), keyed by run.
+- **Instructor panel** only with `?instructor` in the link (remembered; `?instructor=off` forgets).
+- **Single Simpler English control**: inside the WMG shell the game follows the shell's switch
+  (`wmg-simpler` + `wmg:simplerchange`) and hides its own; the old bridge script in index.html is gone.
+- **Report chart** lines have dash patterns + a legend. **Code-split**: the dashboard (charts) and Case 8 load on
+  demand; first load ~76 KB gzipped (was ~188 KB).
+- **Case 8 provenance**: `plaSummary` in fieldcase-data.js (from the full landing-pages export; regenerate with
+  `GA_DIR=… python3 scripts/gen_fieldcase.py`), pinned by fieldcase-provenance.test.js and tied to the clue
+  text by fieldcase.test.js.
+- **Screen-reader test**: `SCREEN-READER-TEST.md` (VoiceOver, ~1 hour) — not yet run.
+
 ## Deliberately deferred
 - Cases 3–8 from the plan's original table (country/traffic-quality/site-speed/false-alarm/inventory/
   seasonal-no-issue) — the engine's `incidentFactorAt` shapes and `CASES` array are structured to add them

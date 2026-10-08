@@ -34,21 +34,32 @@ export function Chart({ label, children }) {
 }
 
 /* ---- plain-language mode ----------------------------------------
-   A "Simpler English" toggle that swaps stylised flavour strings for
-   literal ones — helps the ESL portion of the cohort without flattening
-   the tone for everyone. <PT rich plain/> picks per string. The
-   localStorage key and the button's "Simpler English" label are also
-   relied on by the WMG-shell bridge script in index.html. */
-const PLAIN_KEY = "dd-plain";
-const PlainCtx = createContext({ plain: false, toggle: () => {} });
+   "Simpler English" swaps stylised flavour strings for literal ones —
+   helps the ESL portion of the cohort without flattening the tone for
+   everyone. <PT rich plain/> picks per string.
+   Inside the WMG shell (the live site) the shell bar's switch is the ONE
+   control: the game reads the shell's stored choice, follows its
+   "wmg:simplerchange" event and hides its own button. Running on its own
+   (the dev server) the game keeps its own button and remembers the choice
+   under its own key. */
+const PLAIN_KEY = "dd-plain", SHELL_KEY = "wmg-simpler";
+const PlainCtx = createContext({ plain: false, toggle: () => {}, shell: false });
 export function PlainModeProvider({ children }) {
-  const [plain, setPlain] = useState(() => { try { return localStorage.getItem(PLAIN_KEY) === "1"; } catch { return false; } });
+  const [shell] = useState(() => typeof document !== "undefined" && !!document.querySelector("wmg-shell"));
+  const [plain, setPlain] = useState(() => { try { return localStorage.getItem(shell ? SHELL_KEY : PLAIN_KEY) === "1"; } catch { return false; } });
+  useEffect(() => {
+    if (!shell) return;
+    const follow = (e) => setPlain(!!e.detail?.simpler);
+    document.addEventListener("wmg:simplerchange", follow);
+    return () => document.removeEventListener("wmg:simplerchange", follow);
+  }, [shell]);
   const toggle = () => setPlain((v) => { const nv = !v; try { localStorage.setItem(PLAIN_KEY, nv ? "1" : "0"); } catch {} return nv; });
-  return <PlainCtx.Provider value={{ plain, toggle }}>{children}</PlainCtx.Provider>;
+  return <PlainCtx.Provider value={{ plain, toggle, shell }}>{children}</PlainCtx.Provider>;
 }
 export function PT({ rich, plain }) { return useContext(PlainCtx).plain ? plain : rich; }
 function PlainToggle() {
-  const { plain, toggle } = useContext(PlainCtx);
+  const { plain, toggle, shell } = useContext(PlainCtx);
+  if (shell) return null; // the shell bar's switch drives the game
   return (
     <button onClick={toggle} aria-pressed={plain} title="Switch to simpler English" style={{ background: plain ? T.playerBtn : "transparent", border: `1px solid ${plain ? T.playerBtn : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 5 }}>
       <span aria-hidden="true" style={{ fontSize: 15.5 }}>🗣️</span> Simpler English
@@ -259,6 +270,17 @@ export function SideNav({ top, groups, active, viewed, onOpen, cta, onCta, child
   );
 }
 
+// A small line sample for chart legends (colour plus dash pattern, so the
+// series don't rely on colour alone).
+export function LegendLine({ color, dash, label }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+      <svg width="26" height="8" aria-hidden="true"><line x1="1" y1="4" x2="25" y2="4" stroke={color} strokeWidth="2.5" strokeDasharray={dash} /></svg>
+      {label}
+    </span>
+  );
+}
+
 export function KpiTile({ label, value, children }) {
   return (
     <div style={{ ...card(), padding: "14px 16px" }}>
@@ -343,6 +365,22 @@ export function SubmitBar({ ready, onSubmit, label, notReadyLabel }) {
 }
 
 /* ---- reveal --------------------------------------------------------- */
+// Calibration: did the student's stated confidence match how they did?
+// "Very sure" should mean right about nine times in ten.
+const VERDICTS = {
+  90: [["Well calibrated: very sure, and fully right.", "pos"], ["Overconfident: \u201cvery sure\u201d should mean fully right about nine times in ten. What did you take as proof that wasn't?", "neg"]],
+  70: [["Fully right, and fairly sure \u2014 a reasonable call. Was anything left that would have made you certain?", "pos"], ["Fairly sure, and not fully right: what single check would have changed your mind?", "amber"]],
+  50: [["Fully right on a hunch \u2014 the evidence was better than you thought. Trust it a little more next time.", "amber"], ["A hunch, and not fully right: what evidence would have turned it into a diagnosis?", "amber"]],
+};
+export function ConfidenceVerdict({ confidence, allCorrect, score, outOf, label }) {
+  if (!VERDICTS[confidence]) return null;
+  const [text, tone] = VERDICTS[confidence][allCorrect ? 0 : 1];
+  return (
+    <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 10, background: { pos: T.posTint, neg: T.negTint, amber: T.amberTint }[tone], fontSize: 14, lineHeight: 1.5 }}>
+      <b>You said: {label}.</b> You got {score} of {outOf}. {text}
+    </div>
+  );
+}
 export function RevealHeadline({ kicker, title, children }) {
   return (
     <div style={{ textAlign: "center", marginBottom: 18 }}>

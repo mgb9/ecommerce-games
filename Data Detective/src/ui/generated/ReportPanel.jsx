@@ -3,7 +3,13 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { DIMENSIONS, DMAP, buildCrossTab, summariseSegments, dayShort, dayLong } from "../../engine/engine.js";
 import { T, PLAYER, card, segColor, selStyle, tipStyle } from "../theme.js";
 import { gbp, num, pct, pp, secs } from "../format.js";
-import { Chart, SectionTitle, ShareBar, SortTh, Term, useSortable } from "../shared.jsx";
+import { Chart, LegendLine, SectionTitle, ShareBar, SortTh, Term, useSortable } from "../shared.jsx";
+
+// Each segment's line has a dash pattern as well as a colour, so the chart
+// doesn't rely on colour alone (WCAG 1.4.1); the legend and the table rows
+// show the same line sample.
+const DASHES = ["", "7 4", "2 3", "10 3 2 3", "1 3", "5 2"];
+const dashOf = (i) => DASHES[i % DASHES.length];
 
 /* One dimension's report: a per-segment conversion chart plus the
    sortable GA-style table, optionally cross-tabbed by a secondary
@@ -29,6 +35,11 @@ export default function ReportPanel({ caseData, reportDim, onPivot, range }) {
         </div>
       </div>
       {breakdown.isCrossTab && <div style={{ fontSize: 13, color: T.amber, marginBottom: 8 }}>↳ Cross-tab: every {reportDim.label} × {DMAP[secondary].label} combination. Watch for a single cell behaving unlike the rest.</div>}
+      {pivoted && (
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 13.5, color: T.muted, margin: "2px 0 6px" }}>
+          {breakdown.segments.map((s, i) => <LegendLine key={s.id} color={segColor(i)} dash={dashOf(i)} label={s.name} />)}
+        </div>
+      )}
       {pivoted ? (
         <Chart label={`Line chart of daily conversion rate, one line per ${breakdown.isCrossTab ? "combination" : "segment"}: ${breakdown.segments.map((s) => s.name).join(", ")}. The table below gives each one's figures.`}>
         <ResponsiveContainer width="100%" height={210}>
@@ -38,7 +49,7 @@ export default function ReportPanel({ caseData, reportDim, onPivot, range }) {
             <YAxis tickLine={false} width={48} tickFormatter={(v) => pct(v, 0)} />
             <Tooltip contentStyle={tipStyle} formatter={(v, id) => [pct(v, 2), breakdown.segments.find((s) => s.id === id)?.name || id]} labelFormatter={dayLong} />
             <ReferenceArea x1={range.cur[0]} x2={range.cur[1]} fill={PLAYER} fillOpacity={0.08} />
-            {breakdown.segments.map((s, i) => <Line key={s.id} type="monotone" dataKey={s.id} stroke={segColor(i)} strokeWidth={2.3} dot={false} isAnimationActive={false} />)}
+            {breakdown.segments.map((s, i) => <Line key={s.id} type="monotone" dataKey={s.id} stroke={segColor(i)} strokeDasharray={dashOf(i)} strokeWidth={2.3} dot={false} isAnimationActive={false} />)}
           </LineChart>
         </ResponsiveContainer>
         </Chart>
@@ -63,7 +74,7 @@ const td = (align, extra) => ({ padding: "6px 8px", textAlign: align, fontFamily
 const TABLE_COLS = [
   { key: "name", label: "Segment", align: "left", group: "", render: (r, segIdx) => (
     <th scope="row" style={{ padding: "6px 8px", display: "flex", alignItems: "center", gap: 7, textAlign: "left", fontWeight: 400 }}>
-      <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 8, background: segColor(segIdx), flexShrink: 0 }} />
+      <svg width="20" height="8" aria-hidden="true" style={{ flexShrink: 0 }}><line x1="1" y1="4" x2="19" y2="4" stroke={segColor(segIdx)} strokeWidth="2.5" strokeDasharray={dashOf(segIdx)} /></svg>
       <span style={{ fontFamily: T.body, color: T.text }}>{r.name}</span>
     </th>) },
   { key: "sessionsLate", label: "Sessions", group: "Users", render: (r) => <td style={td("right", { color: T.text })}>{num(r.sessionsLate)}</td> },
