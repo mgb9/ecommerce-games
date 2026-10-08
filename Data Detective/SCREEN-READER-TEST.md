@@ -41,7 +41,9 @@ last run on 8 October 2026 and passed; this script is the human half.
 | 14 | Pick a cause and "How sure are you", then "Submit diagnosis →". | Focus moves to the result: "2/4 correct, heading level 1" (or similar). VO + A reads the rows, then the confidence verdict ("You said: Very sure… Overconfident…"). | ☐ |
 | 15 | Find "How you investigated". | Each line starts "Yes:" or "No:" (not just a tick or cross). | ☐ |
 | 16 | Use the WMG bar's "Simpler English" switch. Go back to the intro (Try a fresh variant). | The headline is now "A number has changed. Find out why." The game has no second Simpler English button. | ☐ |
-| 17 | Open Case 08. Flag a row (the 🚩 button in the table). | "Flag Referral, toggle button" → after activating, "Unflag Referral, selected". While it loads: "Opening the 2015 archive…". | ☐ |
+| 17 | From a reveal, activate "Open your case report (PDF)". Move through it, then Tab to the name field and the answer boxes. | Focus on the report's title (heading level 1); sections are level-2 headings; the results table reads with row headers; the name field and each reflection question are labelled; "Save as PDF, button". | ☐ |
+| 18 | Save the report as a PDF (Safari: File → Export as PDF; or Chrome: Save as PDF), open it in Preview and turn VoiceOver on. | Headings, the results table and the lists are navigable in the PDF (Chrome produces a tagged PDF; Safari's may read as plain text — note which you tested). | ☐ |
+| 19 | Open Case 08. Flag a row (the 🚩 button in the table). | "Flag Referral, toggle button" → after activating, "Unflag Referral, selected". While it loads: "Opening the 2015 archive…". | ☐ |
 
 Optional, on an iPhone (Settings → Accessibility → VoiceOver): at phone width
 the report list becomes a "Report" pop-up menu — check it opens and reads its

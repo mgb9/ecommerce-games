@@ -7,6 +7,8 @@ import { useSessionState } from "../session.js";
 import FieldInvestigate from "./FieldInvestigate.jsx";
 import FieldDiagnose from "./FieldDiagnose.jsx";
 import FieldReveal from "./FieldReveal.jsx";
+import ReportView from "../report/ReportView.jsx";
+import { fieldReport } from "./fieldReport.js";
 
 /* ============================================================
    Case 8 — "The Cold Case". Real 2015 GA exports as static,
@@ -44,7 +46,8 @@ export default function FieldCase({ autoFocus, sessionKey, onRestart, onExit }) 
       {phase === "diagnose" && (
         <FieldDiagnose guess={guess} setGuess={setGuess} flags={flags} onBack={() => setPhase("investigate")} onSubmit={submit} />
       )}
-      {phase === "reveal" && result && <FieldReveal guess={guess} result={result} flags={flags} onAgain={onRestart} onExit={onExit} />}
+      {phase === "reveal" && result && <FieldReveal guess={guess} result={result} onAgain={onRestart} onExit={onExit} onOpenReport={() => setPhase("report")} />}
+      {phase === "report" && result && <ReportView model={fieldReport({ guess, result, flags, viewed })} sessionKey={sessionKey} onBack={() => setPhase("reveal")} />}
     </CaseFrame>
   );
 }

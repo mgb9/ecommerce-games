@@ -1,15 +1,14 @@
 import React, { useMemo } from "react";
 import { reviewTrail } from "../../engine/engine.js";
 import { T, card, btn } from "../theme.js";
-import { ordinal, pad2 } from "../format.js";
-import { causeLabel, confidenceText, dimsText, segsText, startText, generatedCaseReport, downloadText } from "../caseReport.js";
+import { ordinal } from "../format.js";
+import { causeLabel, confidenceText, dimsText, segsText, startText } from "../report/labels.js";
 import { ConfidenceVerdict, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
 
-export default function Reveal({ caseData, cfg, attempt = 1, diagnosis, result, viewed, pivots, onRetry }) {
+export default function Reveal({ caseData, diagnosis, result, viewed, pivots, onRetry, onOpenReport }) {
   const truth = caseData.truth;
   const narrow = useNarrow();
   const review = useMemo(() => reviewTrail(caseData, viewed, pivots), [caseData, viewed, pivots]);
-  const download = () => downloadText(`data-detective-case-${pad2(caseData.n)}.md`, generatedCaseReport({ caseData, cfg, attempt, diagnosis, result, viewed, pivots, review }));
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <RevealHeadline kicker={`CASE ${caseData.n} — SOLVED`} title={`${result.fieldsCorrect}/4 correct`} />
@@ -45,11 +44,11 @@ export default function Reveal({ caseData, cfg, attempt = 1, diagnosis, result, 
       </div>
       <div style={{ textAlign: "center", marginTop: 22, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
         <button onClick={onRetry} style={btn(T.playerBtn)}>Try a fresh variant ↺</button>
-        <button onClick={download} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Download case report</button>
+        <button onClick={onOpenReport} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Open your case report (PDF)</button>
       </div>
       <p style={{ textAlign: "center", fontSize: 13.5, color: T.muted, marginTop: 10, lineHeight: 1.5 }}>
         A fresh variant is the same lesson with a different fault to find. Only your first attempt's score is kept.<br />
-        The report lists your calls, your investigation trail and reflection questions for the seminar.
+        Your case report has your results, feedback on how you investigated, and reflection questions you can answer before saving it as a PDF.
       </p>
     </div>
   );

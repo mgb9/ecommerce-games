@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useId, useMemo, useRef, us
 import { GLOSSARY } from "../engine/engine.js";
 import { T, PLAYER, card, btn, pickRow, selStyle } from "./theme.js";
 import { pct } from "./format.js";
+import { calibrationVerdict } from "./report/labels.js";
 
 /* Building blocks shared by the generated cases (1–4) and the field-data
    case (5): plain-language mode, glossary terms, the header band, the
@@ -161,7 +162,7 @@ export function CaseFrame({ subtitle, phase, caseN, counters, actions, autoFocus
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps -- autoFocus only matters on mount
   return (
     <>
-      <div style={{ background: T.hdrBg, color: T.hdrText }}>
+      <div className="dd-noprint" style={{ background: T.hdrBg, color: T.hdrText }}>
         <div style={{ maxWidth, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Data <span style={{ color: PLAYER }}>Detective</span></span>
@@ -365,16 +366,12 @@ export function SubmitBar({ ready, onSubmit, label, notReadyLabel }) {
 }
 
 /* ---- reveal --------------------------------------------------------- */
-// Calibration: did the student's stated confidence match how they did?
-// "Very sure" should mean right about nine times in ten.
-const VERDICTS = {
-  90: [["Well calibrated: very sure, and fully right.", "pos"], ["Overconfident: \u201cvery sure\u201d should mean fully right about nine times in ten. What did you take as proof that wasn't?", "neg"]],
-  70: [["Fully right, and fairly sure \u2014 a reasonable call. Was anything left that would have made you certain?", "pos"], ["Fairly sure, and not fully right: what single check would have changed your mind?", "amber"]],
-  50: [["Fully right on a hunch \u2014 the evidence was better than you thought. Trust it a little more next time.", "amber"], ["A hunch, and not fully right: what evidence would have turned it into a diagnosis?", "amber"]],
-};
+// Did the student's stated confidence match how they did? (wording shared
+// with the case report — see report/labels.js)
 export function ConfidenceVerdict({ confidence, allCorrect, score, outOf, label }) {
-  if (!VERDICTS[confidence]) return null;
-  const [text, tone] = VERDICTS[confidence][allCorrect ? 0 : 1];
+  const verdict = calibrationVerdict(confidence, allCorrect);
+  if (!verdict) return null;
+  const { text, tone } = verdict;
   return (
     <div style={{ marginTop: 12, padding: "10px 12px", borderRadius: 10, background: { pos: T.posTint, neg: T.negTint, amber: T.amberTint }[tone], fontSize: 14, lineHeight: 1.5 }}>
       <b>You said: {label}.</b> You got {score} of {outOf}. {text}

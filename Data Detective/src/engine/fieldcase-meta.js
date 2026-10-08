@@ -4,6 +4,7 @@
    and only downloaded when a student opens it. */
 export const FIELD_CASE = {
   id: "cold-case-2015", n: 8, difficulty: "Field data",
+  words: ["selfreferral", "exclusionlist", "testtraffic", "aov", "pla"],   // glossary terms for the case report
   ticket: {
     channel: "#cro-team", from: "Priya · Ops",
     subject: "Cold case: audit the 2015 channel decision",

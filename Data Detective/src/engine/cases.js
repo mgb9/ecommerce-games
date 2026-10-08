@@ -26,6 +26,7 @@ export const CASES = [
   /* ---- 1 · Beginner: one payment route fails ---------------------- */
   {
     id: "paypal-gateway", n: 1, difficulty: "Beginner",
+    words: ["segmentation", "gateway", "redherring", "funnelstep"],   // glossary terms for the case report
     lesson: "Segment before you blame “checkout”: one payment method failing can sink the whole funnel while every other route through it is fine — and the event that lines up best on the timeline is not automatically the cause.",
     variants: [
       {
@@ -64,6 +65,7 @@ export const CASES = [
   /* ---- 2 · Intermediate: a fault that lives in an intersection ---- */
   {
     id: "mobile-safari-bug", n: 2, difficulty: "Intermediate",
+    words: ["crosstab", "segmentation", "funnelstep", "redherring"],   // glossary terms for the case report
     lesson: "Interaction effects hide in single-dimension reports. When two dimensions each look “a bit off”, cross-tab them: the real fault may live only in their intersection, diluted everywhere else.",
     variants: [
       {
@@ -102,6 +104,7 @@ export const CASES = [
   /* ---- 3 · Intermediate: the average falls, nothing broke --------- */
   {
     id: "traffic-mix", n: 3, difficulty: "Intermediate",
+    words: ["mixshift", "conversion", "segmentation", "redherring"],   // glossary terms for the case report
     lesson: "If no segment's own rate moved, nothing broke. A falling average can be pure mix shift (Simpson's paradox) — a conversation about traffic quality with marketing, not a bug hunt with engineering.",
     variants: [
       {
@@ -145,6 +148,7 @@ export const CASES = [
   /* ---- 4 · Advanced: a real fault hidden by good news ------------- */
   {
     id: "masked-desktop", n: 4, difficulty: "Advanced",
+    words: ["masking", "mixshift", "segmentation"],   // glossary terms for the case report
     lesson: "A calm topline does not mean nothing is wrong. A favourable mix shift can mask a severe localised fault — segment anyway, and treat good news that arrives with a dip as possible camouflage.",
     variants: [
       {
@@ -187,6 +191,7 @@ export const CASES = [
   /* ---- 5 · Intermediate: a slow bleed, not a cliff --------------- */
   {
     id: "stockout-slow-bleed", n: 5, difficulty: "Intermediate",
+    words: ["funnelstep", "baseline", "anomaly"],   // glossary terms for the case report
     lesson: "Shape tells cause. A sudden cliff points to something that broke; a slow slide that keeps getting worse points to something running out or wearing down — stock, budget, patience. Find where it lives, then read its shape.",
     variants: [
       {
@@ -223,6 +228,7 @@ export const CASES = [
   /* ---- 6 · Advanced: the dashboard is wrong, not the shop --------- */
   {
     id: "false-alarm-tracking", n: 6, difficulty: "Advanced",
+    words: ["groundtruth", "funnelstep", "anomaly"],   // glossary terms for the case report
     lesson: "Before declaring a crisis, check the dashboard against a ground-truth number. If the order system didn't see a drop, the problem is the measurement, not the shop — and rolling back the site would have fixed nothing.",
     variants: [
       {
@@ -259,6 +265,7 @@ export const CASES = [
   /* ---- 7 · Advanced: nothing is broken ---------------------------- */
   {
     id: "normal-week", n: 7, difficulty: "Advanced",
+    words: ["noise", "baseline", "anomaly"],   // glossary terms for the case report
     lesson: "Sometimes the right diagnosis is “nothing is broken”. Check that a dip is bigger than normal variation and confined to one group before calling it an incident — small segments swing wildly by chance, and calendars move whole sites.",
     variants: [
       {

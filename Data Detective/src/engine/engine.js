@@ -709,6 +709,9 @@ const GLOSSARY = {
   exclusionlist: "The referral exclusion list tells Analytics which domains must never count as referrers — above all your own payment gateways. Without it, every checkout round-trip restarts the session and distorts attribution. In older Analytics you had to configure this by hand.",
   testtraffic: "Sessions and orders created by developers or test systems — sandbox payment environments, staging servers, office IP addresses — that were never real customers. They must be filtered out of the live data; if they are not, revenue and conversion figures include transactions that never happened.",
   aov: "Average order value — revenue ÷ transactions. A powerful sanity check: if a 'channel' shows an AOV of £5,000 in consumer electronics retail, you are probably not looking at real customers.",
+  groundtruth: "A figure from the system of record \u2014 here, orders in the order database \u2014 rather than from analytics. If analytics and the ground truth disagree, trust the ground truth and suspect the tracking.",
+  calibration: "How well your confidence matches how often you are right. If you say \u2018very sure\u2019 ten times, you should be right about nine of them.",
+  noise: "Ordinary random variation. A small segment has few orders, so its figures swing a lot from week to week by chance. A real problem is bigger than that swing, confined to one group, and still there the next day.",
   pla: "Product Listing Ads — Google Shopping image ads that link straight to a product page. In this data a landing-page URL ending ?ref=PLA marks a Shopping ad click.",
 };
 

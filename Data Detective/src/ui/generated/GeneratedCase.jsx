@@ -13,6 +13,8 @@ import { useDateRange } from "./dateRange.js";
 const loadInvestigate = () => import("./Investigate.jsx");
 const Investigate = lazy(loadInvestigate);
 import Diagnose from "./Diagnose.jsx";
+import ReportView from "../report/ReportView.jsx";
+import { generatedReport } from "../report/generatedReport.js";
 import Reveal from "./Reveal.jsx";
 
 const initialDiagnosis = () => ({ dimension: null, segment: null, secondary: null, segmentB: null, causeType: null, startDay: Math.floor(TOTAL_DAYS / 2), confidence: null });
@@ -63,7 +65,10 @@ export default function GeneratedCase({ autoFocus, sessionKey, caseIndex, cfg, a
       {phase === "diagnose" && (
         <Diagnose diagnosis={diagnosis} setDiagnosis={setDiagnosis} onBack={() => setPhase("investigate")} onSubmit={submitDiagnosis} />
       )}
-      {phase === "reveal" && result && <Reveal caseData={caseData} cfg={cfg} attempt={attempt} diagnosis={diagnosis} result={result} viewed={viewed} pivots={pivots} onRetry={onRetry} />}
+      {phase === "reveal" && result && <Reveal caseData={caseData} diagnosis={diagnosis} result={result} viewed={viewed} pivots={pivots} onRetry={onRetry} onOpenReport={() => setPhase("report")} />}
+      {phase === "report" && result && (
+        <ReportView model={generatedReport({ caseData, cfg, attempt, diagnosis, result, viewed, pivots })} sessionKey={sessionKey} onBack={() => setPhase("reveal")} />
+      )}
     </CaseFrame>
   );
 }

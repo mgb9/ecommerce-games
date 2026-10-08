@@ -5,16 +5,13 @@ import {
 } from "../../engine/fieldcase.js";
 import { T, card, btn } from "../theme.js";
 import { ConfidenceVerdict, ResultRow, RevealHeadline, SectionTitle, Tag, useNarrow } from "../shared.jsx";
-import { pad2 } from "../format.js";
-import { confidenceText, downloadText } from "../caseReport.js";
-import { fieldCaseReport } from "./fieldReport.js";
+import { confidenceText } from "../report/labels.js";
 
 const label = (opts, id) => opts.find((o) => o.id === id)?.label || "—";
 const short = (s) => (s.length > 110 ? s.slice(0, 107) + "…" : s);
 
-export default function FieldReveal({ guess, result, flags, onAgain, onExit }) {
+export default function FieldReveal({ guess, result, onAgain, onExit, onOpenReport }) {
   const narrow = useNarrow();
-  const download = () => downloadText(`data-detective-case-${pad2(FIELD_CASE.n)}.md`, fieldCaseReport({ guess, result, flags }));
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <RevealHeadline kicker={`CASE ${FIELD_CASE.n} — CLOSED`} title={`${result.fieldsCorrect}/3 calls · ${result.cluesFound}/${result.clueTotal} clues found`}>
@@ -50,10 +47,10 @@ export default function FieldReveal({ guess, result, flags, onAgain, onExit }) {
       </div>
       <div style={{ textAlign: "center", marginTop: 22, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
         <button onClick={onAgain} style={btn(T.playerBtn)}>Work the case again ↺</button>
-        <button onClick={download} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Download case report</button>
+        <button onClick={onOpenReport} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Open your case report (PDF)</button>
         <button onClick={onExit} style={{ ...btn("transparent"), border: `1.5px solid ${T.border}` }}>Back to the generated cases</button>
       </div>
-      <p style={{ textAlign: "center", fontSize: 13.5, color: T.muted, marginTop: 10 }}>The report lists your calls, the rows you flagged, the clue chain and reflection questions for the seminar. The data is real, so working the case again replays it — only your first attempt's score is kept.</p>
+      <p style={{ textAlign: "center", fontSize: 13.5, color: T.muted, marginTop: 10 }}>Your case report has your calls, the evidence you flagged, the clue chain and reflection questions you can answer before saving it as a PDF. The data is real, so working the case again replays it — only your first attempt's score is kept.</p>
     </div>
   );
 }

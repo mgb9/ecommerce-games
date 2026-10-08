@@ -42,6 +42,21 @@ export const GLOBAL_CSS = FONT_IMPORT + `
   .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
   .recharts-cartesian-axis-tick text{ fill:${T.muted}; font-family:${T.mono}; font-size:12.5px; }
   h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus{ outline:none !important; box-shadow:none !important; }
+  /* the case report (ReportView): print only the report, as an A4 document. The game's
+     header band and toolbars are .dd-noprint; the WMG shell hides its own bar in print. */
+  .dd-print-only{ display:none; }
+  @page{ size:A4; margin:14mm 14mm 16mm; }
+  @media print{
+    html, body{ background:#FFFFFF !important; }
+    body *{ visibility:hidden !important; }
+    .dd-report, .dd-report *{ visibility:visible !important; }
+    .dd-noprint, body > p{ display:none !important; }
+    .dd-report{ max-width:none !important; margin:0 !important; padding:0 !important; border:none !important; box-shadow:none !important; font-size:12.5pt !important; }
+    .dd-report .dd-print-only{ display:block; }
+    .dd-report *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .dd-report h2, .dd-report h3{ break-after:avoid; }
+    .dd-report [role=region]{ overflow:visible !important; }
+  }
   .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 `;
 

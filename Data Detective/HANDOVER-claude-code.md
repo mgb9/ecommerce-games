@@ -258,6 +258,13 @@ The remaining two of the four depth features, now built:
   `GA_DIR=… python3 scripts/gen_fieldcase.py`), pinned by fieldcase-provenance.test.js and tied to the clue
   text by fieldcase.test.js.
 - **Screen-reader test**: `SCREEN-READER-TEST.md` (VoiceOver, ~1 hour) — not yet run.
+- **Case report = a printable page, saved as PDF** (replaces the Markdown download). `report/generatedReport.js`
+  and `field/fieldReport.js` build a plain data model (score, principle, calls, coaching derived from the trail,
+  trail, story, reflection, glossary words from each case's `words`); `report/ReportView.jsx` renders it. Students
+  can type their name (localStorage) and reflection answers (session) first. "Save as PDF" is the browser's
+  print → Save as PDF: print CSS in theme.js shows only the report (answers print as text, blanks as ruled
+  lines), the shell hides its bar in print, and the page title becomes the PDF's file name. Chrome's output is
+  a tagged PDF (H1–H3, tables, lists, en-GB) — checked with headless Chrome `--print-to-pdf`.
 
 ## Deliberately deferred
 - Cases 3–8 from the plan's original table (country/traffic-quality/site-speed/false-alarm/inventory/

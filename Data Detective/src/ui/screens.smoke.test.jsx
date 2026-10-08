@@ -12,6 +12,9 @@ import Reveal from "./generated/Reveal.jsx";
 import FieldInvestigate from "./field/FieldInvestigate.jsx";
 import FieldDiagnose from "./field/FieldDiagnose.jsx";
 import FieldReveal from "./field/FieldReveal.jsx";
+import ReportView from "./report/ReportView.jsx";
+import { generatedReport } from "./report/generatedReport.js";
+import { fieldReport } from "./field/fieldReport.js";
 
 // App.smoke only reaches the intro. These render every later screen
 // directly from props, so a symbol a screen forgot to import (a runtime
@@ -87,7 +90,25 @@ describe("field-case screens render", () => {
     const flags = ["ch-referral", "sm-sandbox-paypal-com-referral"];
     expect(html(<FieldDiagnose guess={guess} setGuess={noop} flags={flags} onBack={noop} onSubmit={noop} />)).toContain("sandbox.paypal.com");
     const out = html(<FieldReveal guess={guess} result={scoreFieldDiagnosis(guess, flags)} flags={flags} onAgain={noop} onExit={noop} />);
-    expect(out).toContain("Download case report");
+    expect(out).toContain("Open your case report (PDF)");
     expect(out).toContain("3/3 calls");
+  });
+});
+
+describe("the case report renders, ready to save as a PDF", () => {
+  it("cases 1–7: title, score, feedback, trail, reflection boxes with printable lines, glossary", () => {
+    const cd = generateCase(CASES[0].id, "DD-2026", { variant: 0 });
+    const d = { dimension: "device", segment: "mobile", secondary: null, segmentB: null, causeType: "deploy_bug", startDay: 18, confidence: 90 };
+    const out = html(<ReportView model={generatedReport({ caseData: cd, cfg: { seed: "DD-2026", noise: 1.4 }, diagnosis: d, result: scoreDiagnosis(d, cd.truth), viewed: ["device"], pivots: [] })} sessionKey="t" onBack={noop} />);
+    for (const s of ["Save as PDF", "Case 01:", "At a glance", "The principle to remember", "What to work on next time", "How you investigated", "Reflection", "Words to know", "Not quite"]) expect(out, s).toContain(s);
+    expect(out.match(/<textarea/g)).toHaveLength(4);
+    expect(out.match(/class="dd-print-only"/g).length).toBe(5);   // the name line + four answers
+    expect(out).toContain('<article class="dd-report"');
+  });
+  it("case 8: the clue chain and flagged rows", () => {
+    const guess = { verdict: FIELD_VERDICT_TRUTH, gun: FIELD_GUN_TRUTH, remedy: FIELD_REMEDY_TRUTH, confidence: 70 };
+    const flags = ["ch-referral"];
+    const out = html(<ReportView model={fieldReport({ guess, result: scoreFieldDiagnosis(guess, flags), flags })} sessionKey="t" onBack={noop} />);
+    for (const s of ["Case 08:", "The clue chain", "Rows you flagged as evidence (1)", "Referral", "Self-referral"]) expect(out, s).toContain(s);
   });
 });

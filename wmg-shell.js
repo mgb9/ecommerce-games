@@ -113,6 +113,8 @@
         '@media(max-width:820px){.mod,.desc,.gcat{display:none;}.tlabel{display:none;}.right{gap:14px;}.gname{font-size:17px;}}' +
         // phones: the game names itself in its own header, so drop the duplicate rather than overlap "All games"
         '@media(max-width:560px){.game,.sep{display:none;}.left{gap:12px;}}' +
+        // printing a page (e.g. a game's case report) shouldn't print the site's navigation
+        '@media print{.bar,.foot{display:none !important;}}' +
         '</style>' +
 
         '<header class="bar" style="--gaccent:' + accent + '">' +
