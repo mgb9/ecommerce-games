@@ -1311,6 +1311,15 @@ export const FIELD_DATA = {
         "avgQty": 1.02
       },
       {
+        "id": "pr-b10",
+        "name": "Apple iPad Air Wi-Fi - tablet - 16 GB - 9.7\"",
+        "qty": 60,
+        "purchases": 1,
+        "revenue": 14880,
+        "avgPrice": 248,
+        "avgQty": 60
+      },
+      {
         "id": "pr-17",
         "name": "Samsung UE55JU6400K - 55\" LED TV",
         "qty": 53,
@@ -1318,6 +1327,105 @@ export const FIELD_DATA = {
         "revenue": 34382.14,
         "avgPrice": 648.72,
         "avgQty": 1.02
+      },
+      {
+        "id": "pr-b0",
+        "name": "Samsung UE32J5500AK - 32\" LED TV",
+        "qty": 46,
+        "purchases": 39,
+        "revenue": 9059.42,
+        "avgPrice": 196.94,
+        "avgQty": 1.18
+      },
+      {
+        "id": "pr-b3",
+        "name": "APC Smart-UPS 1500 LCD - UPS - 1 kW - 1500 VA",
+        "qty": 30,
+        "purchases": 23,
+        "revenue": 9256.07,
+        "avgPrice": 308.54,
+        "avgQty": 1.3
+      },
+      {
+        "id": "pr-b1",
+        "name": "Samsung UE32H6400 - 32\" 3D LED TV - Smart TV - 1080p (FullHD)",
+        "qty": 28,
+        "purchases": 28,
+        "revenue": 7240.62,
+        "avgPrice": 258.59,
+        "avgQty": 1
+      },
+      {
+        "id": "pr-b2",
+        "name": "TomTom Runner - GPS/GLONASS navigator",
+        "qty": 28,
+        "purchases": 27,
+        "revenue": 1536.24,
+        "avgPrice": 54.87,
+        "avgQty": 1.04
+      },
+      {
+        "id": "pr-b7",
+        "name": "Owc 2.5 Drive Sled/ 09 10 Macpro Model",
+        "qty": 26,
+        "purchases": 17,
+        "revenue": 253.1,
+        "avgPrice": 9.73,
+        "avgQty": 1.53
+      },
+      {
+        "id": "pr-b6",
+        "name": "DrayTek Vigor 2860n Triple WAN ADSL2+/VDSL2 Wireless N Router w/",
+        "qty": 23,
+        "purchases": 19,
+        "revenue": 3908.85,
+        "avgPrice": 169.95,
+        "avgQty": 1.21
+      },
+      {
+        "id": "pr-b4",
+        "name": "Samsung UE48J6300AK - 48\" LED TV",
+        "qty": 22,
+        "purchases": 22,
+        "revenue": 9164.21,
+        "avgPrice": 416.56,
+        "avgQty": 1
+      },
+      {
+        "id": "pr-b5",
+        "name": "Samsung UE48J5500AK - 48\" LED TV",
+        "qty": 22,
+        "purchases": 21,
+        "revenue": 7748.88,
+        "avgPrice": 352.22,
+        "avgQty": 1.05
+      },
+      {
+        "id": "pr-b11",
+        "name": "Apple iPad mini 2 Wi-Fi - tablet - 16 GB - 7.9\"",
+        "qty": 20,
+        "purchases": 1,
+        "revenue": 3840,
+        "avgPrice": 192,
+        "avgQty": 20
+      },
+      {
+        "id": "pr-b8",
+        "name": "Intel Next Unit of Computing Kit NUC5I7RYH - Core i7 5557U 3.1 G",
+        "qty": 18,
+        "purchases": 17,
+        "revenue": 5557.29,
+        "avgPrice": 308.74,
+        "avgQty": 1.06
+      },
+      {
+        "id": "pr-b9",
+        "name": "Samsung UE32J6300AK - 32\" LED TV",
+        "qty": 17,
+        "purchases": 17,
+        "revenue": 4467.83,
+        "avgPrice": 262.81,
+        "avgQty": 1
       },
       {
         "id": "pr-18",
@@ -1376,11 +1484,11 @@ export const FIELD_DATA = {
       {
         "id": "pr-other",
         "name": "(all other products)",
-        "qty": 12775,
-        "purchases": 6051,
-        "revenue": 1886541.41,
-        "avgPrice": 147.67,
-        "avgQty": 2.11
+        "qty": 12435,
+        "purchases": 5819,
+        "revenue": 1809628.9,
+        "avgPrice": 145.53,
+        "avgQty": 2.14
       }
     ]
   },

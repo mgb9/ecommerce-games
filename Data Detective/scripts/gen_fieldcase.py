@@ -180,8 +180,26 @@ for r in by_qty + by_rev:
     if r[0] not in keepset:
         keepset.add(r[0]); keep.append(r)
 keep.sort(key=lambda r: -r[1])
-prods = [{"id": f"pr-{i}", "name": anon(r[0]), "qty": round(r[1]), "purchases": round(r[2]),
-          "revenue": r2(r[3]), "avgPrice": r2(r[4]), "avgQty": r2(r[5])} for i, r in enumerate(keep)]
+prod_row = lambda rid, r: {"id": rid, "name": anon(r[0]), "qty": round(r[1]), "purchases": round(r[2]),
+                           "revenue": r2(r[3]), "avgPrice": r2(r[4]), "avgQty": r2(r[5])}
+prods = [prod_row(f"pr-{i}", r) for i, r in enumerate(keep)]
+# Added 2026-10-08, with their own ids (pr-b*) so every row above keeps its id:
+# the most-bought products by UNIQUE PURCHASES — so a ranking by buyers can be
+# read off the report (Case 10: the top sellers by buyers are Samsung TVs and a
+# TomTom, not the contracts and trade baskets that top revenue and units) — and
+# the two iPad bulk orders Case 9's clue cites (60 iPad Air and 20 iPad mini 2,
+# one purchase each), which the quantity/revenue cut had left out.
+by_buyers = sorted(rows, key=lambda r: -r[2])[:14]
+ipads = [r for r in rows if (str(r[0]).startswith("Apple iPad Air Wi-Fi - tablet - 16 GB") and r[1] == 60)
+         or (str(r[0]).startswith("Apple iPad mini 2 Wi-Fi - tablet - 16 GB") and r[1] == 20)]
+assert len(ipads) == 2, ipads
+extra = []
+for r in by_buyers + ipads:
+    if r[0] not in keepset:
+        keepset.add(r[0]); extra.append(r)
+prods += [prod_row(f"pr-b{j}", r) for j, r in enumerate(extra)]
+keep += extra
+prods.sort(key=lambda p: -p["qty"])   # the report's default order: by quantity
 oq = pr_total[1] - sum(r[1] for r in keep)
 op = pr_total[2] - sum(r[2] for r in keep)
 orev = pr_total[3] - sum(r[3] for r in keep)

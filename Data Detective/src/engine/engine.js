@@ -172,15 +172,19 @@ const REPORTS = [
   { group: "Tech", items: [{ dim: "device", label: "Device category" }, { dim: "browser", label: "Browser" }] },
 ];
 
+// Each label names WHERE the fault is, so that exactly one fits each case:
+// a release that broke a payment provider is a payment failure, a warehouse
+// upgrade that broke delivery slots is a fulfilment failure, and lost
+// campaign tags move the credit without losing a single recorded sale.
 const CAUSE_TYPES = [
-  { id: "deploy_bug", label: "A deploy or release broke something" },
-  { id: "gateway_failure", label: "A payment gateway/provider failed" },
-  { id: "traffic_quality", label: "Low-quality or bot traffic" },
-  { id: "tracking_bug", label: "A tracking/analytics bug — not a real drop" },
-  { id: "inventory", label: "A stockout or inventory issue" },
+  { id: "deploy_bug", label: "A website release broke part of the site" },
+  { id: "gateway_failure", label: "Payment with one provider or method stopped working" },
+  { id: "traffic_quality", label: "The traffic mix changed — more low-intent visitors" },
+  { id: "tracking_bug", label: "Analytics stopped recording some sales — the drop isn't real" },
+  { id: "inventory", label: "Stock ran out" },
   { id: "pricing_promo", label: "A pricing or promotion change" },
-  { id: "fulfilment", label: "A delivery, warehouse or fulfilment problem" },
-  { id: "attribution_change", label: "A reporting or attribution change — the credit moved, not the customers" },
+  { id: "fulfilment", label: "Delivery, warehouse or fulfilment systems failed" },
+  { id: "attribution_change", label: "Analytics now credits sales to different channels — the total is unchanged" },
   { id: "external_no_issue", label: "Nothing is broken — normal variation or a calendar effect" },
 ];
 
@@ -369,16 +373,45 @@ function variantFor(caseId, seed, attempt = 1) {
 // "dimA × dimB" cross-tab breakdown shows the full, undiluted drop
 // isolated to exactly one cell. Segment sampling noise is layered on
 // top of these expected values (see above).
+/* ---- generateCase: a draw that tells the case's story --------------
+   A seed's noise is random, so on an unlucky draw a blip somewhere else
+   can outshine the real fault, or the ticket's premise ("orders are up")
+   can fail. A teaching case has to be fair: the data must support the
+   stated answer. So generateCase draws, checks the story holds
+   (storyHolds, below), and if not draws again from a derived noise key —
+   deterministically, so a seed always gives the same case. Draw 0 uses
+   the seed itself: a seed whose first draw is fine is unchanged. The
+   variant is picked from the seed, never from the draw. Then every
+   number the ticket and explanation quote is filled in from that data
+   (fillText), so the text always matches what the student sees. */
+const MAX_DRAWS = 16;
 function generateCase(caseId, seed, opts = {}) {
   const def = CASEMAP[caseId];
   if (!def) throw new Error("unknown case: " + caseId);
   const variantIndex = opts.variant ?? pickVariant(def, seed);
   const v = def.variants[variantIndex];
   const noiseScale = opts.noise ?? 1;
-  const rngSess = makeRng(seed + ":" + caseId + ":sessions");
-  const rngConv = makeRng(seed + ":" + caseId + ":conv");
-  const rngSeg = makeRng(seed + ":" + caseId + ":segments");
-  const rngOrders = makeRng(seed + ":" + caseId + ":orders");
+  let cd, draw = 0;
+  for (; draw < MAX_DRAWS; draw++) {
+    cd = drawCase(def, String(seed), variantIndex, noiseScale, draw);
+    if (noiseScale === 0 || storyHolds(cd, v)) break;
+  }
+  cd.draw = Math.min(draw, MAX_DRAWS - 1);
+  const facts = { ...(v.facts ? v.facts(factHelpers(cd)) : {}) };
+  cd.facts = facts;
+  cd.ticket = { ...v.ticket, body: fillText(v.ticket.body, facts) };
+  cd.truth = { ...cd.truth, explanation: fillExplanation(v.truth.explanation, facts) };
+  return cd;
+}
+
+function drawCase(def, seed, variantIndex, noiseScale, draw) {
+  const caseId = def.id;
+  const v = def.variants[variantIndex];
+  const noiseKey = draw ? `${seed}~${draw}` : seed;
+  const rngSess = makeRng(noiseKey + ":" + caseId + ":sessions");
+  const rngConv = makeRng(noiseKey + ":" + caseId + ":conv");
+  const rngSeg = makeRng(noiseKey + ":" + caseId + ":segments");
+  const rngOrders = makeRng(noiseKey + ":" + caseId + ":orders");
   const incident = v.incident;
   const shifts = v.sessionShiftEvents || [];
   const joint = jointOf(incident);
@@ -399,14 +432,14 @@ function generateCase(caseId, seed, opts = {}) {
   const K_AOV = (AOV * scale.aov) / dayWeights(0, null, null, null).aovProduct;
   // Order values have their own streams, so adding them changed no other
   // number in the case: sessions, conversion and purchases are as they were.
-  const rngAov = makeRng(seed + ":" + caseId + ":aov");
+  const rngAov = makeRng(noiseKey + ":" + caseId + ":aov");
 
   // engagement-metric RNG streams + per-dimension average characters (so a
   // segment's engagement reconciles to the topline the same way conversion does)
-  const rngEng = makeRng(seed + ":" + caseId + ":eng");
-  const rngTime = makeRng(seed + ":" + caseId + ":time");
-  const rngEv = makeRng(seed + ":" + caseId + ":ev");
-  const rngNew = makeRng(seed + ":" + caseId + ":new");
+  const rngEng = makeRng(noiseKey + ":" + caseId + ":eng");
+  const rngTime = makeRng(noiseKey + ":" + caseId + ":time");
+  const rngEv = makeRng(noiseKey + ":" + caseId + ":ev");
+  const rngNew = makeRng(noiseKey + ":" + caseId + ":new");
   const avgEng = {}, avgEv = {};
   for (const dim of DIMENSIONS) { avgEng[dim.key] = avgCharOf(dim, engMultOf); avgEv[dim.key] = avgCharOf(dim, evMultOf); }
   // For a joint incident, each of its two dimensions sees the other's
@@ -484,7 +517,7 @@ function generateCase(caseId, seed, opts = {}) {
   // secondary dimension. We expose the incident + shift model (and the seed
   // and noise level, for its sampling noise) so it can.
   return {
-    id: def.id, n: def.n, seed: String(seed), noise: noiseScale, variant: variantIndex, scale,
+    id: def.id, n: def.n, seed: String(seed), noiseKey, noise: noiseScale, variant: variantIndex, scale,
     ticket: v.ticket, topline, events: v.events, truth: { ...v.truth, lesson: def.lesson },
     breakdowns, incident, shiftEvents: shifts,
   };
@@ -524,8 +557,9 @@ function crossTabGrid(caseData, k1, k2) {
   const seriesOf = (key) => caseData.breakdowns.find((d) => d.key === key).series;
   const serA = seriesOf(k1), serB = seriesOf(k2);
   const noise = caseData.noise ?? 1;
-  const rng = makeRng(`${caseData.seed}:${caseData.id}:x:${k1}:${k2}`);
-  const rngAov = makeRng(`${caseData.seed}:${caseData.id}:xa:${k1}:${k2}`);   // its own stream: see generateCase
+  const key = caseData.noiseKey ?? caseData.seed;   // the draw's noise key (see generateCase)
+  const rng = makeRng(`${key}:${caseData.id}:x:${k1}:${k2}`);
+  const rngAov = makeRng(`${key}:${caseData.id}:xa:${k1}:${k2}`);   // its own stream: see generateCase
   const avgEngA = avgCharOf(A, engMultOf), avgEngB = avgCharOf(B, engMultOf);
   const avgEvA = avgCharOf(A, evMultOf), avgEvB = avgCharOf(B, evMultOf);
   const grid = {};
@@ -733,6 +767,100 @@ function summariseTopline(topline, earlyWindow = EARLY_WINDOW, lateWindow = LATE
   };
 }
 
+/* ---- does this draw tell the story? -----------------------------------
+   A segment's "differential" is its change minus the share-weighted change
+   of the rest of its dimension: how far it moved on its own. A fair case
+   needs the true answer to be the clearest same-direction anomaly a
+   student could find — at least CLEAR_MARGIN times any rival among the
+   big segments (share ≥ 10%) of every other dimension, and of its own.
+   Rivals the case's design makes move (a compound cause's two single
+   dimensions, a masking case's own dimension, an attribution's receiving
+   segment) are left out. When nothing broke, no big segment may look like
+   an incident: none may move further than CALM_Z standard deviations of the
+   wobble its size and the noise level make normal. Then the variant's own
+   `requires` (the ticket's premise). */
+const CLEAR_MARGIN = 1.3, CALM_Z = 2.5, CALM_SHARE = 0.1;
+function differentials(dim, m, minShare) {
+  const rows = summariseSegments(dim);
+  return rows.filter((r) => r.shareLate >= minShare).map((r) => {
+    const rest = rows.filter((x) => x.id !== r.id), w = rest.reduce((a, x) => a + x.shareLate, 0);
+    return { id: r.id, d: r.lens[m].delta - rest.reduce((a, x) => a + x.shareLate * x.lens[m].delta, 0) / w, perDay: r.purchasesLate / 7, restPerDay: rest.reduce((a, x) => a + x.purchasesLate, 0) / 7 };
+  });
+}
+// The sd of a segment's differential that sampling noise alone produces
+// (see purchaseSigma): daily sd ÷ √7 per week, × √2 for two weeks — for the
+// segment and for the rest of its dimension, which wobbles too.
+// Checked over 4,000 noise-only differentials: the estimate is
+// conservative (their z has sd ≈ 0.8), so CALM_Z = 2.5 is about 3 real sd.
+const wobbleSd = (noise, perDay, restPerDay) => Math.SQRT2 * noise * SEG_RATE_NOISE * Math.sqrt(1 / (7 * Math.max(perDay, 0.25)) + 1 / (7 * Math.max(restPerDay, 0.25)));
+function storyHolds(cd, v) {
+  const inc = cd.incident, t = cd.truth;
+  const others = (skip, m) => cd.breakdowns.filter((d) => !skip.includes(d.key)).flatMap((d) => differentials(d, m, 0.1));
+  const clear = (target, rivals) => {
+    const same = rivals.filter((r) => Math.sign(r.d) === Math.sign(target.d)).map((r) => Math.abs(r.d));
+    return Math.abs(target.d) >= CLEAR_MARGIN * Math.max(0, ...same);
+  };
+  let ok = true;
+  if (!inc) {
+    ok = cd.breakdowns.every((d) => differentials(d, "conversionRate", CALM_SHARE).every((r) => Math.abs(r.d) <= CALM_Z * wobbleSd(cd.noise, r.perDay, r.restPerDay)));
+  } else if (inc.type === "rate-joint") {
+    const ct = buildCrossTab(cd, t.dimension, t.secondary);
+    const cells = differentials(ct, "conversionRate", 0.02);
+    const target = cells.find((c) => c.id === `${t.segment}__${t.segmentB}`);
+    ok = clear(target, [...cells.filter((c) => c !== target), ...others([t.dimension, t.secondary], "conversionRate")]);
+  } else {
+    const m = inc.type === "aov" ? "aov" : inc.type === "attribution" && inc.moves === "sessions" ? "sessions" : "conversionRate";
+    const own = differentials(cd.breakdowns.find((d) => d.key === t.dimension), m, 0);
+    const target = own.find((x) => x.id === t.segment);
+    const ownRivals = v.masked ? [] : own.filter((x) => x !== target && x.id !== inc.to);
+    ok = clear(target, [...ownRivals, ...others([t.dimension], m)]);
+  }
+  return ok && (!v.requires || v.requires(factHelpers(cd)));
+}
+
+/* ---- facts: the numbers a case's text quotes, from its own data -------
+   A variant's `facts(h)` returns { name: "text" }; its ticket and
+   explanation say {{name}} where the number goes, and {{day:N}} for a day
+   in the dashboard's own labels ("W3 Fri"). `h` is these helpers. */
+function factHelpers(cd) {
+  const dim = (k) => cd.breakdowns.find((d) => d.key === k);
+  const seg = (k, id) => summariseSegments(dim(k)).find((r) => r.id === id);
+  const top = summariseTopline(cd.topline);
+  const share = (k, id, win = EARLY_WINDOW) => { const d = dim(k); const tot = d.segments.reduce((a, s) => a + sumRange(d.series[s.id], win, "purchases"), 0); return sumRange(d.series[id], win, "purchases") / tot; };
+  return {
+    cd, top, dim, seg,
+    rows: (k) => summariseSegments(dim(k)),
+    cell: (a, b, id) => summariseSegments(buildCrossTab(cd, a, b)).find((r) => r.id === id),
+    // a segment's differential: its change minus the rest of its dimension's
+    diff: (k, id, m = "conversionRate") => differentials(dim(k), m, 0).find((r) => r.id === id).d,
+    // …and in units of the wobble its size and the noise level make normal
+    z: (k, id) => { const r = differentials(dim(k), "conversionRate", 0).find((x) => x.id === id); return cd.noise ? r.d / wobbleSd(cd.noise, r.perDay, r.restPerDay) : 0; },
+    // a window's average daily conversion against another's, as a change
+    windowCh: (k, id, win, base) => avgRange(dim(k).series[id], win) / avgRange(dim(k).series[id], base) - 1,
+    gbpM: (x) => `£${(x / 1e6).toFixed(1)}m`,
+    cells: (a, b) => summariseSegments(buildCrossTab(cd, a, b)),
+    share,
+    sum: (k, id, win, key) => sumRange(dim(k).series[id], win, key),
+    avg: (k, id, win, key = "conversionRate") => avgRange(dim(k).series[id], win, key),
+    coverage: (lo, hi) => { const r = cd.topline.filter((x) => x.day >= lo && x.day <= hi); return r.reduce((a, x) => a + x.purchases, 0) / r.reduce((a, x) => a + x.orders, 0); },
+    // formatting: a size of change, a signed change, a rate, money
+    pc: (x) => `${Math.round(Math.abs(x) * 100)}%`,
+    ch: (x) => { const r = Math.round(x * 100); return r === 0 ? "0%" : `${r > 0 ? "+" : "\u2212"}${Math.abs(r)}%`; },
+    rate: (x, dp = 1) => `${(x * 100).toFixed(dp)}%`,
+    gbp: (x, to = 1) => "£" + (Math.round(x / to) * to).toLocaleString("en-GB"),
+    gbp2: (x) => "£" + x.toFixed(2),
+  };
+}
+const fillText = (text, facts) => text.replace(/\{\{(day:)?([\w-]+)\}\}/g, (m, isDay, key) => {
+  if (isDay) return dayShort(Number(key));
+  if (!(key in facts)) throw new Error(`no fact "${key}" for text: ${text.slice(0, 60)}`);
+  return facts[key];
+});
+const fillExplanation = (ex, facts) => {
+  const fill = (o) => Object.fromEntries(Object.entries(o).map(([k, val]) => [k, typeof val === "string" ? fillText(val, facts) : fill(val)]));
+  return fill(ex);
+};
+
 // A flavour-only Realtime snapshot (GA's "users in last 30 minutes"). Pure
 // atmosphere — deterministic from the seed, unrelated to the incident.
 function realtimeSnapshot(caseData, seed = "rt") {
@@ -850,6 +978,6 @@ export {
   clamp, gbp, pct, pp, makeRng,
   TOTAL_DAYS, BASE_SESSIONS, BASE_CONVERSION, AOV, EARLY_WINDOW, LATE_WINDOW, dayShort, dayLong,
   DIMENSIONS, DMAP, REPORTS, CAUSE_TYPES, CASES, CASEMAP, FUNNEL_STAGES, LENSES,
-  incidentFactorAt, generateCase, variantFor, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod,
+  incidentFactorAt, generateCase, variantFor, fillText, storyHolds, factHelpers, MAX_DRAWS, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod,
   avgRange, sumRange, aovRange, summariseSegments, summariseTopline, scoreDiagnosis, reviewTrail, GLOSSARY,
 };

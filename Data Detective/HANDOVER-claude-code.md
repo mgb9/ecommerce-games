@@ -9,7 +9,7 @@ the latest state is in "Inbox, case file and order value" near the end.
 ```bash
 npm install
 npm run dev      # http://localhost:5176
-npm test         # 235 tests
+npm test         # 264 tests
 npm run build
 ```
 (From the repo root the dev server is wired in `.claude/launch.json` as `data-detective`.) A plain link opens
@@ -357,7 +357,7 @@ by number with `kind: "generated" | "field"`; App's `caseIndex` indexes it (sess
   holds and `to` becomes a blend) or `moves: "credit"` (a model change: conversions move, sessions don't). Two new
   cause types: `fulfilment`, `attribution_change`. `reviewTrail` reports `needsTotal/usedTotal` (back-office
   orders, or the report by sessions/revenue) for attribution cases.
-- **Case 11 "Five markets, two warehouses"** (Advanced, `scale 25 × 2.2` → ~68,000 sessions and £1.6m a week):
+- **Case 11 "Four markets, two warehouses"** (Advanced, `scale 25 × 2.2` → ~68,000 sessions and £1.6m a week):
   a five-day (v0, Germany, checkout) or four-day (v1, France, purchase) fulfilment-system outage that has
   **already healed** when the ticket arrives; lost revenue ≈ £160k / £95k, pinned across 10 seeds; "last 7 days"
   shows only part of it. Lesson: size it over the days it ran; a healed dip needs a post-mortem, not a rollback.
@@ -399,6 +399,40 @@ by number with `kind: "generated" | "field"`; App's `caseIndex` indexes it (sess
   11, 12, the rating, the case file, both instructor views; axe clean on every new screen; 320 px reflow;
   headless-Chrome print of the case file and a case report (tagged PDFs, A4, headings in order —
   scratchpad `printcheck.mjs` drives Chrome over CDP, seeding progress first). VoiceOver script updated, not run.
+
+## Data and answers audit (2026-10-08)
+The user asked for a check that the data and the answers match and are right. An audit over 212 seeds (not the
+tests' 10) found the texts quoted fixed numbers ("revenue down 15–20%", "Mobile down about a fifth") that
+many seeds' data contradicted — e.g. case 1's ticket was wrong for 61/212 seeds — and that in Case 4 v0 a
+noise blip elsewhere outshone the real fault in 8% of seeds. Fixed at the root:
+- **Numbers in text come from the student's own data.** Each variant has `facts(h)` (cases.js); its ticket body
+  and explanation say `{{name}}` and `{{day:N}}` (a day in the dashboard's labels, "W3 Fri" — the old texts said
+  "day 18", which the dashboard calls day 19). generateCase fills them (fillText). Ticket subjects stay static
+  (the inbox shows them unfilled; tested).
+- **Every seed must tell the story** (`storyHolds` in engine.js): the true segment's differential (its change
+  minus the rest of its dimension's) must be ≥1.3× any same-direction rival among big segments in every
+  dimension; when nothing broke, no segment with ≥10% share may move beyond 2.5 sd of the wobble its size and
+  the noise level make normal (`wobbleSd`, checked against 4,000 noise-only differentials — conservative,
+  z sd ≈ 0.8); plus each variant's `requires` (its ticket's premise, e.g. "orders are up"). If a draw fails,
+  generateCase redraws from `${seed}~k` (MAX_DRAWS 16) — deterministic; draw 0 is the seed itself, so a seed
+  that already passed is byte-identical. Tested over 40 seeds × noise 0.6/1.4/2.0: never out of draws.
+- **Cause options relabelled by where the fault is** so exactly one fits each case (a warehouse upgrade is
+  "fulfilment systems failed", not "a website release"; lost campaign tags are "analytics now credits sales to
+  different channels", not "analytics stopped recording sales").
+- **Case 10's answer was wrong against the full export**: the Sony 75" (15 buyers) is 16th by buyers, not 4th;
+  a Samsung 32" (39) and the TomTom Runner (27) outrank it but weren't in the game's rows. The generator now also
+  keeps the top 14 products by unique purchases and the two iPad bulk orders (ids `pr-b*`, so every existing id
+  and clue is unchanged; regenerated with all six exports copied via Finder). Answer, clue and explanation
+  corrected; "five contract lines ≈ £504k" now says "the five biggest" (there are 23, £622k).
+- **Case 9**: "60 iPads in one order" was true but the row wasn't shown — now it is, and flagging it counts;
+  "the ~424 real referral sales are mostly price-comparison sites" was unsupported (the named ones are about
+  half price-comparison; most of the 424 are in the export's unnamed tail) — reworded.
+- **Case 11**: "five markets" (the report has four plus "Other"), "France is the smallest of the big markets"
+  (the USA is smaller) and a lesson/CV line saying "five-day" for a variant that lasts four — fixed.
+- **Case 12 v0**: the red herring (a discount cut) was refuted by email's conversion rate, which is too noisy to
+  refute anything on some seeds; it is now a send-day change, refuted by the total.
+- **Answer sheet** now shows each variant's "what the data showed" with the seed's numbers, the date tolerance,
+  and where a mix-shift case's signal shows.
 
 ## Deliberately deferred
 - **Which call a student gets wrong most** (dimension / segment / cause / start) across cases — with at most nine

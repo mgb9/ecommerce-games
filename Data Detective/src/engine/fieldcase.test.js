@@ -220,3 +220,32 @@ describe("case 10: the Christmas plan", () => {
     expect(trap.fieldsCorrect).toBe(1); expect(trap.clueDetail.find((c) => c.id === "service-contracts").found).toBe(true);
   });
 });
+
+/* ---- the product rows added for Cases 9 and 10, against the full export -- */
+describe("product rows: buyers and bulk orders", () => {
+  const pr = (id) => FIELD_DATA.products.rows.find((r) => r.id === id);
+  it("the original rows keep their ids; the added ones are pr-b*", () => {
+    expect(pr("pr-14").name).toMatch(/Samsung UE48H6400/); expect(pr("pr-21").name).toMatch(/HP Care Pack 4-hour 24x7/);
+    expect(pr("pr-b0").name).toMatch(/Samsung UE32J5500AK/); expect(pr("pr-b0").purchases).toBe(39);
+    expect(pr("pr-b2").name).toMatch(/TomTom Runner/); expect(pr("pr-b2").purchases).toBe(27);
+    expect(pr("pr-b10")).toMatchObject({ qty: 60, purchases: 1 }); expect(pr("pr-b10").name).toMatch(/iPad Air/);
+  });
+  it("ranked by buyers, the top consumer products are the Samsung TVs and the TomTom — as Case 10's answer says", () => {
+    const consumer = FIELD_DATA.products.rows.filter((r) => /Samsung|TomTom|Sony|iPad/.test(r.name)).sort((a, b) => b.purchases - a.purchases);
+    expect(consumer.slice(0, 6).map((r) => r.purchases)).toEqual([96, 62, 52, 39, 28, 27]);
+    expect(consumer.findIndex((r) => /Sony KDL-75/.test(r.name))).toBeGreaterThan(5);
+    const truth = fieldCaseById("christmas-plan-2015").verdicts.find((v) => v.id === "consumer-purchases").label;
+    for (const n of ["96", "62", "52", "39", "27", "TomTom"]) expect(truth).toContain(n);
+    expect(truth).not.toMatch(/Sony/);
+  });
+  it("Case 9's '60 iPad Airs in 1' is a row the student can see and flag", () => {
+    expect(FIELD_CLUES.find((c) => c.id === "bulk-orders").rows).toContain("pr-b10");
+    expect(FIELD_CLUES.find((c) => c.id === "bulk-orders").detail).toContain("60 iPad Airs in 1");
+  });
+  it("the five biggest HP contract lines are about £504,000, ~15% of the site's revenue", () => {
+    const hp = FIELD_DATA.products.rows.filter((r) => /HP (Care Pack|Foundation Care)/.test(r.name));
+    const rev = hp.reduce((a, r) => a + r.revenue, 0);
+    expect(hp).toHaveLength(5); expect(Math.round(rev / 1000)).toBe(504);
+    expect(Math.round((rev / FIELD_DATA.channels.total.revenue) * 100)).toBe(15);
+  });
+});

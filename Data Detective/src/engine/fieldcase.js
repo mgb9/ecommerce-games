@@ -97,8 +97,8 @@ const FIELD_CLUES = [
   },
   {
     id: "bulk-orders", label: "Impossible basket sizes",
-    rows: ["pr-0", "pr-1", "pr-2", "pr-3", "pr-4", "pr-8", "pr-9", "pr-10", "pr-11", "pr-12", "pr-13", "pr-15"],
-    detail: "Product performance corroborates the contamination: 343 SSDs across 4 orders, 200 patch cables in 1, 77 Cisco access points in 1, 60 iPads in 1. Compare a real consumer line — the Samsung UE48H6400 TV: 98 units, 96 separate purchases. The bulk rows are test baskets and unsegmented trade orders distorting product economics.",
+    rows: ["pr-0", "pr-1", "pr-2", "pr-3", "pr-4", "pr-8", "pr-9", "pr-10", "pr-11", "pr-12", "pr-13", "pr-15", "pr-b10", "pr-b11"],
+    detail: "Product performance corroborates the contamination: 343 SSDs across 4 orders, 200 patch cables in 1, 77 Cisco access points in 1, 60 iPad Airs in 1. Compare a real consumer line — the Samsung UE48H6400 TV: 98 units, 96 separate purchases. The bulk rows are test baskets and unsegmented trade orders distorting product economics.",
   },
   {
     id: "mobile-gap", label: "The mobile conversion gap",
@@ -123,12 +123,12 @@ function scoreFieldDiagnosis(guess, flaggedIds, q = COLD_CASE_Q) {
 // Case 9's explanation, in the same four parts as the generated cases'.
 const COLD_CASE_EXPLANATION = {
   what: "The agency read the dashboard, not the data. Referral's 16% was three faults stacked up. First, payment-gateway self-referrals: customers left the site to pay at PayPal or SagePay, and Google Analytics counted their return as a new session “referred” by the gateway — so the gateways got the credit for 1,923 sales that Paid Search, Organic and Direct actually earned. (Today this is fixed with a referral exclusion list; in 2015 you had to know to do it.) Second, and worse: sandbox.paypal.com — PayPal's test environment — posted 76 fake transactions worth £386,975 into the live property. That is 11.8% of ALL reported revenue, at a £5,092 average order. Third, staging servers and a private IP appear as traffic — there were no filters at all.",
-  data: "The Product report corroborates it: 343 SSDs in 4 orders, 200 cables in one, 60 iPads in one. Strip the contamination and Referral is a normal little channel (~424 real transactions, mostly price-comparison sites).",
+  data: "The Product report corroborates it: 343 SSDs in 4 orders, 200 cables in one, 60 iPads in one. Strip out the gateways and the test orders and Referral is a normal little channel of about 424 transactions — those big enough to appear by name are mostly price-comparison and voucher sites.",
   herrings: "Paid Search DOES have a genuine problem — 888 exported Shopping-ad landing pages bouncing at 82% and converting at 0.85% — and mobile genuinely underperforms. But you cannot size either problem, or move a single pound of budget, until the tracking is fixed and the data re-measured.",
   next: "The correct advice to the board was: fix the measurement first. Everything else is a guess wearing a percentage.",
   plain: {
     what: "The agency read the dashboard, not the data. Referral's 16% came from three faults together. First, self-referrals from payment gateways: customers left the site to pay at PayPal or SagePay. Google Analytics counted their return as a new visit “referred” by the gateway. So the gateways got the credit for 1,923 sales that Paid Search, Organic and Direct really earned. (Today a referral exclusion list fixes this. In 2015 you had to know to set it up.) Second, and worse: sandbox.paypal.com is PayPal's test system. It posted 76 fake transactions worth £386,975 into the live data. That is 11.8% of ALL reported revenue, at £5,092 per order. Third, staging servers and a private IP address appear as traffic. There were no filters at all.",
-    data: "The Product report agrees: 343 SSDs in 4 orders, 200 cables in one order, 60 iPads in one order. Remove the fake and misfiled data, and Referral is a normal small channel: about 424 real transactions, mostly from price-comparison sites.",
+    data: "The Product report agrees: 343 SSDs in 4 orders, 200 cables in one order, 60 iPads in one order. Remove the gateways and the test orders, and Referral is a normal small channel of about 424 transactions. The ones big enough to appear by name are mostly price-comparison and voucher sites.",
     herrings: "Paid Search DOES have a real problem: 888 exported Shopping-ad landing pages with an 82% bounce rate and 0.85% conversion. Mobile really does perform badly. But you cannot measure either problem, or move any budget, until the tracking is fixed and the data is measured again.",
     next: "The right advice to the board was: fix the measurement first. Everything else is a guess dressed up as a percentage.",
   },
@@ -154,7 +154,7 @@ const CHRISTMAS_Q = {
   verdicts: [
     { id: "top-revenue", label: "Go with the plan — lead with the top ten products by revenue. The HP support contracts and the big SSD and RAM lines are where the money is." },
     { id: "top-units", label: "Lead with the volume sellers instead — SSDs, keyboards, cables and RAM moved hundreds of units each." },
-    { id: "consumer-purchases", label: "Rank by how many separate customers bought each product, consumer lines only: the Samsung 48\", 40\" and 55\" TVs and the Sony 75\" — bought one at a time by 96, 62, 52 and 15 people. The revenue and unit rankings are trade orders and service contracts." },
+    { id: "consumer-purchases", label: "Rank by how many separate customers bought each product, consumer lines only: the Samsung TVs — the 48\" (96 buyers), 40\" (62), 55\" (52) and 32\" (39) — and the TomTom Runner (27), each bought one at a time. The revenue and unit rankings are trade orders and service contracts." },
     { id: "pla-products", label: "Lead with the products behind the busiest Shopping-ad landing pages — they already have the traffic." },
   ],
   verdictTruth: "consumer-purchases",
@@ -175,18 +175,18 @@ const CHRISTMAS_Q = {
   clues: [
     {
       id: "bulk-baskets", label: "Trade baskets at the top of the unit ranking", core: true,
-      rows: ["pr-0", "pr-1", "pr-2", "pr-3", "pr-4", "pr-6", "pr-8", "pr-9", "pr-10", "pr-11", "pr-12", "pr-13", "pr-15"],
-      detail: "Product performance, sorted by quantity: 343 SSDs in 4 purchases, 282 keyboard sets in 4, 200 patch cables in 1, 200 RAM modules in 2, 77 Cisco access points in 1. Those are trade orders — or test baskets — not Christmas shoppers. “Qty / purchase” is the tell: a consumer buys one.",
+      rows: ["pr-0", "pr-1", "pr-2", "pr-3", "pr-4", "pr-6", "pr-8", "pr-9", "pr-10", "pr-11", "pr-12", "pr-13", "pr-15", "pr-b10", "pr-b11"],
+      detail: "Product performance, sorted by quantity: 343 SSDs in 4 purchases, 282 keyboard sets in 4, 200 patch cables in 1, 200 RAM modules in 2, 77 Cisco access points in 1, 60 iPad Airs in 1. Those are trade orders — or test baskets — not Christmas shoppers. “Qty / purchase” is the tell: a consumer buys one.",
     },
     {
       id: "service-contracts", label: "Service contracts at the top of the revenue ranking", core: true,
       rows: ["pr-19", "pr-20", "pr-21", "pr-22", "pr-23"],
-      detail: "Sorted by revenue, the top of the report is HP support contracts: £229,451 from 4 purchases at £57,363 each, £147,195 from 3, £62,401 from 5. Together the five contract lines are about £504,000 — around 15% of all reported revenue — from 26 purchases. Nobody puts a datacentre support contract in a Christmas email.",
+      detail: "Sorted by revenue, the top of the report is HP support contracts: £229,451 from 4 purchases at £57,363 each, £147,195 from 3, £62,401 from 5. The five biggest contract lines alone are about £504,000 — around 15% of the site's revenue — from 26 purchases. Nobody puts a datacentre support contract in a Christmas email.",
     },
     {
       id: "consumer-sellers", label: "The products real shoppers buy", core: true,
-      rows: ["pr-14", "pr-16", "pr-17", "pr-18"],
-      detail: "The Samsung UE48H6400 (96 purchases, 98 units — one each), the UE40JU6400K (62), the UE55JU6400K (52) and the Sony 75\" (15, at £1,599). Rank by unique purchases and these are the headline products; by revenue or units they are buried.",
+      rows: ["pr-14", "pr-16", "pr-17", "pr-b0", "pr-b1", "pr-b2", "pr-b4", "pr-b5", "pr-b9"],
+      detail: "Sorted by unique purchases: the Samsung UE48H6400 (96 buyers, 98 units — one each), the UE40JU6400K (62), the UE55JU6400K (52) and the UE32J5500AK (39), then a second 32\" Samsung (28) and the TomTom Runner (27). Rank by buyers and these are the headline products; by revenue or units they are buried. (Next by buyers come the APC UPS (23), two more Samsung TVs and the DrayTek router (19) — the UPS and the router are business kit. The Sony 75\", high-value at £1,599, had only 15 buyers.)",
     },
     {
       id: "fee-line", label: "A fee line in the product report",
@@ -220,13 +220,13 @@ const CHRISTMAS_Q = {
     },
   ],
   explanation: {
-    what: "The plan would have headlined the wrong products and targeted the wrong people, because it read the product report by the wrong column. At an IT reseller, “top by revenue” means service contracts — five HP support lines took about £504,000 from 26 purchases, £57,363 for a single one — and “top by units” means trade baskets: 343 SSDs in four purchases, 200 cables in one. Neither is a Christmas gift.",
-    data: "Rank by unique purchases, consumer lines only, and the headline products are plain: the Samsung 48\" TV (96 separate buyers), the 40\" (62), the 55\" (52) and the Sony 75\" (15). The age report doesn't say what the agency said either: 65+ converts best (2.76%), then 45–54 (2.60%), with 35–44 (2.44%) third — they simply have the most sessions — and age is known for only 58% of sessions. The Shopping-ad landing pages “with the most traffic” bounce at 82% and convert at 0.85%; the TV's own ad landing turned 2,502 clicks into 22 orders, while the homepage turned 14,758 visits into 595.",
+    what: "The plan would have headlined the wrong products and targeted the wrong people, because it read the product report by the wrong column. At an IT reseller, “top by revenue” means service contracts — the five biggest HP support lines alone took about £504,000 from 26 purchases, £57,363 for a single one — and “top by units” means trade baskets: 343 SSDs in four purchases, 200 cables in one, 60 iPad Airs in one. None of them is a Christmas gift.",
+    data: "Rank by unique purchases, consumer lines only, and the headline products are plain: the Samsung 48\" TV (96 separate buyers), the 40\" (62), the 55\" (52) and the 32\" (39), then a second 32\" (28) and the TomTom Runner (27). The age report doesn't say what the agency said either: 65+ converts best (2.76%), then 45–54 (2.60%), with 35–44 (2.44%) third — they simply have the most sessions — and age is known for only 58% of sessions. The Shopping-ad landing pages “with the most traffic” bounce at 82% and convert at 0.85%; the TV's own ad landing turned 2,502 clicks into 22 orders, while the homepage turned 14,758 visits into 595.",
     herrings: "“Custom Shipping Charge” is the most-purchased line in the report — it is a delivery fee. The Kingston mS200 appears twice under two names. And 76 of the period's transactions were PayPal sandbox tests, somewhere in these rows.",
     next: "Separate trade orders, service contracts and test orders from consumer sales; re-rank by unique purchases; take the targeting from a report whose coverage you know; and put the Shopping budget behind pages that convert, not pages that are busy.",
     plain: {
-      what: "The plan would have used the wrong products and the wrong audience, because it read the product report by the wrong column. At an IT reseller, “top by revenue” means service contracts. Five HP support lines made about £504,000 from 26 purchases — £57,363 for a single one. “Top by units” means trade orders: 343 SSDs in four purchases, 200 cables in one. Neither is a Christmas gift.",
-      data: "Rank by the number of separate buyers, consumer products only, and the headline products are clear: the Samsung 48\" TV (96 separate buyers), the 40\" (62), the 55\" (52) and the Sony 75\" (15). The age report does not say what the agency said. 65+ converts best (2.76%), then 45–54 (2.60%). 35–44 (2.44%) is third — they simply have the most visits. And age is known for only 58% of visits. The Shopping-ad landing pages “with the most traffic” have an 82% bounce rate and convert at 0.85%. The TV's own ad page turned 2,502 clicks into 22 orders. The homepage turned 14,758 visits into 595.",
+      what: "The plan would have used the wrong products and the wrong audience, because it read the product report by the wrong column. At an IT reseller, “top by revenue” means service contracts. The five biggest HP support lines alone made about £504,000 from 26 purchases — £57,363 for a single one. “Top by units” means trade orders: 343 SSDs in four purchases, 200 cables in one, 60 iPad Airs in one. None of them is a Christmas gift.",
+      data: "Rank by the number of separate buyers, consumer products only, and the headline products are clear: the Samsung 48\" TV (96 separate buyers), the 40\" (62), the 55\" (52) and the 32\" (39), then a second 32\" (28) and the TomTom Runner (27). The age report does not say what the agency said. 65+ converts best (2.76%), then 45–54 (2.60%). 35–44 (2.44%) is third — they simply have the most visits. And age is known for only 58% of visits. The Shopping-ad landing pages “with the most traffic” have an 82% bounce rate and convert at 0.85%. The TV's own ad page turned 2,502 clicks into 22 orders. The homepage turned 14,758 visits into 595.",
       herrings: "“Custom Shipping Charge” is the most-purchased line in the report. It is a delivery fee. The Kingston mS200 appears twice under two names. And 76 of the period's transactions were PayPal test orders, somewhere in these rows.",
       next: "Separate trade orders, service contracts and test orders from consumer sales. Rank by separate buyers. Take the audience from a report whose coverage you know. Put the Shopping budget behind pages that convert, not pages that are busy.",
     },
@@ -292,7 +292,7 @@ const FIELD_REPORT_META = {
   device: { title: "Audience → Mobile → Overview", cols: FIELD_COLS_STD, note: "Device category for all 230k sessions." },
   age: { title: "Audience → Demographics → Age", cols: FIELD_COLS_STD, note: "Age is only known for 133,539 of 230,128 sessions (58%) — Google's demographics coverage, normal for 2015. Totals here won't match other reports." },
   landingPages: { title: "Behaviour → Landing Pages", cols: FIELD_COLS_STD, note: "Top pages of ~1,000 exported. ?ref=PLA marks a Google Shopping ad click; ?ref=ID marks a price-comparison site. Compare their bounce rates with the homepage's." },
-  products: { title: "Conversions → E-commerce → Product Performance", cols: FIELD_COLS_PRODUCTS, note: "Top rows of 2,500 products by quantity and revenue. “Qty / purchase” is quantity ÷ unique purchases — think about what a normal consumer basket looks like." },
+  products: { title: "Conversions → E-commerce → Product Performance", cols: FIELD_COLS_PRODUCTS, note: "Rows from 2,500 products: the biggest by quantity, by revenue and by number of buyers, and a few other large orders. “Qty / purchase” is quantity ÷ unique purchases — think about what a normal consumer basket looks like." },
 };
 
 export {

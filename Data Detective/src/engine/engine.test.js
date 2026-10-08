@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  generateCase, buildCrossTab, buildFunnel, realtimeSnapshot, precedingPeriod, scoreDiagnosis, reviewTrail, summariseSegments, summariseTopline, incidentFactorAt,
+  generateCase, buildCrossTab, storyHolds, MAX_DRAWS, dayShort, buildFunnel, realtimeSnapshot, precedingPeriod, scoreDiagnosis, reviewTrail, summariseSegments, summariseTopline, incidentFactorAt,
   DIMENSIONS, REPORTS, CASES, CAUSE_TYPES, FUNNEL_STAGES, TOTAL_DAYS, LENSES,
   avgRange, sumRange, EARLY_WINDOW, LATE_WINDOW,
 } from "./engine.js";
@@ -643,7 +643,10 @@ describe("masked incident (masked-desktop)", () => {
    spread of seeds at the default noise (1.4) with sampling noise on:
    retuning the engine must not silently turn the narrative into a lie.
    Week 1 vs week 4, as the tables show by default. */
-describe("case narratives match the generated data", () => {
+// The numbers the case texts quote are filled from each seed's own data (see
+// "every case's text comes from its own data" below); these pin the engine's
+// DESIGNED magnitudes, so a retune that changed a case's character fails here.
+describe("case magnitudes stay in their designed ranges", () => {
   const SEEDS = ["DD-2026", "A1", "B2", "C3", "cohort-x", "Z9", "q", "WM956", "S7919", "S15838"];
   const gen = (id, v, seed) => generateCase(id, seed, { noise: 1.4, variant: v });
   const seg = (cd, dim, id) => summariseSegments(cd.breakdowns.find((d) => d.key === dim)).find((r) => r.id === id).pctChange;
@@ -995,5 +998,43 @@ describe("case 12 narrative matches the generated data", () => {
     expect(reviewTrail(c, ["source"], [], ["source:conversionRate"])).toMatchObject({ found: true, needsTotal: true, usedTotal: false });
     expect(reviewTrail(c, ["source", "orders"], [], []).usedTotal).toBe(true);
     expect(reviewTrail(c, ["source"], [], ["source:sessions"]).usedTotal).toBe(true);
+  });
+});
+
+/* ---- fairness: every seed's text matches its data, and tells the story -- */
+describe("every case's text comes from its own data, and every seed tells the story", () => {
+  const SEEDS = ["DD-2026", "DD-2026·2", "DD-2026·3", ...Array.from({ length: 37 }, (_, k) => `fair-${k}`)];
+  const texts = (cd) => [cd.ticket.body, ...Object.values(cd.truth.explanation).flatMap((x) => (typeof x === "string" ? [x] : Object.values(x)))];
+  for (const def of CASES) for (let v = 0; v < def.variants.length; v++) {
+    it(`${def.id} v${v}: filled, fair and never out of redraws at noise 0.6, 1.4 and 2.0`, () => {
+      for (const noise of [0.6, 1.4, 2.0]) for (const seed of SEEDS) {
+        const cd = generateCase(def.id, seed, { noise, variant: v });
+        const label = `${seed} @${noise}`;
+        for (const t of texts(cd)) { expect(t, label).not.toMatch(/\{\{/); expect(t, label).not.toMatch(/\bday \d/i); }
+        expect(cd.draw, label).toBeLessThan(MAX_DRAWS - 1);
+        expect(storyHolds(cd, def.variants[v]), label).toBe(true);
+      }
+    });
+  }
+  it("ticket subjects carry no numbers to fill (the inbox shows them unfilled)", () => {
+    for (const def of CASES) for (const v of def.variants) expect(v.ticket.subject).not.toMatch(/\{\{/);
+  });
+  it("days are written in the dashboard's own labels", () => {
+    const cd = generateCase(CASE_ID, "DD-2026", { noise: 1.4, variant: 0 });
+    expect(cd.truth.explanation.what).toContain(dayShort(18));
+    expect(dayShort(18)).toBe("W3 Fri");
+  });
+  it("a seed whose first draw tells the story is unchanged: draw 0 uses the seed itself", () => {
+    const cd = generateCase(CASE_ID, "DD-2026", { noise: 1.4, variant: 0 });
+    expect(cd.draw).toBe(0); expect(cd.noiseKey).toBe("DD-2026");
+  });
+  it("the same seed always gives the same case, redraws included", () => {
+    const a = generateCase("normal-week", "DD-2026", { noise: 1.4, variant: 0 }), b = generateCase("normal-week", "DD-2026", { noise: 1.4, variant: 0 });
+    expect(a.draw).toBe(b.draw); expect(a.topline).toEqual(b.topline); expect(a.truth.explanation).toEqual(b.truth.explanation);
+  });
+  it("cause options are distinct, and name where the fault is", () => {
+    const labels = CAUSE_TYPES.map((c) => c.label);
+    expect(new Set(labels).size).toBe(labels.length);
+    expect(labels.join(" ")).not.toMatch(/deploy or release|tracking\/analytics bug|gateway\/provider/);
   });
 });

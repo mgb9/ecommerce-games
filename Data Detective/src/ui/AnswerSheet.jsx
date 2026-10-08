@@ -35,7 +35,7 @@ export default function AnswerSheet({ autoFocus, cfg, onBack }) {
           <header style={{ borderBottom: `3px solid ${T.player}`, paddingBottom: 12 }}>
             <div style={{ fontSize: 12.5, fontWeight: 900, letterSpacing: 1.6, textTransform: "uppercase", color: T.playerText }}>Data Detective · Instructor answer sheet · not for students</div>
             <h1 id="dd-answers-title" style={{ fontFamily: T.display, fontWeight: 700, fontSize: "clamp(24px, 4.4vw, 30px)", margin: "10px 0 4px" }}>Seed <span style={{ fontFamily: T.mono }}>{cfg.seed}</span> · noise {cfg.noise.toFixed(1)}×</h1>
-            <p style={{ margin: 0, color: T.muted, fontSize: 13.5 }}>The seed picks each case's first variant; a retry (or a replay after a first attempt) moves to the next. Students with a different seed may get the other variant first. Dates are days 1–28 of the four weeks.</p>
+            <p style={{ margin: 0, color: T.muted, fontSize: 13.5 }}>The seed picks each case's first variant; a retry (or a replay after a first attempt) moves to the next. Students with a different seed may get the other variant first. Days are written as on the dashboard: W3 Fri is the Friday of week 3. The numbers are this seed's, at this noise level — the same ones students see.</p>
           </header>
           {rows.map((row) => row.q ? <FieldAnswers key={row.q.id} q={row.q} /> : (
             <Section key={row.def.id} title={`Case ${pad2(row.def.n)} · ${row.def.title}`}>
@@ -45,12 +45,13 @@ export default function AnswerSheet({ autoFocus, cfg, onBack }) {
                   <p style={{ margin: "0 0 6px" }}><b>Ticket:</b> {v.ticket.subject}</p>
                   <table style={{ borderCollapse: "collapse", width: "100%", marginBottom: 6 }}>
                     <tbody>
-                      <tr><th scope="row" style={{ ...cell, textAlign: "left", width: 130 }}>Answer</th><td style={cell}>{dimsText(truth)}{truth.dimension && <> · <b>{segsText(truth)}</b></>} · {causeLabel(truth.causeType)} · starts {startText(truth)}{truth.shape === "spike-revert" && ` · ends after ${row.def.variants[i].incident.days} days`}</td></tr>
-                      <tr><th scope="row" style={{ ...cell, textAlign: "left" }}>Where it shows</th><td style={cell}>{decisive}{funnelStage ? `; the funnel, filtered to the segment, pins the ${funnelStage} step` : ""}{truth.lens ? "; view the report by average order value" : ""}{truth.causeType === "attribution_change" ? "; the sitewide total and back-office orders are flat" : ""}{truth.causeType === "tracking_bug" ? "; back-office orders don't dip" : ""}</td></tr>
+                      <tr><th scope="row" style={{ ...cell, textAlign: "left", width: 130 }}>Answer</th><td style={cell}>{dimsText(truth)}{truth.dimension && <> · <b>{segsText(truth)}</b></>} · {causeLabel(truth.causeType)} · {truth.startDay == null ? "no start date" : <>starts {startText(truth)}{truth.dateTolerance ? ` (±${truth.dateTolerance} days accepted)` : " (±2 days accepted)"}</>}{truth.shape === "spike-revert" && ` · ends after ${row.def.variants[i].incident.days} days`}</td></tr>
+                      <tr><th scope="row" style={{ ...cell, textAlign: "left" }}>Where it shows</th><td style={cell}>{decisive}{funnelStage ? `; the funnel, filtered to the segment, pins the ${funnelStage} step` : ""}{truth.lens ? "; view the report by average order value" : ""}{truth.causeType === "attribution_change" ? "; the sitewide total and back-office orders are flat" : ""}{truth.causeType === "tracking_bug" ? "; back-office orders don't dip" : ""}{truth.causeType === "traffic_quality" ? "; view it by sessions: the segment's share surged while no segment's own rate fell" : ""}</td></tr>
                       <tr><th scope="row" style={{ ...cell, textAlign: "left" }}>Real event</th><td style={cell}>{v.events.filter((e) => e.real).map((e) => e.label).join("; ") || "none"}</td></tr>
                     </tbody>
                   </table>
-                  <p style={{ margin: 0, color: T.body2 }}>{truth.explanation.what}</p>
+                  <p style={{ margin: "0 0 6px", color: T.body2 }}>{truth.explanation.what}</p>
+                  <p style={{ margin: 0, color: T.body2 }}><b style={{ color: T.text }}>With this seed's data:</b> {truth.explanation.data}</p>
                 </div>
               ))}
             </Section>
