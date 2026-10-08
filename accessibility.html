@@ -24,8 +24,6 @@
     a { color: #0b5e86; text-decoration: underline; }
     a:hover { text-decoration: none; }
     .lede { font-size: 18.5px; color: #3a444b; }
-    .todo { background: #FDE4D2; border-left: 5px solid #9c4b13; padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 18px 0; font-size: 15.5px; }
-    .todo b { color: #7d3c0f; }
     .meta { color: #55606a; font-size: 14.5px; }
     table { border-collapse: collapse; width: 100%; margin: 12px 0 4px; }
     th, td { text-align: left; border-bottom: 1px solid #dcdce0; padding: 9px 10px; font-size: 15px; vertical-align: top; }
@@ -43,13 +41,6 @@
     <p class="lede">For the WM956-15 e-commerce learning games at
       <a href="https://mgb9.github.io/ecommerce-games/">mgb9.github.io/ecommerce-games</a> — four browser-based
       teaching simulations and their hub page.</p>
-
-    <div class="todo">
-      <b>Before this statement is published for students, the following must be completed by the module owner:</b>
-      the accessibility contact address, the enforcement/escalation route confirmed against
-      the University of Warwick’s central accessibility statement, and the dates below. These are marked
-      <code>[TO CONFIRM]</code> and must not be left as placeholders on a live public-sector service.
-    </div>
 
     <h2>Using this website</h2>
     <p>These games run entirely in your browser. We want as many people as possible to be able to use them.
@@ -83,27 +74,27 @@
               alternative or accompanying data table, so their content is unavailable to screen-reader users.
               (Data Detective’s charts have text descriptions, and its segment reports are real data tables.)</td>
           <td>1.1.1 Non-text Content (A)</td>
-          <td>Add an accessible summary and a toggleable data table beneath each chart. <code>[TO CONFIRM date]</code></td>
+          <td>Add an accessible summary and a toggleable data table beneath each chart. Due before each affected game is released to students.</td>
         </tr>
         <tr>
           <td>Chart series are distinguished by colour alone (for example control vs variant, and competitor
               stores).</td>
           <td>1.4.1 Use of Colour (A)</td>
-          <td>Add non-colour encoding (line style, direct labels) alongside the data tables. <code>[TO CONFIRM date]</code></td>
+          <td>Add non-colour encoding (line style, direct labels) alongside the data tables. Due before each affected game is released to students.</td>
         </tr>
         <tr>
           <td>Inside Marketplace Tycoon, Conversion Lab and Funnel Fixer, many visual section headings are styled
               text rather than semantic headings, so screen-reader users cannot navigate by heading. (Data Detective
               uses semantic headings.)</td>
           <td>1.3.1 Info and Relationships (A)</td>
-          <td>Convert in-game section titles to semantic headings. <code>[TO CONFIRM date]</code></td>
+          <td>Convert in-game section titles to semantic headings. Due before each affected game is released to students.</td>
         </tr>
         <tr>
           <td>In Marketplace Tycoon, Conversion Lab and Funnel Fixer, results that appear after an action — test
               verdicts, weekly simulation outcomes — are not announced to screen readers. (In Data Detective, focus
               moves to each new screen’s heading, so the diagnosis result is announced.)</td>
           <td>4.1.3 Status Messages (AA)</td>
-          <td>Add live regions to result panels. <code>[TO CONFIRM date]</code></td>
+          <td>Add live regions to result panels. Due before each affected game is released to students.</td>
         </tr>
         <tr>
           <td>Marketplace Tycoon, Conversion Lab and Funnel Fixer each keep their own header directly beneath the
@@ -111,7 +102,7 @@
               can reduce the clickable area of the bar’s “All&nbsp;games” link. The link remains operable, but the
               overlap should be removed. (Data Detective’s header no longer sticks, so it does not overlap.)</td>
           <td>2.5.8 Target Size (Minimum) (AA)</td>
-          <td>Rework the two stacked sticky headers so they do not overlap. <code>[TO CONFIRM date]</code></td>
+          <td>Rework the two stacked sticky headers so they do not overlap. Due before each affected game is released to students.</td>
         </tr>
         <tr>
           <td>In Marketplace Tycoon, Conversion Lab and Funnel Fixer, the glossary definition popovers open only
@@ -119,14 +110,14 @@
               expandable controls to assistive technology. (Data Detective’s are already keyboard-operable
               disclosure buttons.)</td>
           <td>2.1.1 Keyboard (A)<br>4.1.2 Name, Role, Value (A)</td>
-          <td>Rebuild as proper disclosure buttons, as in Data Detective. <code>[TO CONFIRM date]</code></td>
+          <td>Rebuild as proper disclosure buttons, as in Data Detective. Due before each affected game is released to students.</td>
         </tr>
         <tr>
           <td>Some dense screens (such as the Conversion Lab wireframe studio) have not been verified for reflow at
               320&nbsp;CSS&nbsp;pixels. (Data Detective has been checked at 320&nbsp;CSS&nbsp;pixels: every screen
               reflows, and only its wide data tables scroll sideways, as data tables may.)</td>
           <td>1.4.10 Reflow (AA)</td>
-          <td>Responsive audit and fixes on small viewports. <code>[TO CONFIRM date]</code></td>
+          <td>Responsive audit and fixes on small viewports. Due before each affected game is released to students.</td>
         </tr>
       </tbody>
     </table>
@@ -155,28 +146,46 @@
       <li>A “Skip to main content” link and a <code>&lt;main&gt;</code> landmark were added to every page.</li>
       <li>Reduced-motion and Windows High Contrast support were added.</li>
       <li>Hub headings were given correct semantics and decorative numerals were hidden from assistive technology.</li>
+      <li>In Data Detective (October 2026):
+        <ul>
+          <li>all text meets WCAG AA contrast, including small red text and buttons, which now use a darker red;</li>
+          <li>every screen reflows at 320&nbsp;CSS&nbsp;pixels, and on narrow screens the report menu becomes a
+            standard drop-down;</li>
+          <li>sortable table headers and glossary terms are real buttons that work from the keyboard, selected
+            options are announced, card titles are headings, charts have text descriptions and tables have row
+            headers;</li>
+          <li>focus moves to the heading of each new screen, so results are announced, and the instructor panel
+            behaves as a modal dialog;</li>
+          <li>its header no longer sticks beneath the WMG bar, so the two cannot overlap.</li>
+        </ul>
+      </li>
     </ul>
 
     <h2>Feedback and contact information</h2>
     <p>If you need information from these games in a different format, or you find an accessibility problem not
-      listed here, please contact: <strong><code>[TO CONFIRM — accessibility contact address]</code></strong>.
+      listed here, please contact: <strong><a href="mailto:m.bonnett.1@warwick.ac.uk">m.bonnett.1@warwick.ac.uk</a></strong>.
       We will consider your request and reply as soon as we can.</p>
+    <p>If you are unhappy with the response you receive, you can make a formal complaint to the University of
+      Warwick using its <a href="https://warwick.ac.uk/feedbackandcomplaints">Feedback and Complaints process</a>.
+      The University’s <a href="https://warwick.ac.uk/terms/accessibility/directory/web/">central website
+      accessibility statement</a> covers its other websites.</p>
 
     <h2>Enforcement procedure</h2>
     <p>The Equality and Human Rights Commission (EHRC) enforces the Public Sector Bodies (Websites and Mobile
       Applications) (No. 2) Accessibility Regulations 2018. If you are not happy with how we respond to your
       complaint, contact the <a href="https://www.equalityadvisoryservice.com/">Equality Advisory and Support
-      Service (EASS)</a>. <code>[TO CONFIRM — align with the University of Warwick’s central accessibility
-      statement and complaints route.]</code></p>
+      Service (EASS)</a>.</p>
 
     <h2>Preparation of this statement</h2>
-    <p class="meta">This statement was prepared on <strong>21 July 2026</strong>.
-      It has <strong>not yet been reviewed or approved</strong> by the University of Warwick.
-      <code>[TO CONFIRM — date of last review, and sign-off.]</code></p>
-    <p class="meta">These games were last tested on <strong>21 July 2026</strong> by the module author, using
-      automated checks (axe-core 4.10, WCAG 2.0/2.1/2.2 A and AA rule sets), programmatic colour-contrast
-      measurement of the full palette, and manual inspection of landmarks, headings, focus handling and
-      motion preferences. <strong>No assistive-technology testing has been carried out.</strong></p>
+    <p class="meta">This statement was prepared on <strong>21 July 2026</strong> and last reviewed on
+      <strong>8 October 2026</strong> by the module author. It has <strong>not been reviewed or approved</strong>
+      by the University of Warwick’s central accessibility team.</p>
+    <p class="meta">Data Detective was last tested on <strong>8 October 2026</strong>, and the other three games on
+      <strong>21 July 2026</strong>, by the module author. Testing used automated checks (axe-core 4.14 for Data
+      Detective and 4.10 for the others, WCAG 2.0/2.1/2.2 A and AA rule sets), programmatic colour-contrast
+      measurement and manual inspection of landmarks, headings, focus handling and motion preferences. Data
+      Detective was also checked at 320&nbsp;CSS&nbsp;pixels wide and operated with a keyboard alone.
+      <strong>No assistive-technology testing has been carried out.</strong></p>
 
     <p style="margin-top:30px;"><a href="https://mgb9.github.io/ecommerce-games/">← Back to the games hub</a></p>
   </div>
