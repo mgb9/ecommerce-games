@@ -5,7 +5,7 @@ import { T } from "./theme.js";
 import { pad2 } from "./format.js";
 import { CaseFrame } from "./shared.jsx";
 import { PrintBar, Section, subHead, useDocumentTitle } from "./report/ReportView.jsx";
-import { causeLabel, dimsText, segsText, startText } from "./report/labels.js";
+import { answerText, whereItShows } from "./answerText.js";
 
 /* Instructor only (see App): the answer sheet for a seed. For every
    generated case, which variant this seed gives first and which a retry
@@ -21,7 +21,7 @@ export default function AnswerSheet({ autoFocus, cfg, onBack }) {
       return { n: def.n, def, variants: def.variants.map((v, i) => {
         const cd = generateCase(def.id, cfg.seed, { noise: cfg.noise, variant: i });
         const review = reviewTrail(cd, [], [], []);
-        return { i, v, truth: cd.truth, decisive: review.decisive, funnelStage: review.funnelStage, order: i === first ? "first attempt" : `retry ${((i - first + def.variants.length) % def.variants.length)}` };
+        return { i, v, truth: cd.truth, review, order: i === first ? "first attempt" : `retry ${((i - first + def.variants.length) % def.variants.length)}` };
       }) };
     }),
     ...FIELD_CASES.map((q) => ({ n: q.n, q })),
@@ -39,14 +39,14 @@ export default function AnswerSheet({ autoFocus, cfg, onBack }) {
           </header>
           {rows.map((row) => row.q ? <FieldAnswers key={row.q.id} q={row.q} /> : (
             <Section key={row.def.id} title={`Case ${pad2(row.def.n)} · ${row.def.title}`}>
-              {row.variants.map(({ i, v, truth, decisive, funnelStage, order }) => (
+              {row.variants.map(({ i, v, truth, review, order }) => (
                 <div key={i} style={{ marginBottom: 14, breakInside: "avoid" }}>
                   <h3 style={subHead}>Variant {String.fromCharCode(65 + i)} — {order} for this seed</h3>
                   <p style={{ margin: "0 0 6px" }}><b>Ticket:</b> {v.ticket.subject}</p>
                   <table style={{ borderCollapse: "collapse", width: "100%", marginBottom: 6 }}>
                     <tbody>
-                      <tr><th scope="row" style={{ ...cell, textAlign: "left", width: 130 }}>Answer</th><td style={cell}>{dimsText(truth)}{truth.dimension && <> · <b>{segsText(truth)}</b></>} · {causeLabel(truth.causeType)} · {truth.startDay == null ? "no start date" : <>starts {startText(truth)}{truth.dateTolerance ? ` (±${truth.dateTolerance} days accepted)` : " (±2 days accepted)"}</>}{truth.shape === "spike-revert" && ` · ends after ${row.def.variants[i].incident.days} days`}</td></tr>
-                      <tr><th scope="row" style={{ ...cell, textAlign: "left" }}>Where it shows</th><td style={cell}>{decisive}{funnelStage ? `; the funnel, filtered to the segment, pins the ${funnelStage} step` : ""}{truth.lens ? "; view the report by average order value" : ""}{truth.causeType === "attribution_change" ? "; the sitewide total and back-office orders are flat" : ""}{truth.causeType === "tracking_bug" ? "; back-office orders don't dip" : ""}{truth.causeType === "traffic_quality" ? "; view it by sessions: the segment's share surged while no segment's own rate fell" : ""}</td></tr>
+                      <tr><th scope="row" style={{ ...cell, textAlign: "left", width: 130 }}>Answer</th><td style={cell}>{answerText(truth, row.def.variants[i].incident)}</td></tr>
+                      <tr><th scope="row" style={{ ...cell, textAlign: "left" }}>Where it shows</th><td style={cell}>{whereItShows(truth, review)}</td></tr>
                       <tr><th scope="row" style={{ ...cell, textAlign: "left" }}>Real event</th><td style={cell}>{v.events.filter((e) => e.real).map((e) => e.label).join("; ") || "none"}</td></tr>
                     </tbody>
                   </table>

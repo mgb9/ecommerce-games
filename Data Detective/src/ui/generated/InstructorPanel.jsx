@@ -75,6 +75,7 @@ export default function InstructorPanel({ cfg, caseN, onApply, onClose, onOpenVi
               <div style={{ fontSize: 14.5, fontWeight: 500 }}>For the seminar</div>
               <button onClick={() => onOpenView("answers")} style={smallBtn}>Answer sheet for this seed (printable)</button>
               <button onClick={() => onOpenView("tally")} style={smallBtn}>Cohort tally — paste students' result codes</button>
+              <button onClick={() => onOpenView("guide")} style={smallBtn}>Tutor's guide — running and debriefing the cases</button>
             </div>
           )}
           <div style={{ marginTop: 22, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>

@@ -13,9 +13,10 @@ import { clearCaseSessions, readSession, writeSession } from "./session.js";
 
 // The field cases (9, 10) share ~1,400 lines of real 2015 data: download it only when one is opened.
 const FieldCase = lazy(() => import("./field/FieldCase.jsx"));
-// Instructor-only screens (the answer sheet also needs the field cases' questions): loaded on demand.
+// Instructor-only screens (the answer sheet and the guide also need the field cases' questions): loaded on demand.
 const AnswerSheet = lazy(() => import("./AnswerSheet.jsx"));
 const InstructorTally = lazy(() => import("./InstructorTally.jsx"));
+const TutorGuide = lazy(() => import("./TutorGuide.jsx"));
 const Loading = ({ what }) => <div role="status" style={{ maxWidth: 1180, margin: "48px auto", padding: "0 20px", color: T.muted, fontSize: 16 }}>{what}</div>;
 
 /* Root: which screen is on show — the case inbox, the case file, or one
@@ -68,6 +69,7 @@ export default function App() {
         {view === "casefile" && <CaseFile autoFocus={autoFocus} cfg={cfg} onBack={() => go("inbox")} />}
         {view === "answers" && instructor && <Suspense fallback={<Loading what="Preparing the answer sheet…" />}><AnswerSheet autoFocus={autoFocus} cfg={cfg} onBack={() => go(caseIndex === null ? "inbox" : "case")} /></Suspense>}
         {view === "tally" && instructor && <Suspense fallback={<Loading what="Opening the tally…" />}><InstructorTally autoFocus={autoFocus} onBack={() => go(caseIndex === null ? "inbox" : "case")} /></Suspense>}
+        {view === "guide" && instructor && <Suspense fallback={<Loading what="Opening the tutor's guide…" />}><TutorGuide autoFocus={autoFocus} cfg={cfg} onBack={() => go(caseIndex === null ? "inbox" : "case")} /></Suspense>}
         {inCase && isField && (
           <Suspense fallback={<Loading what="Opening the 2015 archive…" />}>
             <FieldCase key={run} fieldId={caseAt(caseIndex).fieldId} sessionKey={sessionKey} autoFocus={autoFocus} onRestart={() => startCase(caseIndex)} onExit={() => go("inbox")} />
@@ -95,7 +97,7 @@ const currentSearch = () => (typeof location === "undefined" ? "" : location.sea
 function initialAppState() {
   const saved = readSession("app");
   if (saved?.v === VERSION && saved.search === currentSearch() && saved.cfg) {
-    return { view: ["answers", "tally"].includes(saved.view) ? "inbox" : saved.view, caseIndex: saved.caseIndex, cfg: saved.cfg, run: saved.run, attempts: saved.attempts || {}, nav: saved.nav || 0 };
+    return { view: ["answers", "tally", "guide"].includes(saved.view) ? "inbox" : saved.view, caseIndex: saved.caseIndex, cfg: saved.cfg, run: saved.run, attempts: saved.attempts || {}, nav: saved.nav || 0 };
   }
   clearCaseSessions();
   const { caseIndex, cfg } = readUrlConfig();

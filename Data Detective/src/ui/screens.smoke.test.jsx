@@ -19,6 +19,7 @@ import Inbox from "./Inbox.jsx";
 import CaseFile from "./CaseFile.jsx";
 import AnswerSheet from "./AnswerSheet.jsx";
 import InstructorTally from "./InstructorTally.jsx";
+import TutorGuide from "./TutorGuide.jsx";
 import SkillsRating from "./SkillsRating.jsx";
 import { generatedReport } from "./report/generatedReport.js";
 import { fieldReport } from "./field/fieldReport.js";
@@ -110,6 +111,18 @@ describe("instructor views and the self-rating render", () => {
     expect(out).toContain("Case 12 · The channel that collapsed on paper");
     expect(out).toContain("the sitewide total and back-office orders are flat");
     expect(out).toContain("ends after 5 days");
+  });
+  it("the tutor's guide covers every case, with answers that leave out what the seed changes", () => {
+    const out = html(<TutorGuide cfg={{ seed: "DD-2026", noise: 1.4 }} onBack={noop} />);
+    expect(out).toContain("Running Data Detective with a cohort");
+    expect(out).toContain("seed=DD-2026");
+    for (const n of ["01", "08", "09", "10", "12"]) expect(out).toContain(`Case ${n} · `);
+    expect(out.match(/Variant A/g)).toHaveLength(CASES.length);
+    expect(out.match(/Debrief questions/g)).toHaveLength(12);
+    expect(out).toContain("Smoking gun:");
+    expect(out).toContain("ends after 5 days");
+    expect(out).not.toMatch(/starts W\d/);   // start days are the seed's, on the answer sheet
+    expect(out).toContain("Two-hour workshop");
   });
   it("the tally renders empty, and the rating form has six labelled groups", () => {
     expect(html(<InstructorTally onBack={noop} />)).toContain("Nothing to tally yet");

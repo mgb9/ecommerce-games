@@ -23,6 +23,18 @@ describe("App renders", () => {
     expect(html).toContain("Case 01 of 12");
     expect(html).toContain("← All cases");
   });
+  it("a refresh never reopens an instructor page: a saved guide, answer sheet or tally view resumes on the inbox", () => {
+    const store = {};
+    globalThis.sessionStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
+    try {
+      for (const view of ["guide", "answers", "tally"]) {
+        store["dd-session:app"] = JSON.stringify({ v: 3, view, caseIndex: null, cfg: { seed: "DD-2026", noise: 1.4 }, run: 0, attempts: {}, nav: 0, search: "" });
+        const html = at("");
+        expect(html, view).toContain("Chrichton · case inbox");
+        expect(html, view).not.toContain("Tutor's guide");
+      }
+    } finally { delete globalThis.sessionStorage; }
+  });
   it("?case=8 is the order-value case; ?case=9 and ?case=10 the field cases; ?case=11 the enterprise case", () => {
     expect(at("?case=8&seed=DD-2026")).toMatch(/Orders up, revenue down|More orders, less money/);
     expect(at("?case=9")).toContain("Opening the 2015 archive");

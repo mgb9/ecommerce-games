@@ -434,6 +434,21 @@ noise blip elsewhere outshone the real fault in 8% of seeds. Fixed at the root:
 - **Answer sheet** now shows each variant's "what the data showed" with the seed's numbers, the date tolerance,
   and where a mix-shift case's signal shows.
 
+## Tutor's guide (2026-10-09)
+An instructor-only page (Instructor → "Tutor's guide"; view `guide`, lazy-loaded like the answer sheet and tally,
+and never restored on refresh — App maps a saved `guide`/`answers`/`tally` view back to the inbox). Printable.
+- **Built from the cases**, so it can't drift: the glance table, outcomes and skills come from `ALL_CASES`,
+  `outcomes.js` and `suiteCoverage`; each generated variant's answer and "where it shows" come from
+  `answerText` / `whereItShows` (`src/ui/answerText.js`), now shared with the answer sheet. The guide leaves out
+  start days (`withStart: false`) because they change with the seed — the answer sheet has those.
+- **Authored content** in `src/engine/tutorNotes.js`: per case `minutes`, 2–3 debrief `prompts`,
+  `misconceptions` (common wrong turns) and an `extension`; plus `SEQUENCES` (one-hour seminar, two-hour
+  workshop, self-study). Tested: every case has notes, sequences name real cases, and no note contains a day,
+  percentage or £ figure (they must hold for every seed).
+- Sections: running a session (links, seed, noise, `?instructor`), sequences, debriefing with the answer sheet
+  and tally, skills development (the PTES context — tutor-facing only; never shown to students), accessibility,
+  then case by case.
+
 ## Deliberately deferred
 - **Which call a student gets wrong most** (dimension / segment / cause / start) across cases — with at most nine
   cases it would be noise, and it needs a progress-schema change.
