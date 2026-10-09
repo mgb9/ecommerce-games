@@ -7,7 +7,7 @@ import { ToggleRow } from "./shared.jsx";
    whatever opened it. Changes apply to the next test run; a shared seed
    gives a whole cohort an identical run, so the debrief is about
    decisions, not luck. */
-export default function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
+export default function InstructorPanel({ cfg, setCfg, defaults, onClose, onOpenPage }) {
   const set = (patch) => setCfg((c) => ({ ...c, ...patch }));
   const A = T.instructor;
   const panelRef = useRef(null);
@@ -63,6 +63,15 @@ export default function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
           <PanelGroup title="Effect size" note="Scales every variant's true lift. 1.0 = as designed; 0 = the variant truly does nothing.">
             <InstructorSlider label="Effect multiplier" accent={A} value={cfg.effectMult} min={0} max={2} step={0.1} fmt={(v) => `${v.toFixed(1)}×`} valueText={(v) => `${v.toFixed(1)} times`} onChange={(v) => set({ effectMult: v })} changed={cfg.effectMult !== defaults.effectMult} />
           </PanelGroup>
+
+          {onOpenPage && (
+            <PanelGroup title="For the seminar">
+              <div style={{ display: "grid", gap: 8 }}>
+                <button type="button" onClick={() => onOpenPage("tally")} style={presetBtn}>Cohort tally — paste students' result codes</button>
+                <button type="button" onClick={() => onOpenPage("guide")} style={presetBtn}>Tutor's guide — running and debriefing the lab</button>
+              </div>
+            </PanelGroup>
+          )}
 
           <PanelGroup title="Teaching presets — one tap">
             <div style={{ display: "grid", gap: 8 }}>

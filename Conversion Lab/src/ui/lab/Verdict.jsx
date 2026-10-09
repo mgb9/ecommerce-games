@@ -6,6 +6,9 @@ import {
 import { T, card, btn } from "../theme.js";
 import { Term, SectionTitle, ScoreCard, PT } from "../shared.jsx";
 import { CALLS, metricOf } from "./Running.jsx";
+import Recommendation, { TEAM } from "./Recommendation.jsx";
+import { SkillsPractised } from "../Outcomes.jsx";
+import { OUTCOMES } from "../outcomesModel.js";
 
 const winnerWord = (w) => ({ a: "A wins", b: "B wins", none: "No real difference" }[w]);
 const callWord = (c) => CALLS.find((x) => x.id === c)?.label || "—";
@@ -81,6 +84,9 @@ export default function Verdict({ exp, base, cfg, result, record, onNext, isLast
           {rep && <Replication rep={rep} base={base} truthDiff={truthDiff} n={record.plannedN} alpha={cfg.alpha} />}
         </div>
       </section>
+
+      <Recommendation key={exp.id} expId={exp.id} teamName={TEAM[exp.id]} />
+      <SkillsPractised outcomes={OUTCOMES[exp.id]} style={{ marginTop: 16 }} />
 
       <div style={{ textAlign: "center", marginTop: 20 }}>
         <button type="button" onClick={onNext} style={btn(T.playerBtn)}>{isLast ? "See your calibration report →" : `Next experiment → ${EXPERIMENTS[base.n] ? EXPERIMENTS[base.n].title : ""}`}</button>

@@ -449,7 +449,7 @@ function effExperiment(exp, cfg = {}) {
    re-crossing — the α line. A guardrail metric (case 8) is drawn
    per converting visitor on its own streams, so adding it changed
    no other number. */
-function runTest(exp, { nPerArm, alpha = 0.05, seed = "LAB-2026", checkpoints = 60 } = {}) {
+function runTest(exp, { nPerArm, alpha = 0.05, seed = "LAB-2026-24", checkpoints = 60 } = {}) {
   const e = exp.truth ? exp : effExperiment(exp, {});
   const segs = e.segments || null;
   const g = e.guardrail || null;
@@ -522,7 +522,7 @@ function guardrailAt(cp) {
    at SOME checkpoint (what stopping at the first p < α would call a
    win), and the average lift those early stops claimed. Shows the
    long-run behaviour behind one run's luck (cases 2 and 4). */
-function replicate(exp, { nPerArm, alpha = 0.05, seed = "LAB-2026", k = 200 } = {}) {
+function replicate(exp, { nPerArm, alpha = 0.05, seed = "LAB-2026-24", k = 200 } = {}) {
   let endSig = 0, everSig = 0, sumFirst = 0, sumEnd = 0;
   for (let i = 0; i < k; i++) {
     const r = runTest(exp, { nPerArm, alpha, seed: `${seed}:rep${i}` });
@@ -682,8 +682,12 @@ function downloadFile(filename, text, mime) {
   } catch (e) { console.error("download failed", e); }
 }
 
+/* The default seed is what most students see, so it was chosen (from about 270
+   candidate seeds) to be typical: every experiment's run lands within about one
+   standard error of the truth and shows the story the lesson tells. The old
+   default, LAB-2026, gave Experiment 1 twice its true lift. Tested. */
 const DEFAULT_CFG = {
-  seed: "LAB-2026", alpha: 0.05, power: 0.8,
+  seed: "LAB-2026-24", alpha: 0.05, power: 0.8,
   maxVisitors: 20000, effectMult: 1, peeking: false, revealTruth: false,
 };
 

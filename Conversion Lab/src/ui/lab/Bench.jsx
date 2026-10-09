@@ -3,6 +3,8 @@ import { BANDS, requiredSampleSize, clamp, pct } from "../../engine/engine.js";
 import { T, card, pillBtn, croBtn, gatedBtn } from "../theme.js";
 import { Term, Chip, SectionTitle, ChoiceGroup, QuestionLabel, NumRow, Slider } from "../shared.jsx";
 import MockPage from "./MockPage.jsx";
+import { WhatThisDevelops } from "../Outcomes.jsx";
+import { OUTCOMES } from "../outcomesModel.js";
 
 export const WINNERS = [{ id: "a", label: "A wins" }, { id: "none", label: "No difference" }, { id: "b", label: "B wins" }];
 
@@ -62,6 +64,7 @@ export default function Bench({ exp, base, cfg, bench, setBench, onCommit }) {
           <button type="button" onClick={onCommit} disabled={!ready} style={{ ...gatedBtn(ready), width: "100%", marginTop: 8 }}>{ready ? "Run the test ▸" : "Make both predictions to continue"}</button>
         </section>
       </div>
+      <WhatThisDevelops outcomes={OUTCOMES[base.id]} style={{ marginTop: 16 }} />
     </div>
   );
 }

@@ -442,8 +442,7 @@ and never restored on refresh — App maps a saved `guide`/`answers`/`tally` vie
   `answerText` / `whereItShows` (`src/ui/answerText.js`), now shared with the answer sheet. The guide leaves out
   start days (`withStart: false`) because they change with the seed — the answer sheet has those.
 - **Authored content** in `src/engine/tutorNotes.js`: per case `minutes`, 2–3 debrief `prompts`,
-  `misconceptions` (common wrong turns) and an `extension`; plus `SEQUENCES` (one-hour seminar, two-hour
-  workshop, self-study). Tested: every case has notes, sequences name real cases, and no note contains a day,
+  `misconceptions` (common wrong turns) and an `extension`; plus `SEQUENCES` (a first seminar, a longer workshop, self-study — titles name no duration; the guide sums play time and debriefs come on top). Tested: every case has notes, sequences name real cases, and no note contains a day,
   percentage or £ figure (they must hold for every seed).
 - Sections: running a session (links, seed, noise, `?instructor`), sequences, debriefing with the answer sheet
   and tally, skills development (the PTES context — tutor-facing only; never shown to students), accessibility,

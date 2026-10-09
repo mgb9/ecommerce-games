@@ -13,6 +13,12 @@ import QuizDone from "./quiz/QuizDone.jsx";
 import WireframeStudio from "./wireframe/WireframeStudio.jsx";
 import InstructorPanel from "./InstructorPanel.jsx";
 import App from "./App.jsx";
+import ExperimentLog from "./ExperimentLog.jsx";
+import InstructorTally from "./InstructorTally.jsx";
+import TutorGuide from "./TutorGuide.jsx";
+import SkillsRating from "./SkillsRating.jsx";
+import Recommendation from "./lab/Recommendation.jsx";
+import { resultCode } from "./cohort.js";
 
 // A build won't catch a symbol a screen forgot to import (a runtime
 // ReferenceError) — these render every screen directly from props, so it
@@ -171,5 +177,70 @@ describe("the app: saved progress and instructor gating", () => {
     install();
     store["cl-session:app"] = JSON.stringify({ phase: "verdict", expIdx: 5 });
     expect(renderToStaticMarkup(<App />)).toContain("Prove it with data");
+  });
+});
+
+describe("skills, the experiment log and the instructor pages render", () => {
+  const prog = {
+    cta: { title: "The “Add to cart” button", predictedWinner: "b", predictionCorrect: true, predictedBand: "B wins — moderate (+1–3pp)", bandCorrect: true, plannedN: 5000, actualN: 5000, obsDiff: 0.012, call: "b", soundCall: true, matchedTruth: true, seed: "LAB-2026-24", recommendation: { text: "Ship the green button: it lifted conversion.", checks: 3 } },
+    imgbg: { predictedWinner: "none", predictionCorrect: true, predictedBand: "No real difference", bandCorrect: true, plannedN: 4000, actualN: 4000, obsDiff: 0.001, call: "more", soundCall: true, matchedTruth: null, seed: "LAB-2026-24" },
+    quiz: { points: 18, max: 55 },
+  };
+  it("the log: first attempts, judgement summary, recommendations, skills record, CV lines, outcomes, result code", () => {
+    const out = html(<ExperimentLog progress={prog} cfg={cfg} onBack={noop} />);
+    for (const t of ["Your experiment log", "Experiment by experiment", "How your judgement held up", "Your recommendations", "Ship the green button", "Skills record", "For your CV or an interview", "Learning outcomes", "Using this in your assessment", "How you rate yourself", "Your result code", "Which Test Won?"]) expect(out, t).toContain(t);
+    expect(out).toContain('class="cl-report"');
+    expect(out).toContain("CL1|LAB-2026-24|1:1111:r3,2:111n|Q:18/55");
+    expect(out.match(/scope="row"/g).length).toBe(2);
+    expect(out).toContain("Assessed through the group Website Build");
+  });
+  it("an empty log says what will fill it", () => {
+    expect(html(<ExperimentLog progress={{}} cfg={cfg} onBack={noop} />)).toContain("Nothing here yet");
+  });
+  it("the tally renders empty, and the self-rating has six labelled groups of five", () => {
+    expect(html(<InstructorTally onBack={noop} />)).toContain("Nothing to tally yet");
+    const form = html(<SkillsRating title="Rate" intro="x" onSave={noop} onSkip={noop} />);
+    expect(form.match(/<fieldset/g)).toHaveLength(6);
+    expect(form.match(/type="radio"/g)).toHaveLength(30);
+  });
+  it("the tutor's guide covers every experiment, the quiz answers and the studio, for the current seed", () => {
+    const out = html(<TutorGuide cfg={cfg} onBack={noop} />);
+    expect(out).toContain("Running Conversion Lab with a cohort");
+    expect(out.match(/Debrief questions/g)).toHaveLength(EXPERIMENTS.length + 2);
+    expect(out).toContain(`On seed ${cfg.seed} at the suggested size`);
+    expect(out).toContain("Which Test Won? · the answers");
+    expect(out).toContain("A first seminar");
+    expect(out).not.toMatch(/undefined|NaN/);
+  });
+  it("the recommendation task: a labelled box and four labelled checks", () => {
+    const out = html(<Recommendation expId="cta" teamName="the design team" />);
+    expect(out).toContain("Your recommendation to the design team");
+    expect(out.match(/type="checkbox"/g)).toHaveLength(4);
+    expect(out).toContain("<legend");
+  });
+});
+
+describe("the app: skills rating, the log and instructor pages", () => {
+  const store = {};
+  const install = () => {
+    for (const k of Object.keys(store)) delete store[k];
+    const mk = () => ({ getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } });
+    globalThis.sessionStorage = mk(); globalThis.localStorage = mk();
+  };
+  afterEach(() => { delete globalThis.sessionStorage; delete globalThis.localStorage; delete globalThis.location; });
+  it("a first visit asks for the before-rating; once answered (or skipped) it doesn't", () => {
+    install(); globalThis.location = { search: "" };
+    expect(renderToStaticMarkup(<App />)).toContain("Before you start: how do you rate yourself?");
+    store["cl-skills"] = JSON.stringify({ before: null });
+    expect(renderToStaticMarkup(<App />)).not.toContain("Before you start");
+  });
+  it("students are sent back from a saved instructor page; the log is theirs", () => {
+    install(); globalThis.location = { search: "" };
+    store["cl-session:app"] = JSON.stringify({ v: 1, phase: "guide", back: "intro", expIdx: 0, bench: { predWinner: null, predBand: null, plannedN: 5000, baseAssume: 4, mdeAssume: 1 }, run: null, records: [], qIdx: 0, qResults: [], nav: 2 });
+    const out = renderToStaticMarkup(<App />);
+    expect(out).toContain("Prove it with data");
+    expect(out).not.toContain("Tutor's guide");
+    store["cl-session:app"] = JSON.stringify({ v: 1, phase: "log", back: "intro", expIdx: 0, bench: { predWinner: null, predBand: null, plannedN: 5000, baseAssume: 4, mdeAssume: 1 }, run: null, records: [], qIdx: 0, qResults: [], nav: 2 });
+    expect(renderToStaticMarkup(<App />)).toContain("Your experiment log");
   });
 });

@@ -167,9 +167,10 @@ export const TUTOR_NOTES = {
 };
 
 /* Suggested sequences for the guide: which cases, in which order, and why.
-   Total time is summed from the notes above. */
+   Titles name no duration: the guide sums the time from the notes above,
+   and debriefs come on top. */
 export const SEQUENCES = [
-  { title: "One-hour seminar", cases: [1, 2, 3], why: "Segment before you blame; cross-tab when two reports each look a bit off; and the case where nothing broke but the average still fell." },
-  { title: "Two-hour workshop", cases: [1, 3, 4, 8, 9], why: "The core method, the mix-shift and masking traps, revenue decomposition, then real 2015 data where the measurement itself is the problem." },
+  { title: "A first seminar", cases: [1, 2, 3], why: "Segment before you blame; cross-tab when two reports each look a bit off; and the case where nothing broke but the average still fell." },
+  { title: "A longer workshop", cases: [1, 3, 4, 8, 9], why: "The core method, the mix-shift and masking traps, revenue decomposition, then real 2015 data where the measurement itself is the problem." },
   { title: "Self-study arc", cases: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], why: "Every case in order; students work at their own pace and bring their case file to the seminar." },
 ];

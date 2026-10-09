@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { EXPERIMENTS, CRO_STACK } from "../engine/engine.js";
 import { T, btn } from "./theme.js";
 import { PT, Term, TermsHint, Eyebrow, LOS } from "./shared.jsx";
+import SkillsRating from "./SkillsRating.jsx";
+import { loadSkills, saveSkills } from "./progress.js";
 
 const status = (p) => {
   if (!p) return null;
@@ -13,7 +15,9 @@ const statusSr = (p) => p && `Done on your first attempt: the call was ${p.sound
 /* The lab's front page: the three modes, the experiment set (each card
    says whether this browser has done it, in words), and the CRO Stack
    the lab is built on. */
-export default function Intro({ onStart, onQuiz, onWireframe, cfg, progress }) {
+export default function Intro({ onStart, onQuiz, onWireframe, onLog, cfg, progress }) {
+  // asked once, before the first experiment: the before-rating the log compares against
+  const [askRating, setAskRating] = useState(() => loadSkills().before === undefined && !EXPERIMENTS.some((e) => progress[e.id]));
   const modeCard = (icon, title, desc, onClick) => (
     <button type="button" onClick={onClick} style={{ width: "100%", textAlign: "left", display: "flex", gap: 12, alignItems: "flex-start", background: T.panel, border: `1px solid ${T.border}`, borderLeft: `5px solid ${T.amberFill}`, borderRadius: 16, padding: "16px 18px", cursor: "pointer", boxShadow: T.shadow, fontFamily: T.body }}>
       <span style={{ fontSize: 22, lineHeight: 1 }} aria-hidden="true">{icon}</span>
@@ -41,6 +45,12 @@ export default function Intro({ onStart, onQuiz, onWireframe, cfg, progress }) {
           <b style={{ color: T.text }}>Learning outcomes.</b> LO2: {LOS.LO2} LO3: {LOS.LO3}
         </p>
       </div>
+      {askRating && (
+        <SkillsRating style={{ marginTop: 22, maxWidth: 860 }} title="Before you start: how do you rate yourself?"
+          intro="Six statements about the skills this lab practises. Rate them now; your experiment log asks again later, so you can see how your confidence moves against what you actually did."
+          onSave={(r) => { saveSkills({ before: r, beforeAt: new Date().toISOString().slice(0, 10) }); setAskRating(false); }}
+          onSkip={() => { saveSkills({ before: null }); setAskRating(false); }} />
+      )}
       <ul style={{ listStyle: "none", padding: 0, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 300px),1fr))", gap: 16, margin: "26px 0 0" }}>
         <li style={{ display: "flex" }}>{modeCard("🧱", "Wireframe Studio", "Assemble a product page for a brief, then test your design against the current page.", onWireframe)}</li>
         <li style={{ display: "flex" }}>{modeCard("🏆", "Which Test Won?", "Realistic A/B-test scenarios — call the winner, the size of the effect and the mechanism.", onQuiz)}</li>
@@ -61,6 +71,7 @@ export default function Intro({ onStart, onQuiz, onWireframe, cfg, progress }) {
       <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 24, flexWrap: "wrap" }}>
         <button type="button" onClick={() => onStart(0)} style={btn(T.playerBtn)}>Run the full set →</button>
         <span style={{ color: T.body2, fontSize: 15.5 }}>{EXPERIMENTS.length} experiments · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
+        {(done > 0 || progress.quiz || progress.wireframe) && <button type="button" onClick={onLog} style={{ background: "none", border: "none", color: T.text, textDecoration: "underline", cursor: "pointer", fontSize: 15.5, fontFamily: T.body, fontWeight: 700 }}>Your experiment log →</button>}
       </div>
       <TermsHint />
       <section aria-labelledby="cl-stack" style={{ marginTop: 30 }}>

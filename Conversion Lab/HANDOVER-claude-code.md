@@ -8,7 +8,7 @@ correct scoring, lesson texts that hold for every run, accessibility, saved prog
 ```bash
 npm install
 npm run dev      # http://localhost:5173 (also `conversion-lab` in the repo's .claude/launch.json)
-npm test         # 95 tests
+npm test         # 113 tests
 npx vite build --base=/ecommerce-games/conversion-lab/   # then replace docs/conversion-lab/ with dist/
 ```
 
@@ -44,16 +44,16 @@ early-stop exaggeration, segment results, the measured guardrail). α and the CI
 
 Sweep, 200 seeds, at each experiment's suggested n (default settings):
 
-| # | true effect | suggested n/arm | power | significant (right way) | ever p<α (peeking) | default seed LAB-2026 |
+| # | true effect | suggested n/arm | power | significant (right way) | ever p<α (peeking) | default seed LAB-2026-24 |
 |---|---|---|---|---|---|---|
-| 1 cta | +1.20pp | 5,000 | 82% | 84.5% | 93% | +2.48pp, p<0.001 (a hot B arm) |
-| 2 imgbg | 0 | 4,000 | — | 4% (≈α/2 one way) | 33.5% | +0.37pp, p=0.41 |
-| 3 scarcity | +0.30pp | 6,000 | 12% | 9% | 41.5% | +0.73pp, p=0.054 |
-| 4 social | +0.80pp | 12,000 | 82% | 74% | 83% | +0.92pp, p=0.001 |
-| 5 shipping | +1.30pp | 4,500 | 80% | 81.5% | 91.5% | +2.00pp, p<0.001 |
-| 6 checkout | +0.18pp overall | 5,000 | — | 7% | 34% | +0.28pp, p=0.52 (segments ±2.5pp) |
-| 7 promo | +1.00pp overall | 12,000 | 92% | 96.5% | 99% | +0.63pp, p=0.033 (returning −2.4pp) |
-| 8 subject | +4.00pp opens | 5,000 | 100% | 100% | 100% | guardrail p=0.015 (sized for the guardrail) |
+| 1 cta | +1.20pp | 5,000 | 82% | 84.5% | 93% | +1.10pp, p=0.010 |
+| 2 imgbg | 0 | 4,000 | — | 4% (≈α/2 one way) | 33.5% | −0.05pp, p=0.92 |
+| 3 scarcity | +0.30pp | 6,000 | 12% | 9% | 41.5% | +0.40pp, p=0.30 |
+| 4 social | +0.80pp | 12,000 | 82% | 74% | 83% | +1.05pp, p<0.001 (first p<α at 1,800/arm showing +1.61pp) |
+| 5 shipping | +1.30pp | 4,500 | 80% | 81.5% | 91.5% | +1.44pp, p=0.002 |
+| 6 checkout | +0.18pp overall | 5,000 | — | 7% | 34% | +0.62pp, p=0.15 (mobile +2.6pp, desktop −1.8pp) |
+| 7 promo | +1.00pp overall | 12,000 | 92% | 96.5% | 99% | +0.73pp, p=0.012 (returning −2.1pp) |
+| 8 subject | +4.00pp opens | 5,000 | 100% | 100% | 100% | +4.30pp; guardrail p=0.010 |
 
 What changed in the arc: cta "large, easy win" → a moderate effect, properly powered (n 2,000 → 5,000);
 imgbg names the false positive only when the run was one, plus a 200-rerun strip; scarcity states the
@@ -101,6 +101,26 @@ the shell bar (`--cl-shell-h`). Simpler English follows the WMG shell's switch (
 - The instructor dialog appears only after `?instructor` (remembered; `?instructor=off` forgets), so students
   can't turn on peeking or shrink effects. Settings changed mid-experiment apply to the next run.
 
-## Not done this round (by choice)
-Learning-outcome links per experiment, skills practised, a self-rating, a printable PDF report and a result
-code for a cohort tally — the Data Detective features. The CSV/Markdown export remains the assessable log.
+The default seed is **LAB-2026-24**, chosen from about 270 candidate seeds as the most typical: every default run lands
+within ~1 SE of the truth and shows its story (the old LAB-2026 gave Experiment 1 +2.48pp against +1.20pp).
+`lessons.test.js` locks this in.
+
+## Skills, experiment log, tally and tutor's guide (2026-10-09, second pass)
+The Data Detective features, so the lab makes its skills visible (the module's PTES skills-development gap):
+- `src/engine/outcomes.js` — the spec's LO wording (shared with DD), the skills catalogue with lab-specific
+  `how`, and per experiment / quiz / studio `OUTCOMES` (LOs, syllabus, skills with what practising them looked
+  like, a CV line). Honest: every experiment LO3; cta and checkout partly LO2; the studio LO2 + LO3; no LO1/LO4.
+- Bench: "What this experiment develops"; verdict: **"Your recommendation to the <team>"** (writing task with
+  a four-point self-check, saved as you type) and "Skills you practised"; studio and quiz show theirs too.
+- **Self-rating** (`SkillsRating.jsx`, six statements in `cohort.js`) asked on the intro before the first
+  experiment (skippable), again from the log; stored in `cl-skills`.
+- **Experiment log** (`ExperimentLog.jsx`, phase `log`, printable as a PDF — `.cl-report` print CSS in
+  `theme.js`): first attempts, how the student's judgement held up (sound-but-missed vs lucky), recommendations,
+  a skills record (communication counts only written recommendations; self-assessment is summed with its
+  score), CV lines, LOs, assessment use, the self-rating, and a **result code** `CL1|seed|n:pbsm[:rN],…|Q:…|W:…|S:…`.
+- **Instructor only** (behind `?instructor`, lazy-loaded): **cohort tally** (`InstructorTally.jsx`) and the
+  **tutor's guide** (`TutorGuide.jsx` + authored, number-free `src/engine/tutorNotes.js`): sessions, presets,
+  sequences, debriefing, skills, accessibility, and per activity the design, power, what the current seed's run
+  shows, debrief questions, wrong turns, a stretch; the quiz's answers; the studio's briefs. A refresh never
+  lands a student on an instructor page.
+- `progress.js` now keeps the full first-attempt record, the recommendation, the first quiz and wireframe.

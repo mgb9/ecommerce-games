@@ -1,6 +1,6 @@
 # Conversion Lab — screen-reader test script (VoiceOver)
 
-About 45 minutes. Run it once before release, and again after any change to the
+About an hour. Run it once before release, and again after any change to the
 bench, run or verdict screens. It checks the things automated tools can't: that
 what VoiceOver *says* makes sense, in the right order, at the right moment.
 
@@ -47,6 +47,11 @@ script is the human half.
 | 19 | Read the design review. | "Grade B, image"; each check reads its label, then "— passes / partly / fails", then its tip. | ☐ |
 | 20 | Set your hypothesis and run the test. | Focus on "Commit your hypothesis, heading level 1", three named groups; then on the verdict heading ("Inconclusive" / "Significant win"…), with "Your scorecard" and three scorecards. | ☐ |
 | 21 | Reload the page on any screen. | You come back to the same screen (mid-run: the completed run, at the call bar), and focus is on its heading. | ☐ |
+| 22 | In a fresh private window, load the page and move to "Before you start: how do you rate yourself?". | A level-2 heading, then six groups, each named by its statement ("…Plan an A/B test big enough…, group"); options read "4 of 5, Very, radio button". "Rate all six to save, dimmed button" until all are answered; "Skip for now, button". | ☐ |
+| 23 | Open an experiment and move to the end of the bench. | "What this experiment develops, heading level 2", then a list of outcomes ("LO3 Critically evaluate…"), the syllabus and skills as text, and a link "All the module's learning outcomes — WM956-15 in the Warwick module catalogue, opens in a new tab". | ☐ |
+| 24 | On a verdict, find "Your recommendation to the design team". Type two sentences, then tick two checks. | A level-2 heading; "Your recommendation to the design team, edit text"; "Check your recommendation, group" with four labelled check boxes; "Saved in this browser · 2 of 4 checks ticked." is announced once. Then "Skills you practised, heading level 2" and a list. | ☐ |
+| 25 | From the intro (or the calibration report), activate "Your experiment log". Move through it, then Tab to the name field and "Copy". | Focus on "Your experiment log, heading level 1"; level-2 headings "Experiment by experiment…", "How your judgement held up", "Your recommendations", "Skills record", "For your CV or an interview", "Learning outcomes", "Using this in your assessment", "How you rate yourself", "Share your results with your tutor"; the table has row headers; "Sound?" cells say yes / no / no claim; "Your result code, edit text" (read-only); "Copied." is announced. | ☐ |
+| 26 | With `?instructor`, open Instructor → "Cohort tally". Paste two codes and a bad line. Then back, and Instructor → "Tutor's guide". | The tally: "Paste the cohort's result codes, one per line, edit text"; after pasting, "2 students · seed …, heading level 1", an alert ("1 line couldn't be read…"), and tables with row headers. The guide: "Running Conversion Lab with a cohort, heading level 1", a level-2 heading per section and per experiment, and the quiz answers as a table. | ☐ |
 
 Optional, on an iPhone (Settings → Accessibility → VoiceOver): the bench's two
 columns become one, and the wireframe's three panels stack.

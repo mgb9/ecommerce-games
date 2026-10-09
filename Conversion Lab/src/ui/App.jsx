@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { Suspense, lazy, useState, useMemo, useEffect, useRef } from "react";
 import {
   EXPERIMENTS, DEFAULT_CFG, BANDS, QUIZ, runTest, statAt, effExperiment, trueBand, truthWinner,
   soundCall, matchesTruth, profitPerThousand, clamp,
@@ -6,7 +6,7 @@ import {
 import { T, GLOBAL_CSS } from "./theme.js";
 import { PlainModeProvider, Frame, InstructorButton, useShellBarOffset, useReducedMotion } from "./shared.jsx";
 import { useSessionState, readSession } from "./session.js";
-import { loadProgress, recordFirstAttempt, markHubPlayed } from "./progress.js";
+import { loadProgress, recordFirstAttempt, recordQuiz } from "./progress.js";
 import { instructorMode } from "./urlConfig.js";
 import InstructorPanel from "./InstructorPanel.jsx";
 import Intro from "./Intro.jsx";
@@ -14,9 +14,14 @@ import Bench from "./lab/Bench.jsx";
 import Running from "./lab/Running.jsx";
 import Verdict from "./lab/Verdict.jsx";
 import Summary from "./lab/Summary.jsx";
-import QuizRound from "./quiz/QuizRound.jsx";
+import QuizRound, { MAX_Q_POINTS } from "./quiz/QuizRound.jsx";
 import QuizDone from "./quiz/QuizDone.jsx";
 import WireframeStudio from "./wireframe/WireframeStudio.jsx";
+import ExperimentLog from "./ExperimentLog.jsx";
+// Instructor-only pages, loaded on demand so students never download them.
+const InstructorTally = lazy(() => import("./InstructorTally.jsx"));
+const TutorGuide = lazy(() => import("./TutorGuide.jsx"));
+const Loading = ({ what }) => <div role="status" style={{ margin: "48px auto", color: T.body2, fontSize: 16 }}>{what}</div>;
 
 /* Root: which screen is on show and the state behind it, mirrored to the
    tab's session so a refresh resumes where the student was. A run is
@@ -37,15 +42,19 @@ const ANIM_MS = 2800;
 
 export default function App() {
   const [saved, setApp] = useSessionState("app", START);
-  const app = saved?.v === VERSION ? saved : START;
-  const [cfg, setCfg] = useSessionState("cfg", DEFAULT_CFG);
   const [instructor] = useState(() => instructorMode());
+  const restored = saved?.v === VERSION ? saved : START;
+  // instructor pages exist only for staff: anyone else lands back where they were
+  const app = ["tally", "guide"].includes(restored.phase) && !instructor ? { ...restored, phase: restored.back || "intro" } : restored;
+  const [cfg, setCfg] = useSessionState("cfg", DEFAULT_CFG);
   const [showInstructor, setShowInstructor] = useState(false);
   const [progress, setProgress] = useState(loadProgress);
   const [wfStep, setWfStep] = useState(() => readSession("wireframe")?.step || "brief");
   const reduced = useReducedMotion();
   useShellBarOffset();
-  const { phase, expIdx, bench, run, records, qIdx, qResults, nav } = app;
+  const { phase, expIdx, bench, run, records, qIdx, qResults, nav, back } = app;
+  const openPage = (page) => go({ phase: page, back: ["log", "tally", "guide"].includes(phase) ? back : phase });
+  const closePage = () => go({ phase: back || "intro" });
   const go = (patch) => setApp((a) => ({ ...(a?.v === VERSION ? a : START), ...patch, nav: ((a?.v === VERSION ? a : START).nav || 0) + 1 }));
   const setBench = (fn) => setApp((a) => ({ ...a, bench: fn(a.bench) }));
 
@@ -98,7 +107,7 @@ export default function App() {
       trueDiff: truthDiff,
       businessNote: exp.profit ? businessNote(exp, s) : "",
     };
-    recordFirstAttempt(exp.id, { ...rec, seed: runCfg.seed });
+    recordFirstAttempt(exp.id, rec, runCfg.seed);
     setProgress(loadProgress());
     go({ phase: "verdict", records: [...records.filter((x) => x.id !== exp.id), rec] });
   }
@@ -110,7 +119,7 @@ export default function App() {
   const startQuiz = () => go({ phase: "quiz", qIdx: 0, qResults: [] });
   function quizComplete(r) {
     const rs = [...qResults, r];
-    if (qIdx + 1 >= QUIZ.length) { markHubPlayed(); go({ phase: "quizdone", qResults: rs }); return; }
+    if (qIdx + 1 >= QUIZ.length) { recordQuiz({ points: rs.reduce((a, x) => a + x.points, 0), max: QUIZ.length * MAX_Q_POINTS }); setProgress(loadProgress()); go({ phase: "quizdone", qResults: rs }); return; }
     go({ qIdx: qIdx + 1, qResults: rs });
   }
 
@@ -121,7 +130,7 @@ export default function App() {
     ? [["SCENARIO", `${Math.min(qIdx + 1, QUIZ.length)}/${QUIZ.length}`, T.hdrPlayer], ["SCORE", `${qScore}`, T.hdrPos]]
     : isLab ? [["EXPERIMENT", `${expIdx + 1}/${EXPERIMENTS.length}`, T.hdrPlayer], ["α", runCfg.alpha.toFixed(2), T.hdrInstructor], ["POWER", `${Math.round(runCfg.power * 100)}%`, T.hdrInstructor], ["SEED", runCfg.seed, T.hdrMuted]]
     : [];
-  const subtitle = isQuiz ? "Which Test Won?" : phase === "wireframe" ? "Wireframe Studio" : "Chrichton · A/B testing";
+  const subtitle = isQuiz ? "Which Test Won?" : phase === "wireframe" ? "Wireframe Studio" : phase === "log" ? "Experiment log" : phase === "tally" ? "Instructor · cohort tally" : phase === "guide" ? "Instructor · tutor's guide" : "Chrichton · A/B testing";
   const record = records.find((r) => r.id === exp.id);
 
   return (
@@ -130,10 +139,10 @@ export default function App() {
         <style>{GLOBAL_CSS}</style>
         <Frame screenKey={`${phase}:${expIdx}:${qIdx}:${phase === "wireframe" ? wfStep : ""}`} autoFocus={nav > 0} subtitle={subtitle} stats={stats}
           actions={instructor && <InstructorButton onClick={() => setShowInstructor(true)} />}>
-          {phase === "intro" && <Intro onStart={startArc} onQuiz={startQuiz} onWireframe={() => go({ phase: "wireframe" })} cfg={cfg} progress={progress} />}
-          {phase === "wireframe" && <WireframeStudio cfg={cfg} onExit={() => go({ phase: "intro" })} onScreen={setWfStep} />}
+          {phase === "intro" && <Intro onStart={startArc} onQuiz={startQuiz} onWireframe={() => go({ phase: "wireframe" })} onLog={() => openPage("log")} cfg={cfg} progress={progress} />}
+          {phase === "wireframe" && <WireframeStudio cfg={cfg} onExit={() => go({ phase: "intro" })} onScreen={setWfStep} onTested={() => setProgress(loadProgress())} />}
           {phase === "quiz" && <QuizRound key={qIdx} item={QUIZ[qIdx]} idx={qIdx} total={QUIZ.length} onComplete={quizComplete} />}
-          {phase === "quizdone" && <QuizDone results={qResults} total={QUIZ.length} onReplay={startQuiz} onLab={() => go({ phase: "intro" })} />}
+          {phase === "quizdone" && <QuizDone results={qResults} total={QUIZ.length} onReplay={startQuiz} onLab={() => go({ phase: "intro" })} onLog={() => openPage("log")} />}
           {phase === "bench" && <Bench exp={exp} base={base} cfg={cfg} bench={bench} setBench={setBench} onCommit={commitTest} />}
           {phase === "running" && result && (
             <Running exp={exp} base={base} cfg={runCfg} result={result} animN={shownN} total={total} liveStat={liveStat} animComplete={animComplete} plannedN={run.n} onCall={callTest} />
@@ -141,9 +150,12 @@ export default function App() {
           {phase === "verdict" && result && record && (
             <Verdict exp={exp} base={base} cfg={runCfg} result={result} record={record} onNext={nextExperiment} isLast={expIdx + 1 >= EXPERIMENTS.length} />
           )}
-          {phase === "summary" && <Summary records={records} cfg={cfg} restart={restart} />}
+          {phase === "summary" && <Summary records={records} cfg={cfg} restart={restart} onLog={() => openPage("log")} />}
+          {phase === "log" && <ExperimentLog progress={progress} cfg={cfg} onBack={closePage} onProgress={() => setProgress(loadProgress())} />}
+          {phase === "tally" && instructor && <Suspense fallback={<Loading what="Opening the tally…" />}><InstructorTally onBack={closePage} /></Suspense>}
+          {phase === "guide" && instructor && <Suspense fallback={<Loading what="Opening the tutor's guide…" />}><TutorGuide cfg={cfg} onBack={closePage} /></Suspense>}
         </Frame>
-        {showInstructor && instructor && <InstructorPanel cfg={cfg} setCfg={setCfg} defaults={DEFAULT_CFG} onClose={() => setShowInstructor(false)} />}
+        {showInstructor && instructor && <InstructorPanel cfg={cfg} setCfg={setCfg} defaults={DEFAULT_CFG} onClose={() => setShowInstructor(false)} onOpenPage={(pg) => { setShowInstructor(false); openPage(pg); }} />}
       </div>
     </PlainModeProvider>
   );

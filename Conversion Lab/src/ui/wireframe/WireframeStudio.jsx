@@ -4,7 +4,9 @@ import { PALETTE, PMAP, BRIEFS, BMAP, LOAD_BUDGET, CONTROL_LAYOUT, reviewLayout,
 import { T, card, btn, ghostBtn, smallGhost, pillBtn, gatedBtn } from "../theme.js";
 import { PT, ChoiceGroup, QuestionLabel, MiniStat, MiniTag, ScoreCard } from "../shared.jsx";
 import { useSessionState } from "../session.js";
-import { markHubPlayed } from "../progress.js";
+import { recordWireframe } from "../progress.js";
+import { WhatThisDevelops } from "../Outcomes.jsx";
+import { OUTCOMES } from "../outcomesModel.js";
 
 /* ---- WIREFRAME STUDIO (LO2 — context → design → hypothesis → test) ----
    Four steps, each its own screen: pick a brief, build a page, commit a
@@ -32,7 +34,7 @@ const METRICS = [
 const N_OPTIONS = [1000, 3000, 8000, 20000].map((n) => ({ id: n, label: fmtN(n) }));
 const START = { briefId: null, layout: ["image", "title", "price", "atc"], step: "brief", hypo: { metric: null, band: null, plannedN: 3000 } };
 
-export default function WireframeStudio({ cfg, onExit, onScreen }) {
+export default function WireframeStudio({ cfg, onExit, onScreen, onTested }) {
   const [st, setSt] = useSessionState("wireframe", START);
   const { briefId, layout, step, hypo } = st;
   const set = (patch) => setSt((s) => ({ ...s, ...patch }));
@@ -76,11 +78,12 @@ export default function WireframeStudio({ cfg, onExit, onScreen }) {
             </li>
           ))}
         </ul>
+        <WhatThisDevelops outcomes={OUTCOMES.wireframe} title="What the Wireframe Studio develops" style={{ marginTop: 18 }} />
       </div>
     );
   }
 
-  if (step === "test") return <WireframeVerdict layout={layout} brief={brief} review={review} hypo={hypo} cfg={cfg} onRefine={() => set({ step: "build" })} onNewBrief={() => set({ step: "brief", briefId: null })} onExit={onExit} />;
+  if (step === "test") return <WireframeVerdict onTested={onTested} layout={layout} brief={brief} review={review} hypo={hypo} cfg={cfg} onRefine={() => set({ step: "build" })} onNewBrief={() => set({ step: "brief", briefId: null })} onExit={onExit} />;
 
   if (step === "hypothesis") return <Hypothesis brief={brief} hypo={hypo} cfg={cfg} setHypo={(h) => setSt((s) => ({ ...s, hypo: { ...s.hypo, ...h } }))} onBack={() => set({ step: "build" })} onRun={() => set({ step: "test" })} />;
 
@@ -245,9 +248,8 @@ function Hypothesis({ brief, hypo, cfg, setHypo, onBack, onRun }) {
   );
 }
 
-function WireframeVerdict({ layout, brief, review, hypo, cfg, onRefine, onNewBrief, onExit }) {
+function WireframeVerdict({ layout, brief, review, hypo, cfg, onRefine, onNewBrief, onExit, onTested }) {
   const res = useMemo(() => runTest(layoutToExperiment(layout, brief, review), { nPerArm: hypo.plannedN, alpha: cfg.alpha, seed: `${cfg.seed}:wireframe:${brief.id}` }), [layout, brief, review, hypo.plannedN, cfg.alpha, cfg.seed]);
-  useEffect(() => { markHubPlayed(); }, []);
   const sig = res.significant;
   const better = res.diff > 0;
   const trueDiff = review.rate - brief.base;
@@ -260,6 +262,8 @@ function WireframeVerdict({ layout, brief, review, hypo, cfg, onRefine, onNewBri
   const headline = !sig ? "Inconclusive" : better ? "Significant win" : "Significant loss";
   const hCol = !sig ? T.amber : better ? T.pos : T.neg;
   const powerOk = !real ? null : sig && Math.sign(res.diff) === Math.sign(trueDiff);
+  // the first wireframe test is the honest record (the experiment log, the result code)
+  useEffect(() => { recordWireframe({ brief: brief.id, bandCorrect: hypo.band === tBand.id, metricCorrect: metricOk, powerOk }); onTested?.(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const powerNote = !real
     ? (sig ? "This came out significant although your design has no real effect: a false positive. There was nothing to find." : "There was no real effect to find: “no difference” — or “need more data” — is the honest verdict, not a hunt for one.")
     : sig ? (Math.sign(res.diff) === Math.sign(trueDiff) ? "You committed enough traffic to resolve the effect from noise." : "Significant in the wrong direction — rare, but chance allows it.")

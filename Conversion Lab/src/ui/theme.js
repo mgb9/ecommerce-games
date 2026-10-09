@@ -48,6 +48,22 @@ export const GLOBAL_CSS = FONT_IMPORT + `
   .cl-sticky{ position:sticky; top:calc(var(--cl-shell-h, 0px) + 12px); }
   @media (max-width:720px){ .cl-sticky{ position:static; } }
   @media (prefers-reduced-motion: reduce){ .rise{ animation:none; } *{ transition:none !important; } }
+  /* printable pages (the experiment log, the tutor's guide): print only the
+     document, as A4. The game's header band and toolbars are .cl-noprint; the
+     WMG shell hides its own bar in print. */
+  .cl-print-only{ display:none; }
+  @page{ size:A4; margin:14mm 14mm 16mm; }
+  @media print{
+    html, body{ background:#FFFFFF !important; }
+    body *{ visibility:hidden !important; }
+    .cl-report, .cl-report *{ visibility:visible !important; }
+    .cl-noprint, body > footer{ display:none !important; }
+    .cl-report{ max-width:none !important; margin:0 !important; padding:0 !important; border:none !important; box-shadow:none !important; font-size:12.5pt !important; }
+    .cl-report .cl-print-only{ display:block; }
+    .cl-report *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .cl-report h2, .cl-report h3{ break-after:avoid; }
+    .cl-report [role=region]{ overflow:visible !important; }
+  }
   .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 `;
 

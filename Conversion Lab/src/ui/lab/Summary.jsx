@@ -11,7 +11,7 @@ const tone = (v) => (v == null ? T.muted : v ? T.pos : T.neg);
 /* The calibration report: every experiment's prediction, call and both
    judgements of it, with what each experiment was teaching (worded for
    the current settings) and the exportable experiment log. */
-export default function Summary({ records, cfg, restart }) {
+export default function Summary({ records, cfg, restart, onLog }) {
   const ordered = EXPERIMENTS.map((e) => records.find((r) => r.id === e.id)).filter(Boolean);
   const hits = (k) => ordered.filter((r) => r[k]).length;
   const claims = ordered.filter((r) => r.matchedTruth != null);
@@ -80,14 +80,17 @@ export default function Summary({ records, cfg, restart }) {
       </section>
 
       <section style={{ ...card(), marginTop: 16, textAlign: "center" }}>
-        <SectionTitle>Take your experiment log into class</SectionTitle>
-        <p style={{ color: T.body2, fontSize: 15, lineHeight: 1.5, maxWidth: 600, margin: "0 auto 16px" }}>Export the full record — prediction, planned and actual sample size, observed difference, interval and p-value, your call and both judgements of it, and the business impact — with reflection prompts.</p>
+        <SectionTitle>Take your results into class</SectionTitle>
+        <p style={{ color: T.body2, fontSize: 15, lineHeight: 1.5, maxWidth: 600, margin: "0 auto 16px" }}>Your experiment log (below) is the document to keep: your first attempts, recommendations, skills record and CV lines, as a PDF. For analysis, export this run's full record — prediction, sample sizes, difference, interval and p-value, your call and both judgements of it — as data, with reflection prompts.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button type="button" onClick={() => downloadFile(`conversion-lab-${cfg.seed}.csv`, buildCSV(ordered, cfg), "text/csv")} style={btn(T.instructor)}>⬇ Download CSV</button>
           <button type="button" onClick={() => downloadFile(`conversion-lab-${cfg.seed}.md`, buildMarkdown(ordered, cfg), "text/markdown")} style={ghostBtn}>⬇ Download Markdown</button>
         </div>
       </section>
-      <div style={{ textAlign: "center", marginTop: 22 }}><button type="button" onClick={restart} style={btn(T.playerBtn)}>Run the lab again ↺</button></div>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 22 }}>
+        {onLog && <button type="button" onClick={onLog} style={btn(T.playerBtn)}>Open your experiment log (PDF) →</button>}
+        <button type="button" onClick={restart} style={ghostBtn}>Run the lab again ↺</button>
+      </div>
     </div>
   );
 }

@@ -2,8 +2,10 @@ import React from "react";
 import { T, card, btn, ghostBtn } from "../theme.js";
 import { Term, SectionTitle, MiniStat } from "../shared.jsx";
 import { MAX_Q_POINTS } from "./QuizRound.jsx";
+import { WhatThisDevelops } from "../Outcomes.jsx";
+import { OUTCOMES } from "../outcomesModel.js";
 
-export default function QuizDone({ results, total, onReplay, onLab }) {
+export default function QuizDone({ results, total, onReplay, onLab, onLog }) {
   const pts = results.reduce((a, r) => a + r.points, 0);
   const maxPts = total * MAX_Q_POINTS;
   const dirHits = results.filter((r) => r.dirOk).length;
@@ -39,7 +41,9 @@ export default function QuizDone({ results, total, onReplay, onLab }) {
       <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 20, flexWrap: "wrap" }}>
         <button type="button" onClick={onReplay} style={btn(T.playerBtn)}>Play again ↺</button>
         <button type="button" onClick={onLab} style={ghostBtn}>Back to the lab →</button>
+        {onLog && <button type="button" onClick={onLog} style={ghostBtn}>Your experiment log →</button>}
       </div>
+      <WhatThisDevelops outcomes={OUTCOMES.quiz} title="What this round develops" style={{ marginTop: 18, textAlign: "left" }} />
     </div>
   );
 }

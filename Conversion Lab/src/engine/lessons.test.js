@@ -157,3 +157,24 @@ describe("exports", () => {
     expect(md).not.toContain("95% CI");
   });
 });
+
+describe("the default seed is typical, and tells every experiment's story", () => {
+  it("each default run lands within 1.5 standard errors of the truth and shows its lesson", () => {
+    const run = (id) => { const e = exp(id); return { e, r: runTest(e, { nPerArm: e.suggestN, seed: `${DEFAULT_CFG.seed}:${id}` }) }; };
+    for (const base of EXPERIMENTS) {
+      const { e, r } = run(base.id);
+      const se = Math.sqrt(r.rA * (1 - r.rA) / e.suggestN + r.rB * (1 - r.rB) / e.suggestN);
+      expect(Math.abs((r.diff - (e.truth.pB - e.truth.pA)) / se), base.id).toBeLessThan(1.5);
+    }
+    expect(run("cta").r.significant).toBe(true);
+    expect(run("imgbg").r.significant).toBe(false);
+    expect(run("scarcity").r.significant).toBe(false);
+    const ck = run("checkout").r;
+    expect(ck.significant).toBe(false);
+    expect(ck.segments.every((s) => s.significant)).toBe(true);
+    const pr = run("promo").r;
+    expect(pr.significant && pr.segments.find((s) => s.id === "returning").diff < 0 && pr.segments.find((s) => s.id === "returning").significant).toBe(true);
+    const su = run("subject");
+    expect(guardrailAt(statAt(su.r, su.e.suggestN)).significant).toBe(true);
+  });
+});

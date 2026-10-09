@@ -113,7 +113,7 @@ export function Frame({ screenKey, autoFocus, subtitle, stats = [], actions, chi
   }, [screenKey]); // eslint-disable-line react-hooks/exhaustive-deps -- autoFocus only matters on mount
   return (
     <>
-      <div style={{ background: T.hdrBg, color: T.hdrText }}>
+      <div className="cl-noprint" style={{ background: T.hdrBg, color: T.hdrText }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Conversion <span style={{ color: PLAYER }}>Lab</span></span>

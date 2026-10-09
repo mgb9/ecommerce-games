@@ -122,7 +122,7 @@ describe("instructor views and the self-rating render", () => {
     expect(out).toContain("Smoking gun:");
     expect(out).toContain("ends after 5 days");
     expect(out).not.toMatch(/starts W\d/);   // start days are the seed's, on the answer sheet
-    expect(out).toContain("Two-hour workshop");
+    expect(out).toContain("A longer workshop");
   });
   it("the tally renders empty, and the rating form has six labelled groups", () => {
     expect(html(<InstructorTally onBack={noop} />)).toContain("Nothing to tally yet");
