@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   runTest, EXPERIMENTS, effExperiment, requiredSampleSize, twoPropTest,
-  normalCdf, normalQuantile, trueBand, callCorrect, statAt, aggregateTruth,
+  normalCdf, normalQuantile, trueBand, soundCall, matchesTruth, statAt, aggregateTruth,
   QUIZ, CRO_STACK, guardrailPerThousand,
 } from "./engine.js";
 
@@ -229,14 +229,32 @@ describe("scoring helpers", () => {
     expect(trueBand(0.05).id).toBe("blarge");
     expect(trueBand(-0.01).id).toBe("a");
   });
-  it("callCorrect rewards naming the winner only when significant", () => {
-    const sig = { significant: true, diff: 0.012 };
-    expect(callCorrect("b", sig, 0.012)).toBe(true);
-    expect(callCorrect("a", sig, 0.012)).toBe(false);
-    const ns = { significant: false, diff: 0.004 };
-    expect(callCorrect("more", ns, 0.012)).toBe(true); // real effect, underpowered → honest call is "more data"
-    expect(callCorrect("b", ns, 0.012)).toBe(false);
-    expect(callCorrect("none", ns, 0.0)).toBe(true);   // truly null → "no difference" is fair
+  it("soundCall judges the evidence only — never the truth", () => {
+    const sig = { significant: true, diff: 0.012, ciLow: 0.004, ciHigh: 0.02 };
+    expect(soundCall("b", sig)).toBe(true);            // significant: name the observed winner
+    expect(soundCall("a", sig)).toBe(false);
+    expect(soundCall("none", sig)).toBe(false);
+    expect(soundCall("more", sig)).toBe(false);        // the planned sample is in
+    const ns = { significant: false, diff: 0.004, ciLow: -0.004, ciHigh: 0.012 };
+    expect(soundCall("more", ns)).toBe(true);
+    expect(soundCall("b", ns)).toBe(false);
+    expect(soundCall("none", ns, { mde: 0.01 })).toBe(false);   // CI still allows a 1pp effect
+    const tight = { significant: false, diff: 0.001, ciLow: -0.004, ciHigh: 0.006 };
+    expect(soundCall("none", tight, { mde: 0.01 })).toBe(true);  // CI rules out effects ≥ the MDE
+    expect(soundCall("none", tight)).toBe(false);                // no MDE stated: can't show "no difference"
+  });
+  it("an early stop that names a winner is never sound — even a significant one", () => {
+    const sig = { significant: true, diff: 0.02, ciLow: 0.005, ciHigh: 0.035 };
+    expect(soundCall("b", sig, { stoppedEarly: true })).toBe(false);
+    expect(soundCall("more", sig, { stoppedEarly: true })).toBe(true);
+  });
+  it("a significant false positive is a sound call that misses the truth", () => {
+    const sig = { significant: true, diff: 0.009, ciLow: 0.001, ciHigh: 0.017 };
+    expect(soundCall("b", sig)).toBe(true);
+    expect(matchesTruth("b", 0)).toBe(false);
+    expect(matchesTruth("none", 0.001)).toBe(true);   // inside the ±0.2pp null zone
+    expect(matchesTruth("b", 0.012)).toBe(true);
+    expect(matchesTruth("more", 0.012)).toBeNull();   // no claim made
   });
   it("statAt finds the checkpoint at the stopping point", () => {
     const r = runTest(effExperiment(EXPERIMENTS[0]), { nPerArm: 2000, seed: "LAB-2026" });

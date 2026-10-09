@@ -87,7 +87,13 @@ function loadTimeMs(layout, brief) {
    Returns qualitative checks for the UI PLUS the honest predicted
    conversion `rate` (kept hidden by the studio until the student
    commits a hypothesis). */
-function reviewLayout(ids, brief = BRIEFS[0]) {
+const controlCache = new Map();
+function controlMultiplier(B) {
+  if (!controlCache.has(B.id)) controlCache.set(B.id, reviewLayout(CONTROL_LAYOUT, B, true).m);
+  return controlCache.get(B.id);
+}
+
+function reviewLayout(ids, brief = BRIEFS[0], rawOnly = false) {
   const B = typeof brief === "string" ? (BMAP[brief] || BRIEFS[0]) : brief;
   const layout = ids.filter((id) => PMAP[id]);
   const has = (id) => layout.includes(id);
@@ -139,10 +145,12 @@ function reviewLayout(ids, brief = BRIEFS[0]) {
   const over = Math.max(0, loadMs - LOAD_BUDGET);
   const mPerf = Math.pow(0.985, (over / 100) * B.speedSens);
 
-  const rate = clamp(
-    B.base * mEssent * mCta * mPrice * mHero * mFlow * mTrust * mUrg * mDetail * mReorder * mOverload * mPerf,
-    0.008, 0.14,
-  );
+  // The model's multiplier for this layout, relative to the brief's
+  // current page (CONTROL_LAYOUT), which converts at exactly B.base: an
+  // unchanged control is a 0pp design, not a hidden head start.
+  const m = mEssent * mCta * mPrice * mHero * mFlow * mTrust * mUrg * mDetail * mReorder * mOverload * mPerf;
+  if (rawOnly) return { m };
+  const rate = clamp(B.base * (m / controlMultiplier(B)), 0.008, 0.14);
 
   // --- qualitative checks for the UI (context-aware) ---
   const st = (good, ok) => (good ? "pass" : ok ? "partial" : "fail");
@@ -203,8 +211,9 @@ function reviewLayout(ids, brief = BRIEFS[0]) {
 }
 
 /* ---- feed Conversion Lab -----------------------------------
-   control = the current page for this brief (its base rate),
-   variant = the student's design (honest predicted rate). */
+   control = the current page for this brief (CONTROL_LAYOUT, which
+   the model scores at exactly the brief's base rate), variant = the
+   student's design (honest predicted rate). */
 function layoutToExperiment(ids, brief = BRIEFS[0], review) {
   const B = typeof brief === "string" ? (BMAP[brief] || BRIEFS[0]) : brief;
   const r = review || reviewLayout(ids, B);

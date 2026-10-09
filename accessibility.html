@@ -70,53 +70,58 @@
       <thead><tr><th>Issue</th><th>WCAG criterion</th><th>Planned fix</th></tr></thead>
       <tbody>
         <tr>
-          <td>Charts in Marketplace Tycoon, Conversion Lab and Funnel Fixer are drawn as graphics with no text
+          <td>Charts in Marketplace Tycoon and Funnel Fixer are drawn as graphics with no text
               alternative or accompanying data table, so their content is unavailable to screen-reader users.
-              (Data Detective’s charts have text descriptions, and its segment reports are real data tables.)</td>
+              (Data Detective’s charts have text descriptions, and its segment reports are real data tables.
+              Conversion Lab’s charts have text descriptions of where the test stands, and every figure is also
+              shown as text.)</td>
           <td>1.1.1 Non-text Content (A)</td>
           <td>Add an accessible summary and a toggleable data table beneath each chart. Due before each affected game is released to students.</td>
         </tr>
         <tr>
-          <td>In Marketplace Tycoon and Conversion Lab, chart series are distinguished by colour alone (for example
-              control vs variant, and competitor stores). (Data Detective's chart lines also differ in dash pattern and
-              have a legend.)</td>
+          <td>In Marketplace Tycoon, chart series are distinguished by colour alone (for example competitor
+              stores). (Data Detective’s and Conversion Lab’s chart lines also differ in dash pattern and have a
+              legend.)</td>
           <td>1.4.1 Use of Colour (A)</td>
           <td>Add non-colour encoding (line style, direct labels) alongside the data tables. Due before each affected game is released to students.</td>
         </tr>
         <tr>
-          <td>Inside Marketplace Tycoon, Conversion Lab and Funnel Fixer, many visual section headings are styled
+          <td>Inside Marketplace Tycoon and Funnel Fixer, many visual section headings are styled
               text rather than semantic headings, so screen-reader users cannot navigate by heading. (Data Detective
-              uses semantic headings.)</td>
+              and Conversion Lab use semantic headings.)</td>
           <td>1.3.1 Info and Relationships (A)</td>
           <td>Convert in-game section titles to semantic headings. Due before each affected game is released to students.</td>
         </tr>
         <tr>
-          <td>In Marketplace Tycoon, Conversion Lab and Funnel Fixer, results that appear after an action — test
-              verdicts, weekly simulation outcomes — are not announced to screen readers. (In Data Detective, focus
-              moves to each new screen’s heading, so the diagnosis result is announced.)</td>
+          <td>In Marketplace Tycoon and Funnel Fixer, results that appear after an action — weekly and quarterly
+              simulation outcomes — are not announced to screen readers. (In Data Detective and Conversion Lab,
+              focus moves to each new screen’s heading, so results are announced; Conversion Lab also announces
+              when a running test becomes significant and when it completes.)</td>
           <td>4.1.3 Status Messages (AA)</td>
           <td>Add live regions to result panels. Due before each affected game is released to students.</td>
         </tr>
         <tr>
-          <td>Marketplace Tycoon, Conversion Lab and Funnel Fixer each keep their own header directly beneath the
+          <td>Marketplace Tycoon and Funnel Fixer each keep their own header directly beneath the
               shared WMG bar, and both stick to the top of the screen. When the page is scrolled they overlap, which
               can reduce the clickable area of the bar’s “All&nbsp;games” link. The link remains operable, but the
-              overlap should be removed. (Data Detective’s header no longer sticks, so it does not overlap.)</td>
+              overlap should be removed. (Data Detective’s and Conversion Lab’s headers no longer stick, so they do
+              not overlap.)</td>
           <td>2.5.8 Target Size (Minimum) (AA)</td>
           <td>Rework the two stacked sticky headers so they do not overlap. Due before each affected game is released to students.</td>
         </tr>
         <tr>
-          <td>In Marketplace Tycoon, Conversion Lab and Funnel Fixer, the glossary definition popovers open only
+          <td>In Marketplace Tycoon and Funnel Fixer, the glossary definition popovers open only
               on a mouse click: they cannot be reached or opened with a keyboard, and are not exposed as
-              expandable controls to assistive technology. (Data Detective’s are already keyboard-operable
-              disclosure buttons.)</td>
+              expandable controls to assistive technology. (Data Detective’s and Conversion Lab’s are
+              keyboard-operable disclosure buttons.)</td>
           <td>2.1.1 Keyboard (A)<br>4.1.2 Name, Role, Value (A)</td>
           <td>Rebuild as proper disclosure buttons, as in Data Detective. Due before each affected game is released to students.</td>
         </tr>
         <tr>
-          <td>Some dense screens (such as the Conversion Lab wireframe studio) have not been verified for reflow at
-              320&nbsp;CSS&nbsp;pixels. (Data Detective has been checked at 320&nbsp;CSS&nbsp;pixels: every screen
-              reflows, and only its wide data tables scroll sideways, as data tables may.)</td>
+          <td>Marketplace Tycoon and Funnel Fixer have been checked for sideways scrolling at
+              320&nbsp;CSS&nbsp;pixels but not yet fully audited for reflow. (Data Detective and Conversion Lab have
+              been checked at 320&nbsp;CSS&nbsp;pixels: every screen reflows, and only wide data tables scroll
+              sideways, as data tables may.)</td>
           <td>1.4.10 Reflow (AA)</td>
           <td>Responsive audit and fixes on small viewports. Due before each affected game is released to students.</td>
         </tr>
