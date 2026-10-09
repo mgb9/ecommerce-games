@@ -111,6 +111,7 @@
         '.foot .a{font-size:13.5px;color:#c7c7ca;}' +
         '.foot .a b{color:#fff;}' +
         '.foot .b{font-size:12px;color:#8d8d91;}' +
+        '.foot .b a{color:#c7c7ca;text-decoration:underline;}' +
         '@media(max-width:820px){.mod,.desc,.gcat{display:none;}.tlabel{display:none;}.right{gap:14px;}.gname{font-size:17px;}}' +
         // phones: the game names itself in its own header, so drop the duplicate rather than overlap "All games"
         '@media(max-width:560px){.game,.sep{display:none;}.left{gap:12px;}}' +
@@ -153,7 +154,7 @@
         (showFooter
           ? '<footer class="foot" style="--gaccent:' + (isGame ? accent : '#EE3124') + '">' +
               '<div class="a">Built for teaching by <b>Mark Bonnett</b> · WMG, University of Warwick</div>' +
-              '<div class="b">Each game runs entirely in your browser — nothing is sent anywhere.</div>' +
+              '<div class="b">Each game runs entirely in your browser — nothing is sent anywhere. · <a href="/ecommerce-games/accessibility.html">Accessibility statement</a></div>' +
             '</footer>'
           : '');
 

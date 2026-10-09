@@ -50,7 +50,7 @@ export const GLOBAL_CSS = FONT_IMPORT + `
     html, body{ background:#FFFFFF !important; }
     body *{ visibility:hidden !important; }
     .dd-report, .dd-report *{ visibility:visible !important; }
-    .dd-noprint, body > p{ display:none !important; }
+    .dd-noprint, body > footer{ display:none !important; }
     .dd-report{ max-width:none !important; margin:0 !important; padding:0 !important; border:none !important; box-shadow:none !important; font-size:12.5pt !important; }
     .dd-report .dd-print-only{ display:block; }
     .dd-report *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
