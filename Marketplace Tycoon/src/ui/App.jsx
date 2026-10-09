@@ -40,15 +40,15 @@ function Term({ term, children }) {
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
       {open && (
         <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 210, fontWeight: 400,
-          background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "8px 10px", fontSize: 11.5, color: T.hdrText, lineHeight: 1.45, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>
+          background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "8px 10px", fontSize: 13, color: T.hdrText, lineHeight: 1.45, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>
       )}
     </span>
   );
 }
 function TermsHint() {
   return (
-    <div style={{ marginTop: 16, fontSize: 12.5, color: T.muted, display: "flex", alignItems: "center", gap: 7 }}>
-      <span style={{ fontSize: 14 }}>💡</span>
+    <div style={{ marginTop: 16, fontSize: 14, color: T.muted, display: "flex", alignItems: "center", gap: 7 }}>
+      <span style={{ fontSize: 15.5 }}>💡</span>
       <span>Tip: any word with a <span style={{ borderBottom: `1px dotted ${T.muted}` }}>dotted underline</span> is clickable — tap it for a plain-English definition.</span>
     </div>
   );
@@ -72,10 +72,10 @@ const LOS = {
 function LOBadges({ los }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 18 }}>
-      <span style={{ fontSize: 11, color: T.muted, fontFamily: T.mono, letterSpacing: 1 }}>🎓 WM956-15</span>
+      <span style={{ fontSize: 12.5, color: T.muted, fontFamily: T.mono, letterSpacing: 1 }}>🎓 WM956-15</span>
       {los.map((k) => (
         <span key={k} title={LOS[k].full}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: T.panel2, border: `1px solid ${T.border}`, borderRadius: 999, padding: "3px 10px 3px 8px", fontSize: 12, cursor: "help", whiteSpace: "nowrap" }}>
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: T.panel2, border: `1px solid ${T.border}`, borderRadius: 999, padding: "3px 10px 3px 8px", fontSize: 13.5, cursor: "help", whiteSpace: "nowrap" }}>
           <b style={{ color: T.amber, fontFamily: T.mono, fontWeight: 700 }}>{k}</b>
           <span style={{ color: T.muted }}>{LOS[k].title}</span>
         </span>
@@ -86,8 +86,8 @@ function LOBadges({ los }) {
 function PlainToggle({ plain, toggle }) {
   return (
     <button onClick={toggle} title="Swap stylised wording for simpler, literal English"
-      style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ fontSize: 15 }}>🗣️</span> Simpler English
+      style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5, display: "flex", alignItems: "center", gap: 6 }}>
+      <span style={{ fontSize: 16.5 }}>🗣️</span> Simpler English
     </button>
   );
 }
@@ -170,7 +170,8 @@ export default function App() {
         @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
-        .recharts-cartesian-axis-tick text{ fill:${T.muted}; font-family:${T.mono}; font-size:11px; }
+        @media (max-width:720px){ .cols2{ grid-template-columns:minmax(0,1fr) !important; } }
+        .recharts-cartesian-axis-tick text{ fill:${T.muted}; font-family:${T.mono}; font-size:12.5px; }
       `}</style>
 
       <Header round={round} phase={phase} player={player} cfg={activeCfg} rank={ranked.findIndex((s) => s.isPlayer) + 1} plain={plain} togglePlain={togglePlain} onToggleInstructor={() => setShowInstructor((v) => !v)} />
@@ -199,9 +200,9 @@ function Header({ round, phase, player, rank, cfg, plain, togglePlain, onToggleI
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
           <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Marketplace <span style={{ color: PLAYER }}>Tycoon</span></span>
-          <span style={{ color: T.hdrMuted, fontSize: 13, fontFamily: T.mono }}>{showStats ? SC(cfg).icon + " " + SC(cfg).short : "e-commerce strategy lab"}</span>
+          <span style={{ color: T.hdrMuted, fontSize: 14.5, fontFamily: T.mono }}>{showStats ? SC(cfg).icon + " " + SC(cfg).short : "e-commerce strategy lab"}</span>
         </div>
-        <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
+        <div style={{ display: "flex", gap: "10px 16px", alignItems: "center", flexWrap: "wrap", fontFamily: T.mono, fontSize: 14.5 }}>
           {showStats && <>
             <Stat label="WEEK" value={`${round}/${cfg.maxRounds}`} />
             <Stat label="PROFIT" value={gbp(player.cumProfit)} accent={player.cumProfit >= 0 ? "#7DCB6A" : "#FF5A4A"} />
@@ -210,8 +211,8 @@ function Header({ round, phase, player, rank, cfg, plain, togglePlain, onToggleI
             <Stat label="FEE" value={`${Math.round(cfg.commissionRate * 100)}%`} accent={feeRaised ? "#FF5A4A" : "#C4A578"} />
           </>}
           <PlainToggle plain={plain} toggle={togglePlain} />
-          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 15 }}>⚙</span> Instructor
+          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5, display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 16.5 }}>⚙</span> Instructor
           </button>
         </div>
       </div>
@@ -220,18 +221,18 @@ function Header({ round, phase, player, rank, cfg, plain, togglePlain, onToggleI
 }
 // Header-only: values sit on the dark band, so accents use the bright palette.
 function Stat({ label, value, accent }) {
-  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
+  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 11.5, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 16.5 }}>{value}</div></div>;
 }
 function PlatformPill({ id }) {
   const p = PMAP[id]; if (!p) return null;
-  return <span style={{ fontFamily: T.mono, fontSize: 10, color: T.muted, border: `1px solid ${T.border}`, borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" }}>{p.short}</span>;
+  return <span style={{ fontFamily: T.mono, fontSize: 11.5, color: T.muted, border: `1px solid ${T.border}`, borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" }}>{p.short}</span>;
 }
 
 function Eyebrow({ children, title }) {
   return (
     <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
       <span aria-hidden="true" style={{ width: 26, height: 3, background: PLAYER, borderRadius: 3 }} />
-      <span style={{ color: T.playerText, fontSize: 13, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
+      <span style={{ color: T.playerText, fontSize: 14.5, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
     </div>
   );
 }
@@ -243,14 +244,14 @@ function Intro({ name, setName, onNext, cfg }) {
         <PT rich={<>Pick a client. Build the store.<br /><span style={{ color: PLAYER }}>Ten weeks to win.</span></>}
             plain={<>Choose a client. Set up the store.<br /><span style={{ color: PLAYER }}>Run it for ten weeks.</span></>} />
       </h1>
-      <p style={{ color: T.body2, fontSize: 17.5, lineHeight: 1.6, marginTop: 18 }}>
+      <p style={{ color: T.body2, fontSize: 19, lineHeight: 1.6, marginTop: 18 }}>
         Choose a <b style={{ color: T.text }}>client brief</b>, a <b style={{ color: T.text }}>storefront platform</b> and a{" "}
         <b style={{ color: T.text }}>fulfilment model</b>, then run the store: set price, ad spend and stock, and invest in{" "}
         <Term term="cro">conversion optimization</Term> each week. Win loyal regulars, manage cash and returns, survive
         seasonal shocks, and outlast four rivals. The right strategy depends on the brief.
       </p>
       <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 22, flexWrap: "wrap" }}>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your store…" style={{ flex: 1, minWidth: 220, background: T.panel, border: `1.5px solid ${T.border}`, color: T.text, borderRadius: 12, padding: "14px 16px", fontSize: 16, fontFamily: T.body, outline: "none" }} />
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your store…" style={{ flex: 1, minWidth: 220, background: T.panel, border: `1.5px solid ${T.border}`, color: T.text, borderRadius: 12, padding: "14px 16px", fontSize: 17.5, fontFamily: T.body, outline: "none" }} />
         <button onClick={onNext} style={btn(PLAYER)}>Choose your client brief →</button>
       </div>
       <TermsHint />
@@ -264,9 +265,9 @@ function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
     <div className="rise" style={{ maxWidth: 980, margin: "32px auto 0" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 30, letterSpacing: -0.5, margin: 0 }}>Choose your client brief</h2>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 14 }}>← back</button>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 15.5 }}>← back</button>
       </div>
-      <p style={{ color: T.muted, fontSize: 15, lineHeight: 1.55, marginTop: 8 }}>
+      <p style={{ color: T.muted, fontSize: 16.5, lineHeight: 1.55, marginTop: 8 }}>
         Each industry has a different shape — margins, demand volatility, return rates, how mobile its shoppers are, and
         whether ads or trust win. The same levers reward very different strategies. Your rivals face the same brief.
       </p>
@@ -276,23 +277,23 @@ function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
           return (
             <button key={s.id} onClick={() => setSelected(s.id)} style={{ ...pickCard(on), borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>{s.icon} {s.name}</span>
-                {on && <span style={{ color: T.playerText, fontSize: 18 }}>✓</span>}
+                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18.5 }}>{s.icon} {s.name}</span>
+                {on && <span style={{ color: T.playerText, fontSize: 19.5 }}>✓</span>}
               </div>
-              <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.45, margin: "2px 0 8px" }}>{s.brief}</p>
+              <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.45, margin: "2px 0 8px" }}>{s.brief}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 <SpecRow label="Margin" value={<>{gbp(s.priceMin)}–{gbp(s.priceMax)} · <Term term="cogs">COGS</Term> {gbp(s.unitCost)}</>} />
                 <SpecRow label="Demand / volatility" value={`${s.demandBase.toLocaleString()} · ${s.volatility >= 0.2 ? "high" : s.volatility >= 0.12 ? "med" : "low"}`} />
                 <SpecRow label="Return rate" value={`${Math.round(s.returnRate * 100)}%`} />
                 <SpecRow label="Mobile traffic" value={`${Math.round(s.mobileShare * 100)}%`} />
               </div>
-              <div style={{ fontSize: 11.5, color: T.platform, lineHeight: 1.4, marginTop: 8 }}>{s.teach}</div>
+              <div style={{ fontSize: 13, color: T.platform, lineHeight: 1.4, marginTop: 8 }}>{s.teach}</div>
             </button>
           );
         })}
       </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 20, flexWrap: "wrap" }}>
-        <div style={{ color: T.muted, fontSize: 13.5 }}>Briefing the team on <b style={{ color: T.text }}>{sel.name}</b>.</div>
+        <div style={{ color: T.muted, fontSize: 15 }}>Briefing the team on <b style={{ color: T.text }}>{sel.name}</b>.</div>
         <button onClick={onNext} style={btn(PLAYER)}>Set up your store →</button>
       </div>
     </div>
@@ -304,7 +305,7 @@ const VERDICT_COL = { "Strong fit": T.pos, "Workable": T.gold, "Poor fit": T.neg
 function FitChip({ verdict, fit }) {
   const c = VERDICT_COL[verdict] || T.muted;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: `${c}1a`, border: `1px solid ${c}55`, color: c, borderRadius: 6, padding: "1px 7px", fontSize: 11, fontWeight: 600 }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: `${c}1a`, border: `1px solid ${c}55`, color: c, borderRadius: 6, padding: "1px 7px", fontSize: 12.5, fontWeight: 600 }}>
       {verdict} · {Math.round(fit * 100)}%
     </span>
   );
@@ -318,17 +319,17 @@ function PlatformFitPanel({ scenario, evalr, platform }) {
   return (
     <div style={{ marginTop: 16, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 15 }}>🧭</span>
-        <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15 }}>Which stack fits a {scenario.short} store?</span>
+        <span style={{ fontSize: 16.5 }}>🧭</span>
+        <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5 }}>Which stack fits a {scenario.short} store?</span>
       </div>
-      <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.5, margin: "0 0 12px" }}>{scenario.brief}</p>
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(180px,1fr) minmax(220px,1.3fr)", gap: 18 }}>
+      <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, margin: "0 0 12px" }}>{scenario.brief}</p>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(180px,1fr) minmax(220px,1.3fr)", gap: 18 }}>
         <div>
-          <div style={{ fontFamily: T.mono, fontSize: 10.5, letterSpacing: 1, color: T.muted, marginBottom: 8 }}>WHAT THIS BRIEF NEEDS MOST</div>
+          <div style={{ fontFamily: T.mono, fontSize: 12, letterSpacing: 1, color: T.muted, marginBottom: 8 }}>WHAT THIS BRIEF NEEDS MOST</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {topNeeds.map((n) => (
               <div key={n.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 11.5, color: T.text, width: 116, flexShrink: 0 }}>{n.label}</span>
+                <span style={{ fontSize: 13, color: T.text, width: 116, flexShrink: 0 }}>{n.label}</span>
                 <div style={{ flex: 1, height: 6, background: T.track, borderRadius: 6, overflow: "hidden" }}>
                   <div style={{ width: `${Math.round((n.w / maxW) * 100)}%`, height: "100%", background: T.platform }} />
                 </div>
@@ -337,11 +338,11 @@ function PlatformFitPanel({ scenario, evalr, platform }) {
           </div>
         </div>
         <div>
-          <div style={{ fontFamily: T.mono, fontSize: 10.5, letterSpacing: 1, color: T.muted, marginBottom: 8 }}>THE VERDICT</div>
-          <div style={{ fontSize: 13, lineHeight: 1.55, color: T.text, marginBottom: 8 }}>
+          <div style={{ fontFamily: T.mono, fontSize: 12, letterSpacing: 1, color: T.muted, marginBottom: 8 }}>THE VERDICT</div>
+          <div style={{ fontSize: 14.5, lineHeight: 1.55, color: T.text, marginBottom: 8 }}>
             <b style={{ color: T.youText }}>★ {recRow.name}</b> is the strongest fit. {rationaleFor(recRow, scenario)}
           </div>
-          <div style={{ fontSize: 12.5, lineHeight: 1.5, color: matched ? T.pos : T.gold, borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
+          <div style={{ fontSize: 14, lineHeight: 1.5, color: matched ? T.pos : T.gold, borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
             {matched
               ? <>✓ Your pick matches the strongest fit for this brief.</>
               : <>Your pick — <b style={{ color: T.text }}>{f.row.name}</b> ({f.row.verdict}, ranked {f.rank}/{f.total}) — isn't the top fit here. There's no single right answer, but be ready to justify it in your report.</>}
@@ -359,10 +360,10 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
     <div className="rise" style={{ maxWidth: 980, margin: "32px auto 0" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Set up your store — {scenario.icon} {scenario.short}</h2>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 14 }}>← back</button>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 15.5 }}>← back</button>
       </div>
 
-      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "20px 0 10px" }}>1 · Storefront platform</div>
+      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "20px 0 10px" }}>1 · Storefront platform</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}>
         {PLATFORMS.map((base) => {
           const p = getPlatform(cfg, base.id); const on = base.id === platform;
@@ -370,13 +371,13 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
           return (
             <button key={base.id} onClick={() => setPlatform(base.id)} style={{ ...pickCard(on), borderRadius: 14, padding: 15 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{base.name}</span>{on && <span style={{ color: T.playerText }}>✓</span>}
+                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>{base.name}</span>{on && <span style={{ color: T.playerText }}>✓</span>}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "6px 0 2px" }}>
                 <FitChip verdict={f.verdict} fit={f.fit} />
-                {rec && <span title="Strongest fit for this brief" style={{ fontFamily: T.mono, fontSize: 10, letterSpacing: 0.5, color: T.youText, border: `1px solid ${T.youText}66`, borderRadius: 5, padding: "1px 5px" }}>★ BEST FIT</span>}
+                {rec && <span title="Strongest fit for this brief" style={{ fontFamily: T.mono, fontSize: 11.5, letterSpacing: 0.5, color: T.youText, border: `1px solid ${T.youText}66`, borderRadius: 5, padding: "1px 5px" }}>★ BEST FIT</span>}
               </div>
-              <p style={{ color: T.muted, fontSize: 12, lineHeight: 1.4, margin: "5px 0 9px" }}>{base.blurb}</p>
+              <p style={{ color: T.muted, fontSize: 13.5, lineHeight: 1.4, margin: "5px 0 9px" }}>{base.blurb}</p>
               <SpecRow label="Cost / week" value={gbp(p.fixedCost) + (p.txnFee ? ` + ${(p.txnFee * 100).toFixed(p.txnFee * 100 % 1 ? 1 : 0)}%` : "")} />
               <SpecRow label="Time to value" value={base.rampWeeks <= 1 ? "Instant" : `${base.rampWeeks} wks`} />
               <SpecRow label="Ceiling" value={"●".repeat(base.ceiling) + "○".repeat(4 - base.ceiling)} mono />
@@ -390,16 +391,16 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
 
       {!scenario.digital ? (
         <>
-          <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "22px 0 10px" }}>2 · Fulfilment model</div>
+          <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "22px 0 10px" }}>2 · Fulfilment model</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}>
             {FULFILMENT.map((f) => {
               const on = f.id === fulfil;
               return (
                 <button key={f.id} onClick={() => setFulfil(f.id)} style={{ ...pickCard(on), borderRadius: 14, padding: 15 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{f.icon} {f.short}</span>{on && <span style={{ color: T.playerText }}>✓</span>}
+                    <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>{f.icon} {f.short}</span>{on && <span style={{ color: T.playerText }}>✓</span>}
                   </div>
-                  <p style={{ color: T.muted, fontSize: 12, lineHeight: 1.4, margin: "5px 0 9px" }}>{f.blurb}</p>
+                  <p style={{ color: T.muted, fontSize: 13.5, lineHeight: 1.4, margin: "5px 0 9px" }}>{f.blurb}</p>
                   <SpecRow label="Cost / unit" value={f.perUnitCost ? gbp(f.perUnitCost) : (f.marginCut ? `${Math.round(f.marginCut * 100)}% cut` : "£0")} />
                   <SpecRow label="Weekly fee" value={f.fixed ? gbp(f.fixed) : "—"} />
                   <SpecRow label="Stock risk" value={f.infiniteStock ? "none (unlimited)" : f.stockMult > 1 ? "cushioned" : "you carry it"} />
@@ -409,7 +410,7 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
           </div>
         </>
       ) : (
-        <div style={{ marginTop: 22, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, color: T.muted, fontSize: 13.5 }}>
+        <div style={{ marginTop: 22, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, color: T.muted, fontSize: 15 }}>
           ⬇️ <b style={{ color: T.text }}>Digital delivery</b> — this brief ships electronically. No fulfilment choice, no stock limit, no shipping cost. Checkout UX and pricing are everything.
         </div>
       )}
@@ -421,7 +422,7 @@ function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLau
   );
 }
 function SpecRow({ label, value, mono }) {
-  return <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}><span style={{ color: T.muted }}>{label}</span><span style={{ fontFamily: mono ? T.mono : T.body, fontWeight: 600, color: T.text }}>{value}</span></div>;
+  return <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 4 }}><span style={{ color: T.muted }}>{label}</span><span style={{ fontFamily: mono ? T.mono : T.body, fontWeight: 600, color: T.text }}>{value}</span></div>;
 }
 
 /* ---- INSTRUCTOR PANEL -------------------------------------- */
@@ -442,16 +443,16 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
             <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>
           </div>
-          <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.5, marginTop: 0 }}>Changes apply to the <b style={{ color: T.text }}>next week resolved</b>. The brief sets base economics; these tune the market around it.</p>
+          <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, marginTop: 0 }}>Changes apply to the <b style={{ color: T.text }}>next week resolved</b>. The brief sets base economics; these tune the market around it.</p>
 
           <PanelGroup title="Classroom" note="A shared seed gives the whole cohort an identical market — then debrief why results differed.">
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Market seed</div>
+              <div style={{ fontSize: 14.5, fontWeight: 500, marginBottom: 6 }}>Market seed</div>
               <div style={{ display: "flex", gap: 6 }}>
-                <input value={cfg.seed} onChange={(e) => set({ seed: e.target.value })} style={{ flex: 1, background: T.panel, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 13, outline: "none" }} />
+                <input value={cfg.seed} onChange={(e) => set({ seed: e.target.value })} style={{ flex: 1, background: T.panel, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 14.5, outline: "none" }} />
                 <button onClick={() => set({ seed: "M" + Math.random().toString(36).slice(2, 7).toUpperCase() })} style={{ ...presetBtn, padding: "8px 10px" }}>🎲</button>
               </div>
-              <div style={{ fontSize: 11, color: T.muted, marginTop: 5 }}>Set before launch; also controls which CRO bets pay off.</div>
+              <div style={{ fontSize: 12.5, color: T.muted, marginTop: 5 }}>Set before launch; also controls which CRO bets pay off.</div>
             </div>
             <ToggleRow label="Seasonal events on" on={cfg.eventsOn} accent={A} onToggle={() => set({ eventsOn: !cfg.eventsOn })} />
             <InstructorSlider label="Starting cash (new game)" accent={A} value={cfg.startingCash} min={0} max={12000} step={250} fmt={(v) => gbp(v)} onChange={(v) => set({ startingCash: v })} changed={cfg.startingCash !== defaults.startingCash} />
@@ -491,28 +492,28 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
             </div>
           </PanelGroup>
 
-          <button onClick={() => setCfg(defaults)} style={{ width: "100%", marginTop: 8, background: "transparent", color: T.muted, border: `1px solid ${T.border}`, borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13 }}>↺ Reset all to defaults</button>
+          <button onClick={() => setCfg(defaults)} style={{ width: "100%", marginTop: 8, background: "transparent", color: T.muted, border: `1px solid ${T.border}`, borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5 }}>↺ Reset all to defaults</button>
         </div>
       </div>
     </>
   );
 }
-const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "9px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 12.5, lineHeight: 1.3 };
+const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "9px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 14, lineHeight: 1.3 };
 function ToggleRow({ label, on, onToggle, accent }) {
   return (
-    <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 13, fontWeight: 500 }}>
+    <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 14.5, fontWeight: 500 }}>
       <span>{label}</span>
       <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#FFFFFF", boxShadow: "0 1px 3px #00000040", transition: "left .15s" }} /></span>
     </div>
   );
 }
 function PanelGroup({ title, note, children }) {
-  return <div style={{ marginTop: 18 }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, letterSpacing: 0.3, textTransform: "uppercase", color: T.muted, marginBottom: 10 }}>{title}</div>{note && <div style={{ fontSize: 11.5, color: T.muted, marginTop: -4, marginBottom: 10, lineHeight: 1.4 }}>{note}</div>}{children}</div>;
+  return <div style={{ marginTop: 18 }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14.5, letterSpacing: 0.3, textTransform: "uppercase", color: T.muted, marginBottom: 10 }}>{title}</div>{note && <div style={{ fontSize: 13, color: T.muted, marginTop: -4, marginBottom: 10, lineHeight: 1.4 }}>{note}</div>}{children}</div>;
 }
 function InstructorSlider({ label, value, min, max, step, fmt, onChange, accent, changed }) {
   return (
     <div style={{ marginBottom: 13 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 13, fontWeight: 500 }}>{label}{changed && <span style={{ color: accent, marginLeft: 5 }}>•</span>}</span><span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 13, color: accent }}>{fmt(value)}</span></div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 14.5, fontWeight: 500 }}>{label}{changed && <span style={{ color: accent, marginLeft: 5 }}>•</span>}</span><span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 14.5, color: accent }}>{fmt(value)}</span></div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", marginTop: 7, "--accent": accent, "--accent-soft": accent + "30" }} />
     </div>
   );
@@ -535,17 +536,17 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
   const hiked = platform.fixedCost !== PMAP[player.platformId].fixedCost || platform.txnFee !== PMAP[player.platformId].txnFee;
 
   return (
-    <div className="rise" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(0,1fr)", gap: 18, marginTop: 22 }}>
+    <div className="rise cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(0,1fr)", gap: 18, marginTop: 22 }}>
       <div style={card()}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>Your move — Week {round}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: T.mono, fontSize: 11, color: T.platform }}>{platform.short} · {ful.short}</span>
+          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18.5 }}>Your move — Week {round}</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: T.mono, fontSize: 12.5, color: T.platform }}>{platform.short} · {ful.short}</span>
         </div>
-        <div style={{ background: T.panel2, borderRadius: 9, padding: "8px 11px", marginBottom: 14, fontSize: 11.5, color: T.muted, lineHeight: 1.45 }}>
+        <div style={{ background: T.panel2, borderRadius: 9, padding: "8px 11px", marginBottom: 14, fontSize: 13, color: T.muted, lineHeight: 1.45 }}>
           {sc.icon} <b style={{ color: T.text }}>{sc.name}:</b> {sc.teach}
         </div>
 
-        {ev && <Banner bg="#F5EFE3" bd={`${T.platform}66`}><b>{ev.icon} This week: {ev.title}</b><div style={{ fontSize: 12, color: T.muted, marginTop: 3, lineHeight: 1.45 }}>{ev.desc}</div></Banner>}
+        {ev && <Banner bg="#F5EFE3" bd={`${T.platform}66`}><b>{ev.icon} This week: {ev.title}</b><div style={{ fontSize: 13.5, color: T.muted, marginTop: 3, lineHeight: 1.45 }}>{ev.desc}</div></Banner>}
         {player.insolvent && <Banner bg="#FBE9E7" bd={T.negFill}>💀 You're <Term term="insolvent">insolvent</Term> — out of cash. Keep trading if you like, but this is where real stores die. Cut spend, rebuild margin.</Banner>}
         {mat < 1 && <Banner bg="#F5EFE3" bd={`${T.platform}44`}>🏗 {platform.short} is {Math.round(mat * 100)}% built — paying {gbp(platform.fixedCost)}/wk in full while the edge ramps in (full power by week {platform.rampWeeks}).</Banner>}
         {hiked && <Banner bg="#FBE9E7" bd={`${T.negFill}`}>⚡ Platform pricing changed — now {gbp(platform.fixedCost)}/wk{platform.txnFee ? ` + ${(platform.txnFee * 100).toFixed(1)}%` : ""}. You're locked in.</Banner>}
@@ -553,7 +554,7 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
         <Slider label="Price" accent={PLAYER} value={d.price} min={sc.priceMin} max={sc.priceMax} step={1} fmt={gbp} hint="A lower price wins more sales — but every £1 off comes straight out of your already small profit margin." onChange={(v) => setPlayerDecision({ price: v })} />
         <Slider label="Ad spend" accent={PLAYER} value={d.ad} min={0} max={2500} step={50} fmt={gbp} hint={`Buys visibility (an auction). This brief is ${sc.adResponse >= 1.1 ? "ad-responsive" : sc.adResponse <= 0.8 ? "research-led — ads do less" : "moderately ad-responsive"}.`} onChange={(v) => setPlayerDecision({ ad: v })} />
         {ful.infiniteStock ? (
-          <div style={{ marginBottom: 16, fontSize: 12.5, color: T.muted, background: T.panel2, borderRadius: 9, padding: "10px 12px" }}>
+          <div style={{ marginBottom: 16, fontSize: 14, color: T.muted, background: T.panel2, borderRadius: 9, padding: "10px 12px" }}>
             ♾ <b style={{ color: T.text }}>Unlimited inventory</b> — {sc.digital ? "digital goods never stock out." : "your dropship supplier holds the stock."} No stocking decision this week.
           </div>
         ) : (
@@ -570,9 +571,9 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
         </div>
 
         <div style={{ marginTop: 16, background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 9 }}>Before you sell — where will you rank this week?</div>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 9 }}>Before you sell — where will you rank this week?</div>
           <div style={{ display: "flex", gap: 6 }}>
-            {[1, 2, 3, 4, 5].map((n) => <button key={n} onClick={() => setPrediction(n)} style={{ flex: 1, padding: "9px 0", borderRadius: 8, cursor: "pointer", fontFamily: T.mono, fontWeight: 700, fontSize: 13, border: `1px solid ${prediction === n ? PLAYER : T.border}`, background: prediction === n ? PLAYER : "transparent", color: prediction === n ? T.onAccent : T.text }}>#{n}</button>)}
+            {[1, 2, 3, 4, 5].map((n) => <button key={n} onClick={() => setPrediction(n)} style={{ flex: 1, padding: "9px 0", borderRadius: 8, cursor: "pointer", fontFamily: T.mono, fontWeight: 700, fontSize: 14.5, border: `1px solid ${prediction === n ? PLAYER : T.border}`, background: prediction === n ? PLAYER : "transparent", color: prediction === n ? T.onAccent : T.text }}>#{n}</button>)}
           </div>
         </div>
 
@@ -582,24 +583,24 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
       <div style={card()}>
         <SectionTitle>The marketplace</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{ranked.map((s, i) => <StoreRow key={s.id} s={s} pos={i + 1} firstRound={round === 1} sc={sc} round={round} />)}</div>
-        <p style={{ color: T.muted, fontSize: 12.5, marginTop: 14, lineHeight: 1.5 }}>Pills show each rival's platform. ★ reviews · ♥ regulars · bar is last week's share of new customers.</p>
+        <p style={{ color: T.muted, fontSize: 14, marginTop: 14, lineHeight: 1.5 }}>Pills show each rival's platform. ★ reviews · ♥ regulars · bar is last week's share of new customers.</p>
       </div>
     </div>
   );
 }
 
 function Banner({ bg, bd, children }) {
-  return <div style={{ background: bg, border: `1px solid ${bd}`, borderRadius: 10, padding: "10px 12px", marginBottom: 14, fontSize: 12.8, lineHeight: 1.45 }}>{children}</div>;
+  return <div style={{ background: bg, border: `1px solid ${bd}`, borderRadius: 10, padding: "10px 12px", marginBottom: 14, fontSize: 14.3, lineHeight: 1.45 }}>{children}</div>;
 }
 
 function CROPanel({ player, sc, croConv, availCash, onDeploy, onTest }) {
   return (
     <div style={{ background: T.panel2, borderRadius: 12, padding: "13px 14px", marginBottom: 4 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-        <span style={{ fontWeight: 700, fontSize: 14 }}><Term term="cro">Conversion optimization</Term></span>
-        <span style={{ fontFamily: T.mono, fontSize: 12.5, color: T.pos }}>site conv ×{croConv.toFixed(3)}</span>
+        <span style={{ fontWeight: 700, fontSize: 15.5 }}><Term term="cro">Conversion optimization</Term></span>
+        <span style={{ fontFamily: T.mono, fontSize: 14, color: T.pos }}>site conv ×{croConv.toFixed(3)}</span>
       </div>
-      <div style={{ fontSize: 11, color: T.muted, marginBottom: 10, lineHeight: 1.4 }}>
+      <div style={{ fontSize: 12.5, color: T.muted, marginBottom: 10, lineHeight: 1.4 }}>
         Persistent upgrades. <Term term="abtest">A/B test</Term> to reveal a tier's true lift before you commit the bigger deploy cost.
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
@@ -615,16 +616,16 @@ function CROPanel({ player, sc, croConv, availCash, onDeploy, onTest }) {
           const estLo = (l.id === "mobile" ? l.loLift * sc.mobileShare : l.loLift) * 100;
           const estHi = (l.id === "mobile" ? l.hiLift * sc.mobileShare : l.hiLift) * 100;
           return (
-            <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5 }}>
+            <div key={l.id} style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px 8px", fontSize: 14 }}>
               <span style={{ width: 116, flexShrink: 0 }}>
                 <span>{l.icon} {l.name}</span>
-                <span style={{ display: "block", marginTop: 2, letterSpacing: 1, color: T.youText, fontSize: 11 }}>{"●".repeat(tier)}<span style={{ color: T.faint }}>{"○".repeat(3 - tier)}</span></span>
+                <span style={{ display: "block", marginTop: 2, letterSpacing: 1, color: T.youText, fontSize: 12.5 }}>{"●".repeat(tier)}<span style={{ color: T.faint }}>{"○".repeat(3 - tier)}</span></span>
               </span>
               {maxed ? (
-                <span style={{ color: T.muted, fontFamily: T.mono, fontSize: 11 }}>maxed</span>
+                <span style={{ color: T.muted, fontFamily: T.mono, fontSize: 12.5 }}>maxed</span>
               ) : (
                 <>
-                  <span style={{ flex: 1, fontFamily: T.mono, fontSize: 10.5, color: tested ? T.pos : T.muted }}>
+                  <span style={{ flex: "1 1 72px", fontFamily: T.mono, fontSize: 12, color: tested ? T.pos : T.muted }}>
                     {tested ? `tested: +${(shownLift * 100).toFixed(1)}%` : `est +${estLo.toFixed(0)}–${estHi.toFixed(0)}%`}
                   </span>
                   {!tested && <button onClick={() => onTest(l.id)} disabled={testCost > availCash} style={croBtn(testCost > availCash, false)}>test {gbp(testCost)}</button>}
@@ -641,7 +642,7 @@ function CROPanel({ player, sc, croConv, availCash, onDeploy, onTest }) {
 const croBtn = (disabled, primary) => ({
   background: disabled ? T.panel2 : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text,
   border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 7, padding: "5px 8px",
-  fontFamily: T.body, fontWeight: 600, fontSize: 11, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap",
+  fontFamily: T.body, fontWeight: 600, fontSize: 12.5, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap",
 });
 
 function StoreRow({ s, pos, firstRound, sc, round }) {
@@ -651,25 +652,25 @@ function StoreRow({ s, pos, firstRound, sc, round }) {
     <div style={{ background: s.isPlayer ? "#E7F4FB" : T.panel2, border: `1px solid ${s.isPlayer ? PLAYER_COLOR : T.border}`, borderRadius: 11, padding: "11px 13px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <span style={{ fontFamily: T.mono, color: T.muted, fontSize: 12, width: 16 }}>{pos}</span>
+          <span style={{ fontFamily: T.mono, color: T.muted, fontSize: 13.5, width: 16 }}>{pos}</span>
           <span style={{ width: 9, height: 9, borderRadius: 9, background: s.color, flexShrink: 0 }} />
-          <span style={{ fontWeight: 700, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
+          <span style={{ fontWeight: 700, fontSize: 15, minWidth: 0 }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
           <PlatformPill id={s.platformId} />
-          {s.insolvent && <span style={{ fontSize: 10 }}>💀</span>}
+          {s.insolvent && <span style={{ fontSize: 11.5 }}>💀</span>}
         </div>
-        <span style={{ fontFamily: T.mono, fontSize: 13, color: s.cumProfit >= 0 ? T.pos : T.neg, fontWeight: 700 }}>{gbp(s.cumProfit)}</span>
+        <span style={{ fontFamily: T.mono, fontSize: 14.5, color: s.cumProfit >= 0 ? T.pos : T.neg, fontWeight: 700 }}>{gbp(s.cumProfit)}</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 7 }}>
         <Stars value={s.review} color={s.color} />
-        <span style={{ fontFamily: T.mono, fontSize: 11, color: T.muted }}>{s.review.toFixed(1)}</span>
-        <span style={{ fontFamily: T.mono, fontSize: 11, color: T.muted }}>♥{Math.round(s.loyalBase)}</span>
+        <span style={{ fontFamily: T.mono, fontSize: 12.5, color: T.muted }}>{s.review.toFixed(1)}</span>
+        <span style={{ fontFamily: T.mono, fontSize: 12.5, color: T.muted }}>♥{Math.round(s.loyalBase)}</span>
         <div style={{ flex: 1, height: 6, background: T.track, borderRadius: 6, overflow: "hidden" }}><div style={{ width: `${firstRound ? 0 : Math.round(share * 100)}%`, height: "100%", background: s.color }} /></div>
-        <span style={{ fontFamily: T.mono, fontSize: 11, color: T.muted, width: 30, textAlign: "right" }}>{firstRound ? "—" : `${Math.round(share * 100)}%`}</span>
+        <span style={{ fontFamily: T.mono, fontSize: 12.5, color: T.muted, minWidth: 34, textAlign: "right" }}>{firstRound ? "—" : `${Math.round(share * 100)}%`}</span>
       </div>
     </div>
   );
 }
-function Stars({ value, color }) { return <div style={{ display: "flex", gap: 1 }}>{[1, 2, 3, 4, 5].map((i) => <span key={i} style={{ fontSize: 12, color: i <= Math.round(value) ? color : T.faint }}>★</span>)}</div>; }
+function Stars({ value, color }) { return <div style={{ display: "flex", gap: 1 }}>{[1, 2, 3, 4, 5].map((i) => <span key={i} style={{ fontSize: 13.5, color: i <= Math.round(value) ? color : T.faint }}>★</span>)}</div>; }
 
 /* ---- RESULT ------------------------------------------------- */
 function ResultView({ stores, ranked, log, round, nextWeek, player, cfg, predictionLog }) {
@@ -688,35 +689,35 @@ function ResultView({ stores, ranked, log, round, nextWeek, player, cfg, predict
     ["– Holding (unsold)", "-" + gbp(r.holding), T.muted],
   ];
   return (
-    <div className="rise" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18, marginTop: 22 }}>
+    <div className="rise cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18, marginTop: 22 }}>
       <div style={card()}>
         <SectionTitle>Week {round} — your P&L</SectionTitle>
-        {rows.map(([k, v, c]) => <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}`, fontSize: 13.5 }}><span style={{ color: T.muted }}>{k}</span><span style={{ fontFamily: T.mono, color: c }}>{v}</span></div>)}
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0 2px", fontSize: 16, fontWeight: 700 }}><span>Weekly profit</span><span style={{ fontFamily: T.mono, color: r.profit >= 0 ? T.pos : T.neg }}>{gbp(r.profit)}</span></div>
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 13, color: T.muted }}><span>Cash after the week</span><span style={{ fontFamily: T.mono, color: r.cashAfter < 0 ? T.neg : T.muted }}>{gbp(r.cashAfter)}</span></div>
+        {rows.map(([k, v, c]) => <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}`, fontSize: 15 }}><span style={{ color: T.muted }}>{k}</span><span style={{ fontFamily: T.mono, color: c }}>{v}</span></div>)}
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0 2px", fontSize: 17.5, fontWeight: 700 }}><span>Weekly profit</span><span style={{ fontFamily: T.mono, color: r.profit >= 0 ? T.pos : T.neg }}>{gbp(r.profit)}</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 14.5, color: T.muted }}><span>Cash after the week</span><span style={{ fontFamily: T.mono, color: r.cashAfter < 0 ? T.neg : T.muted }}>{gbp(r.cashAfter)}</span></div>
 
-        <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "10px 12px", fontSize: 12.5, lineHeight: 1.5 }}>♥ Of {Math.round(r.keptSales)} kept sales, <b style={{ color: T.youText }}>{Math.round(r.returningServed)}</b> were returning regulars. You now hold <b style={{ color: T.youText }}>{Math.round(player.loyalBase)}</b>. Site conversion ran at <b style={{ color: T.pos }}>×{r.croConv.toFixed(3)}</b>.</div>
-        {pred && <div style={{ marginTop: 10, background: pred.hit ? "#EAF4E5" : "#F5EFE3", borderRadius: 10, padding: "10px 12px", fontSize: 12.5, border: `1px solid ${pred.hit ? T.posFill : T.platform}` }}>{pred.hit ? "✓" : "✗"} You predicted <b>#{pred.predicted}</b>, finished <b>#{pred.actual}</b> this week.</div>}
-        {r.returnedUnits > 8 && <div style={{ marginTop: 10, background: "#FBE9E7", border: `1px solid ${T.negFill}`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>↩ <Term term="returns">Returns</Term> cost you {Math.round(r.returnedUnits)} sales plus {gbp(r.returnHandling)} handling. Trust & checkout CRO reduce them.</div>}
-        {r.lostSales > 5 && <div style={{ marginTop: 10, background: "#FBE9E7", border: `1px solid ${T.negFill}`, borderRadius: 10, padding: "10px 12px", fontSize: 12.5 }}>⚠ Stocked out — <b>{Math.round(r.lostSales)}</b> couldn't buy. Lost sales now, churned regulars later.</div>}
+        <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "10px 12px", fontSize: 14, lineHeight: 1.5 }}>♥ Of {Math.round(r.keptSales)} kept sales, <b style={{ color: T.youText }}>{Math.round(r.returningServed)}</b> were returning regulars. You now hold <b style={{ color: T.youText }}>{Math.round(player.loyalBase)}</b>. Site conversion ran at <b style={{ color: T.pos }}>×{r.croConv.toFixed(3)}</b>.</div>
+        {pred && <div style={{ marginTop: 10, background: pred.hit ? "#EAF4E5" : "#F5EFE3", borderRadius: 10, padding: "10px 12px", fontSize: 14, border: `1px solid ${pred.hit ? T.posFill : T.platform}` }}>{pred.hit ? "✓" : "✗"} You predicted <b>#{pred.predicted}</b>, finished <b>#{pred.actual}</b> this week.</div>}
+        {r.returnedUnits > 8 && <div style={{ marginTop: 10, background: "#FBE9E7", border: `1px solid ${T.negFill}`, borderRadius: 10, padding: "10px 12px", fontSize: 14 }}>↩ <Term term="returns">Returns</Term> cost you {Math.round(r.returnedUnits)} sales plus {gbp(r.returnHandling)} handling. Trust & checkout CRO reduce them.</div>}
+        {r.lostSales > 5 && <div style={{ marginTop: 10, background: "#FBE9E7", border: `1px solid ${T.negFill}`, borderRadius: 10, padding: "10px 12px", fontSize: 14 }}>⚠ Stocked out — <b>{Math.round(r.lostSales)}</b> couldn't buy. Lost sales now, churned regulars later.</div>}
       </div>
 
       <div style={card()}>
         <SectionTitle>Marketplace report</SectionTitle>
         <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 14 }}>
           {ranked.map((s, i) => (
-            <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13.5, padding: "3px 0" }}>
+            <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, fontSize: 15, padding: "3px 0" }}>
               <span style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}>
                 <span style={{ fontFamily: T.mono, color: T.muted, width: 14 }}>{i + 1}</span>
                 <span style={{ width: 8, height: 8, borderRadius: 8, background: s.color }} />
-                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
+                <span style={{ minWidth: 0 }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
                 <PlatformPill id={s.platformId} />
               </span>
               <span style={{ fontFamily: T.mono, color: T.muted, whiteSpace: "nowrap" }}>{Math.round(s.last.keptSales)} sold · {gbp(s.last.price)}</span>
             </div>
           ))}
         </div>
-        <div style={{ background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>{log.map((line, i) => <div key={i} style={{ fontSize: 13, color: T.text, marginBottom: i < log.length - 1 ? 7 : 0, lineHeight: 1.45 }}>▸ {line}</div>)}</div>
+        <div style={{ background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>{log.map((line, i) => <div key={i} style={{ fontSize: 14.5, color: T.text, marginBottom: i < log.length - 1 ? 7 : 0, lineHeight: 1.45 }}>▸ {line}</div>)}</div>
         <button onClick={nextWeek} style={{ ...btn(PLAYER), width: "100%", marginTop: 16 }}>{round >= cfg.maxRounds ? "See final results →" : `Plan week ${round + 1} →`}</button>
       </div>
     </div>
@@ -735,17 +736,17 @@ function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
   return (
     <div className="rise" style={{ marginTop: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>{sc.icon} {sc.name.toUpperCase()} · SEED {cfg.seed}</div>
+        <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 13.5, letterSpacing: 2 }}>{sc.icon} {sc.name.toUpperCase()} · SEED {cfg.seed}</div>
         <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{winner.isPlayer ? "You won the marketplace 🏆" : `${winner.name} took it`}</h1>
         <div style={{ color: T.muted }}>You finished <b style={{ color: T.youText }}>#{playerRank}</b> on {PMAP[player.platformId].name} with {gbp(player.cumProfit)} profit{player.insolvent ? <span style={{ color: T.neg }}> — but traded insolvent</span> : <> and {gbp(player.cash)} cash</>}.</div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 18 }}>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 18 }}>
         <div style={card()}>
           <SectionTitle>Cumulative profit over {player.history.length} weeks</SectionTitle>
           <ResponsiveContainer width="100%" height={260}>
             <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
               <CartesianGrid stroke={T.border} strokeDasharray="3 3" /><XAxis dataKey="week" tickLine={false} /><YAxis tickFormatter={(v) => `£${(v / 1000).toFixed(0)}k`} tickLine={false} width={46} />
-              <Tooltip contentStyle={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12 }} formatter={(v, n) => [gbp(v), stores.find((s) => s.id === n)?.name]} labelFormatter={(l) => `Week ${l}`} />
+              <Tooltip contentStyle={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 13.5 }} formatter={(v, n) => [gbp(v), stores.find((s) => s.id === n)?.name]} labelFormatter={(l) => `Week ${l}`} />
               {stores.map((s) => <Line key={s.id} type="monotone" dataKey={s.id} stroke={s.color} strokeWidth={s.isPlayer ? 3.5 : 2} dot={false} />)}
             </LineChart>
           </ResponsiveContainer>
@@ -755,7 +756,7 @@ function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={shareData} margin={{ top: 8, right: 8, bottom: 0, left: -8 }}>
               <CartesianGrid stroke={T.border} strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" tickLine={false} /><YAxis tickFormatter={(v) => `£${(v / 1000).toFixed(0)}k`} tickLine={false} width={46} />
-              <Tooltip cursor={{ fill: "#ffffff08" }} contentStyle={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12 }} formatter={(v) => gbp(v)} />
+              <Tooltip cursor={{ fill: "#ffffff08" }} contentStyle={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 13.5 }} formatter={(v) => gbp(v)} />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>{shareData.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -764,7 +765,7 @@ function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
       <Debrief stores={stores} player={player} cfg={cfg} predictionLog={predictionLog} />
       <div style={{ ...card(), marginTop: 18, textAlign: "center" }}>
         <SectionTitle>Take your decision log into class</SectionTitle>
-        <p style={{ color: T.muted, fontSize: 13, lineHeight: 1.5, marginTop: -6, maxWidth: 560, margin: "0 auto 16px" }}>Export the full ten-week record — brief, platform, fulfilment, every decision, CRO, returns, cash, rank and predictions — as an assessable artifact with reflection prompts.</p>
+        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.5, marginTop: -6, maxWidth: 560, margin: "0 auto 16px" }}>Export the full ten-week record — brief, platform, fulfilment, every decision, CRO, returns, cash, rank and predictions — as an assessable artifact with reflection prompts.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.csv`, buildCSV(stores, player, predictionLog), "text/csv")} style={btn(T.platform)}>⬇ Download CSV</button>
           <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.md`, buildMarkdown(stores, player, predictionLog, cfg), "text/markdown")} style={{ ...btn("transparent"), color: T.text, border: `1px solid ${T.border}` }}>⬇ Download Markdown</button>
@@ -800,26 +801,26 @@ function Debrief({ stores, player, cfg, predictionLog }) {
     <div style={{ ...card(), marginTop: 18 }}>
       <SectionTitle>Debrief — what the game was teaching</SectionTitle>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-        {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, marginBottom: 6, color: T.playerText }}>{c.t}</div><div style={{ fontSize: 13, color: T.text, lineHeight: 1.5 }}>{c.b}</div></div>)}
+        {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, marginBottom: 6, color: T.playerText }}>{c.t}</div><div style={{ fontSize: 14.5, color: T.text, lineHeight: 1.5 }}>{c.b}</div></div>)}
       </div>
     </div>
   );
 }
 
 /* ---- atoms -------------------------------------------------- */
-function SectionTitle({ children }) { return <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, marginBottom: 14, letterSpacing: -0.2 }}>{children}</div>; }
+function SectionTitle({ children }) { return <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18.5, marginBottom: 14, letterSpacing: -0.2 }}>{children}</div>; }
 function Slider({ label, value, min, max, step, onChange, fmt, hint, accent }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span><span style={{ fontFamily: T.mono, fontWeight: 700, color: accent }}>{fmt(value)}</span></div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 15.5, fontWeight: 600 }}>{label}</span><span style={{ fontFamily: T.mono, fontWeight: 700, color: accent }}>{fmt(value)}</span></div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", margin: "8px 0 5px", "--accent": accent, "--accent-soft": accent + "30" }} />
-      <div style={{ fontSize: 11.5, color: T.muted, lineHeight: 1.4 }}>{hint}</div>
+      <div style={{ fontSize: 13, color: T.muted, lineHeight: 1.4 }}>{hint}</div>
     </div>
   );
 }
 function MiniStat({ label, value, sub, accent }) {
-  return <div style={{ background: T.panel2, borderRadius: 10, padding: "11px 12px" }}><div style={{ color: T.muted, fontSize: 11 }}>{label}</div><div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 18, color: accent, margin: "2px 0" }}>{value}</div><div style={{ color: T.muted, fontSize: 10.5, lineHeight: 1.3 }}>{sub}</div></div>;
+  return <div style={{ background: T.panel2, borderRadius: 10, padding: "11px 12px" }}><div style={{ color: T.muted, fontSize: 12.5 }}>{label}</div><div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 19.5, color: accent, margin: "2px 0" }}>{value}</div><div style={{ color: T.muted, fontSize: 12, lineHeight: 1.3 }}>{sub}</div></div>;
 }
 const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20, boxShadow: T.shadow });
 const pickCard = (on) => ({ textAlign: "left", cursor: "pointer", color: T.text, background: on ? T.sel : T.panel, border: `1.5px solid ${on ? PLAYER : T.border}` });
-const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 15.5, cursor: "pointer", letterSpacing: 0.2 });
+const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 17, cursor: "pointer", letterSpacing: 0.2 });

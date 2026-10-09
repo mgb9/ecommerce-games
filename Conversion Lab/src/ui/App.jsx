@@ -46,15 +46,15 @@ function Term({ term, children }) {
       <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
       {open && (
         <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 230, fontWeight: 400,
-          background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "9px 11px", fontSize: 11.5, color: T.hdrText, lineHeight: 1.5, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>
+          background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "9px 11px", fontSize: 13, color: T.hdrText, lineHeight: 1.5, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>
       )}
     </span>
   );
 }
 function TermsHint() {
   return (
-    <div style={{ marginTop: 16, fontSize: 12.5, color: T.muted, display: "flex", alignItems: "center", gap: 7 }}>
-      <span style={{ fontSize: 14 }}>💡</span>
+    <div style={{ marginTop: 16, fontSize: 14, color: T.muted, display: "flex", alignItems: "center", gap: 7 }}>
+      <span style={{ fontSize: 15.5 }}>💡</span>
       <span>Tip: any word with a <span style={{ borderBottom: `1px dotted ${T.muted}` }}>dotted underline</span> is clickable — tap it for a plain-English definition.</span>
     </div>
   );
@@ -81,15 +81,15 @@ function Eyebrow({ children, title }) {
   return (
     <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
       <span aria-hidden="true" style={{ width: 26, height: 3, background: PLAYER, borderRadius: 3 }} />
-      <span style={{ color: T.playerText, fontSize: 13, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
+      <span style={{ color: T.playerText, fontSize: 14.5, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
     </div>
   );
 }
 // Lives on the dark header band, so it styles against hdr* tokens.
 function PlainToggle({ plain, toggle }) {
   return (
-    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, display: "flex", alignItems: "center", gap: 5 }}>
-      <span style={{ fontSize: 14 }}>🗣️</span> Simpler English
+    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 5 }}>
+      <span style={{ fontSize: 15.5 }}>🗣️</span> Simpler English
     </button>
   );
 }
@@ -206,7 +206,8 @@ export default function App() {
         @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
         .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
-        .recharts-cartesian-axis-tick text{ fill:${T.muted}; font-family:${T.mono}; font-size:11px; }
+        @media (max-width:720px){ .cols2{ grid-template-columns:minmax(0,1fr) !important; } }
+        .recharts-cartesian-axis-tick text{ fill:${T.muted}; font-family:${T.mono}; font-size:12.5px; }
       `}</style>
 
       <Header phase={phase} expIdx={expIdx} cfg={cfg} qIdx={qIdx} qScore={qScore} plain={plain} togglePlain={togglePlain} onToggleInstructor={() => setShowInstructor((v) => !v)} />
@@ -251,9 +252,9 @@ function Header({ phase, expIdx, cfg, qIdx, qScore, plain, togglePlain, onToggle
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
           <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Conversion <span style={{ color: PLAYER }}>Lab</span></span>
-          <span style={{ color: T.hdrMuted, fontSize: 13, fontFamily: T.mono }}>{isQuiz ? "Which Test Won?" : "Chrichton · A/B testing"}</span>
+          <span style={{ color: T.hdrMuted, fontSize: 14.5, fontFamily: T.mono }}>{isQuiz ? "Which Test Won?" : "Chrichton · A/B testing"}</span>
         </div>
-        <div style={{ display: "flex", gap: 16, alignItems: "center", fontFamily: T.mono, fontSize: 13 }}>
+        <div style={{ display: "flex", gap: "10px 16px", alignItems: "center", flexWrap: "wrap", fontFamily: T.mono, fontSize: 14.5 }}>
           {isQuiz && <Stat label="QUESTION" value={`${Math.min(qIdx + 1, QUIZ.length)}/${QUIZ.length}`} accent="#FF5A4A" />}
           {isQuiz && <Stat label="SCORE" value={`${qScore}`} accent="#7DCB6A" />}
           {isLab && <Stat label="EXPERIMENT" value={`${expIdx + 1}/${EXPERIMENTS.length}`} accent="#FF5A4A" />}
@@ -261,8 +262,8 @@ function Header({ phase, expIdx, cfg, qIdx, qScore, plain, togglePlain, onToggle
           {isLab && <Stat label="POWER" value={`${Math.round(cfg.power * 100)}%`} accent="#C4A578" />}
           {isLab && <Stat label="SEED" value={cfg.seed} accent={T.hdrMuted} />}
           <PlainToggle plain={plain} toggle={togglePlain} />
-          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 15 }}>⚙</span> Instructor
+          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5, display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 16.5 }}>⚙</span> Instructor
           </button>
         </div>
       </div>
@@ -272,7 +273,7 @@ function Header({ phase, expIdx, cfg, qIdx, qScore, plain, togglePlain, onToggle
 // Header-only: values sit on the dark band, so accents use the bright
 // (dark-bg) palette, not the light-surface text tokens.
 function Stat({ label, value, accent }) {
-  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 10, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 15 }}>{value}</div></div>;
+  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 11.5, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 16.5 }}>{value}</div></div>;
 }
 
 /* ---- INTRO (light redesign: eyebrow + serif H1 + mode cards + experiment grid) */
@@ -281,8 +282,8 @@ function Intro({ onStart, onQuiz, onWireframe, cfg }) {
     <button onClick={onClick} style={{ textAlign: "left", display: "flex", gap: 12, alignItems: "flex-start", background: T.panel, border: `1px solid ${T.border}`, borderLeft: `5px solid ${T.second}`, borderRadius: 16, padding: "16px 18px", cursor: "pointer", boxShadow: T.shadow, fontFamily: T.body }}>
       <span style={{ fontSize: 22, lineHeight: 1 }} aria-hidden="true">{icon}</span>
       <span>
-        <span style={{ display: "block", fontFamily: T.display, fontWeight: 700, fontSize: 18, color: T.text }}>{title}</span>
-        <span style={{ display: "block", color: T.body2, fontSize: 13.5, lineHeight: 1.5, marginTop: 3 }}>{desc}</span>
+        <span style={{ display: "block", fontFamily: T.display, fontWeight: 700, fontSize: 19.5, color: T.text }}>{title}</span>
+        <span style={{ display: "block", color: T.body2, fontSize: 15, lineHeight: 1.5, marginTop: 3 }}>{desc}</span>
       </span>
     </button>
   );
@@ -294,7 +295,7 @@ function Intro({ onStart, onQuiz, onWireframe, cfg }) {
           <PT rich={<>Design is a hypothesis. <span style={{ color: PLAYER }}>Prove it with data.</span></>}
               plain={<>A design is only a guess. <span style={{ color: PLAYER }}>Use data to test it.</span></>} />
         </h1>
-        <p style={{ color: T.body2, fontSize: 17.5, lineHeight: 1.6, marginTop: 18 }}>
+        <p style={{ color: T.body2, fontSize: 19, lineHeight: 1.6, marginTop: 18 }}>
           Each experiment shows two <b style={{ color: T.text }}>Chrichton</b> page variants. Predict which converts better and by how
           much, commit a <Term term="samplesize">sample size</Term>, then run a seeded <Term term="significance">A/B test</Term> with
           real statistical noise. The gap between your hunch and the data is the lesson.
@@ -308,27 +309,27 @@ function Intro({ onStart, onQuiz, onWireframe, cfg }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 14 }}>
         {EXPERIMENTS.map((e, i) => (
           <button key={e.id} onClick={() => onStart(i)} style={{ textAlign: "left", background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: "14px 16px", cursor: "pointer", boxShadow: T.shadow, fontFamily: T.body }}>
-            <span style={{ display: "block", fontFamily: T.mono, fontSize: 12, fontWeight: 700, color: T.second }}>{String(e.n).padStart(2, "0")}</span>
-            <span style={{ display: "block", fontFamily: T.display, fontWeight: 700, fontSize: 16.5, color: T.text, margin: "3px 0 4px", lineHeight: 1.25 }}>{e.title}</span>
-            <span style={{ display: "block", color: T.muted, fontSize: 13 }}>{e.principle}</span>
+            <span style={{ display: "block", fontFamily: T.mono, fontSize: 13.5, fontWeight: 700, color: T.second }}>{String(e.n).padStart(2, "0")}</span>
+            <span style={{ display: "block", fontFamily: T.display, fontWeight: 700, fontSize: 18, color: T.text, margin: "3px 0 4px", lineHeight: 1.25 }}>{e.title}</span>
+            <span style={{ display: "block", color: T.muted, fontSize: 14.5 }}>{e.principle}</span>
           </button>
         ))}
       </div>
       <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 24, flexWrap: "wrap" }}>
         <button onClick={() => onStart(0)} style={btn(PLAYER)}>Run the full set →</button>
-        <span style={{ color: T.muted, fontSize: 14 }}>{EXPERIMENTS.length} experiments · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
+        <span style={{ color: T.muted, fontSize: 15.5 }}>{EXPERIMENTS.length} experiments · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
       </div>
       <TermsHint />
       <div style={{ marginTop: 30 }}>
-        <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: 1.5, color: T.muted, marginBottom: 10 }}>BUILT ON THE CRO STACK</div>
+        <div style={{ fontFamily: T.mono, fontSize: 12.5, letterSpacing: 1.5, color: T.muted, marginBottom: 10 }}>BUILT ON THE CRO STACK</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 }}>
           {CRO_STACK.map((s, i) => (
             <div key={s.k} style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 14px", boxShadow: T.shadow }}>
               <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
-                <span style={{ width: 20, height: 20, borderRadius: 20, background: T.instructor, color: T.onAccent, fontFamily: T.mono, fontWeight: 700, fontSize: 11, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</span>
-                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14 }}>{s.k}</span>
+                <span style={{ width: 20, height: 20, borderRadius: 20, background: T.instructor, color: T.onAccent, fontFamily: T.mono, fontWeight: 700, fontSize: 12.5, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</span>
+                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{s.k}</span>
               </div>
-              <div style={{ color: T.muted, fontSize: 11.5, lineHeight: 1.4 }}>{s.d}</div>
+              <div style={{ color: T.muted, fontSize: 13, lineHeight: 1.4 }}>{s.d}</div>
             </div>
           ))}
         </div>
@@ -357,10 +358,10 @@ function WFBlock({ c, onUp, onDown, onRemove, canUp, canDown }) {
   const r = ROLE_TAG[c.role];
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, background: T.panel2, border: `1px solid ${T.border}`, borderRadius: 9, padding: "8px 10px" }}>
-      <span style={{ fontSize: 18 }}>{c.icon}</span>
+      <span style={{ fontSize: 19.5 }}>{c.icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 600 }}>{c.label}</div>
-        <div style={{ fontSize: 10.5, color: r.c, fontFamily: T.mono, letterSpacing: 0.5 }}>{r.t} · {c.wt}ms</div>
+        <div style={{ fontSize: 15, fontWeight: 600 }}>{c.label}</div>
+        <div style={{ fontSize: 12, color: r.c, fontFamily: T.mono, letterSpacing: 0.5 }}>{r.t} · {c.wt}ms</div>
       </div>
       <div style={{ display: "flex", gap: 3 }}>
         <button onClick={onUp} disabled={!canUp} title="Move up" style={arrowBtn(canUp)}>↑</button>
@@ -370,7 +371,7 @@ function WFBlock({ c, onUp, onDown, onRemove, canUp, canDown }) {
     </div>
   );
 }
-const arrowBtn = (on) => ({ background: "transparent", border: `1px solid ${T.border}`, color: on ? T.text : T.faint, borderRadius: 7, width: 26, height: 26, cursor: on ? "pointer" : "default", fontSize: 13, lineHeight: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" });
+const arrowBtn = (on) => ({ background: "transparent", border: `1px solid ${T.border}`, color: on ? T.text : T.faint, borderRadius: 7, width: 26, height: 26, cursor: on ? "pointer" : "default", fontSize: 14.5, lineHeight: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" });
 const loadCol = (ms) => (ms <= LOAD_BUDGET ? T.pos : ms <= LOAD_BUDGET + 800 ? T.amber : T.neg);
 
 // The control the student's design is A/B-tested against — shown so a
@@ -380,17 +381,17 @@ function ControlPageRef({ brief, compact }) {
   return (
     <div style={{ background: T.panel2, border: `1px solid ${T.border}`, borderRadius: 11, padding: compact ? "10px 12px" : "12px 14px", marginBottom: compact ? 12 : 16 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
-        <span style={{ fontFamily: T.mono, fontSize: 10.5, letterSpacing: 1, color: T.muted }}>THE CURRENT PAGE · your control</span>
-        <span style={{ fontSize: 12, color: T.muted }}>converts at <b style={{ color: T.text, fontFamily: T.mono }}>{pct(brief.base)}</b> on this brief</span>
+        <span style={{ fontFamily: T.mono, fontSize: 12, letterSpacing: 1, color: T.muted }}>THE CURRENT PAGE · your control</span>
+        <span style={{ fontSize: 13.5, color: T.muted }}>converts at <b style={{ color: T.text, fontFamily: T.mono }}>{pct(brief.base)}</b> on this brief</span>
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {CONTROL_LAYOUT.map((id) => (
-          <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 7, padding: "3px 8px", fontSize: 11.5 }}>
+          <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 7, padding: "3px 8px", fontSize: 13 }}>
             <span>{PMAP[id].icon}</span><span style={{ color: T.muted }}>{PMAP[id].label}</span>
           </span>
         ))}
       </div>
-      {!compact && <div style={{ fontSize: 11.5, color: T.faint, marginTop: 8, lineHeight: 1.4 }}>Your predicted effect is your design vs this page. Its rate is known; only your design's rate is hidden until you test.</div>}
+      {!compact && <div style={{ fontSize: 13, color: T.faint, marginTop: 8, lineHeight: 1.4 }}>Your predicted effect is your design vs this page. Its rate is known; only your design's rate is hidden until you test.</div>}
     </div>
   );
 }
@@ -416,7 +417,7 @@ function WireframeStudio({ cfg, onExit }) {
     setStep("test");
   }
 
-  const backBtn = <button onClick={onExit} style={{ ...btn("transparent"), color: T.muted, border: `1px solid ${T.border}`, padding: "7px 13px", fontSize: 13 }}>← Back to the lab</button>;
+  const backBtn = <button onClick={onExit} style={{ ...btn("transparent"), color: T.muted, border: `1px solid ${T.border}`, padding: "7px 13px", fontSize: 14.5 }}>← Back to the lab</button>;
 
   /* ---- STEP 1: pick the page context ---- */
   if (step === "brief") {
@@ -427,7 +428,7 @@ function WireframeStudio({ cfg, onExit }) {
           <PT rich={<>Design for the <span style={{ color: PLAYER }}>context</span>, not the template.</>}
               plain={<>Design for the <span style={{ color: PLAYER }}>audience</span>, not a fixed template.</>} />
         </h1>
-        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.55, margin: "0 0 20px", maxWidth: 720 }}>
+        <p style={{ color: T.muted, fontSize: 16, lineHeight: 1.55, margin: "0 0 20px", maxWidth: 720 }}>
           There is no universal “best” product page. Pick the brief you're designing for — the audience, device mix and
           buying mindset change which components help, which hurt, and how much a slow page costs you.
         </p>
@@ -436,8 +437,8 @@ function WireframeStudio({ cfg, onExit }) {
             <button key={b.id} onClick={() => { setBriefId(b.id); setStep("build"); }}
               style={{ textAlign: "left", background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, cursor: "pointer", color: T.text }}>
               <div style={{ fontSize: 26 }}>{b.icon}</div>
-              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16, margin: "6px 0 5px" }}>{b.name}</div>
-              <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.45, margin: 0, minHeight: 54 }}>{b.audience}</p>
+              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17.5, margin: "6px 0 5px" }}>{b.name}</div>
+              <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.45, margin: 0, minHeight: 54 }}>{b.audience}</p>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
                 <MiniTag label={`${Math.round(b.mobileShare * 100)}% mobile`} />
                 <MiniTag label={`base ${pct(b.base)}`} />
@@ -457,9 +458,9 @@ function WireframeStudio({ cfg, onExit }) {
     const ready = hypo.metric && hypo.band;
     return (
       <div className="rise" style={{ maxWidth: 760, margin: "26px auto 0" }}>
-        <button onClick={() => setStep("build")} style={{ ...btn("transparent"), color: T.muted, border: `1px solid ${T.border}`, padding: "7px 13px", fontSize: 13 }}>← Edit the design</button>
+        <button onClick={() => setStep("build")} style={{ ...btn("transparent"), color: T.muted, border: `1px solid ${T.border}`, padding: "7px 13px", fontSize: 14.5 }}>← Edit the design</button>
         <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 30, letterSpacing: -0.6, margin: "14px 0 4px" }}>Commit your hypothesis</h1>
-        <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.55, margin: "0 0 18px" }}>
+        <p style={{ color: T.muted, fontSize: 15.5, lineHeight: 1.55, margin: "0 0 18px" }}>
           A design is a hypothesis. Before you see any data, commit what you're measuring, how big an effect you expect,
           and how much traffic you'll spend — then the test is an honest verdict, not a fishing trip. <b style={{ color: T.text }}>The predicted rate stays hidden until you run it.</b>
         </p>
@@ -467,34 +468,34 @@ function WireframeStudio({ cfg, onExit }) {
         <ControlPageRef brief={brief} />
 
         <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: 15, marginBottom: 14 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>1 · Primary metric — what will you judge the winner on?</div>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>1 · Primary metric — what will you judge the winner on?</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {METRICS.map((m) => (
               <button key={m.id} onClick={() => setHypo((h) => ({ ...h, metric: m.id }))} style={{ ...pillBtn(hypo.metric === m.id), textAlign: "left", padding: "10px 12px" }}>
-                <div style={{ fontWeight: 700, fontSize: 13 }}>{m.label}</div>
-                <div style={{ fontSize: 11, color: T.muted, lineHeight: 1.35, marginTop: 3 }}>{m.hint}</div>
+                <div style={{ fontWeight: 700, fontSize: 14.5 }}>{m.label}</div>
+                <div style={{ fontSize: 12.5, color: T.muted, lineHeight: 1.35, marginTop: 3 }}>{m.hint}</div>
               </button>
             ))}
           </div>
         </div>
 
         <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: 15, marginBottom: 14 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>2 · Predicted effect — where does your design land vs the current page?</div>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>2 · Predicted effect — where does your design land vs the current page?</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {BANDS.map((b) => (
-              <button key={b.id} onClick={() => setHypo((h) => ({ ...h, band: b.id }))} style={{ ...pillBtn(hypo.band === b.id), textAlign: "left", padding: "9px 12px", fontSize: 13 }}>{b.label}</button>
+              <button key={b.id} onClick={() => setHypo((h) => ({ ...h, band: b.id }))} style={{ ...pillBtn(hypo.band === b.id), textAlign: "left", padding: "9px 12px", fontSize: 14.5 }}>{b.label}</button>
             ))}
           </div>
         </div>
 
         <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: 15, marginBottom: 16 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 4 }}>3 · Sample size — visitors per arm</div>
-          <div style={{ fontSize: 11.5, color: T.muted, marginBottom: 9 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>3 · Sample size — visitors per arm</div>
+          <div style={{ fontSize: 13, color: T.muted, marginBottom: 9 }}>
             At this brief's {pct(brief.base)} base, detecting a <b style={{ color: T.text }}>+1pp</b> lift at {Math.round(cfg.power * 100)}% power needs ~<b style={{ color: T.amber }}>{reqN.toLocaleString("en-GB")}</b>/arm. Under-power it and a real win won't reach significance.
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[1000, 3000, 8000, 20000].map((n) => (
-              <button key={n} onClick={() => setHypo((h) => ({ ...h, plannedN: n }))} style={{ ...pillBtn(hypo.plannedN === n), padding: "8px 14px", fontFamily: T.mono, fontSize: 13 }}>{n.toLocaleString("en-GB")}</button>
+              <button key={n} onClick={() => setHypo((h) => ({ ...h, plannedN: n }))} style={{ ...pillBtn(hypo.plannedN === n), padding: "8px 14px", fontFamily: T.mono, fontSize: 14.5 }}>{n.toLocaleString("en-GB")}</button>
             ))}
           </div>
         </div>
@@ -510,30 +511,30 @@ function WireframeStudio({ cfg, onExit }) {
   return (
     <div className="rise" style={{ maxWidth: 1080, margin: "22px auto 0" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <button onClick={() => { setStep("brief"); setBriefId(null); }} style={{ ...btn("transparent"), color: T.muted, border: `1px solid ${T.border}`, padding: "7px 13px", fontSize: 13 }}>← Change brief</button>
-        <div style={{ fontSize: 13, color: T.muted }}>Designing: <b style={{ color: T.text }}>{brief.icon} {brief.name}</b> · {Math.round(brief.mobileShare * 100)}% mobile</div>
+        <button onClick={() => { setStep("brief"); setBriefId(null); }} style={{ ...btn("transparent"), color: T.muted, border: `1px solid ${T.border}`, padding: "7px 13px", fontSize: 14.5 }}>← Change brief</button>
+        <div style={{ fontSize: 14.5, color: T.muted }}>Designing: <b style={{ color: T.text }}>{brief.icon} {brief.name}</b> · {Math.round(brief.mobileShare * 100)}% mobile</div>
       </div>
-      <p style={{ color: T.muted, fontSize: 13.5, lineHeight: 1.5, margin: "12px 0 16px", maxWidth: 780 }}>
+      <p style={{ color: T.muted, fontSize: 15, lineHeight: 1.5, margin: "12px 0 16px", maxWidth: 780 }}>
         {brief.audience} Only the first <b style={{ color: T.text }}>{review.fold} blocks</b> are seen before scrolling here, and this
         audience is {brief.speedSens >= 1.4 ? "unforgiving about slow pages" : brief.speedSens <= 1 ? "fairly patient with load time" : "moderately sensitive to load time"}.
       </p>
 
       <ControlPageRef brief={brief} compact />
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(210px,1fr) minmax(230px,1.05fr) minmax(250px,1.25fr)", gap: 16, alignItems: "start" }}>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(210px,1fr) minmax(230px,1.05fr) minmax(250px,1.25fr)", gap: 16, alignItems: "start" }}>
         {/* PALETTE */}
         <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14 }}>
-          <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: 1.2, color: T.muted, marginBottom: 10 }}>COMPONENTS · weight in ms</div>
+          <div style={{ fontFamily: T.mono, fontSize: 12.5, letterSpacing: 1.2, color: T.muted, marginBottom: 10 }}>COMPONENTS · weight in ms</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {PALETTE.map((c) => {
               const used = inLayout(c.id);
               return (
                 <button key={c.id} onClick={() => (used ? remove(c.id) : add(c.id))} title={c.desc}
                   style={{ display: "flex", alignItems: "center", gap: 9, textAlign: "left", background: used ? T.sel : "transparent", border: `1px solid ${used ? T.player : T.border}`, borderRadius: 9, padding: "8px 10px", cursor: "pointer", color: T.text, opacity: used ? 1 : 0.9 }}>
-                  <span style={{ fontSize: 17 }}>{c.icon}</span>
-                  <span style={{ flex: 1, fontSize: 12.5, lineHeight: 1.2 }}>{c.label}</span>
-                  <span style={{ fontFamily: T.mono, fontSize: 10, color: c.wt >= 200 ? T.amber : T.faint }}>{c.wt}</span>
-                  <span style={{ color: used ? T.player : T.muted, fontSize: 15, fontWeight: 700 }}>{used ? "−" : "+"}</span>
+                  <span style={{ fontSize: 18.5 }}>{c.icon}</span>
+                  <span style={{ flex: 1, fontSize: 14, lineHeight: 1.2 }}>{c.label}</span>
+                  <span style={{ fontFamily: T.mono, fontSize: 11.5, color: c.wt >= 200 ? T.amber : T.faint }}>{c.wt}</span>
+                  <span style={{ color: used ? T.player : T.muted, fontSize: 16.5, fontWeight: 700 }}>{used ? "−" : "+"}</span>
                 </button>
               );
             })}
@@ -542,8 +543,8 @@ function WireframeStudio({ cfg, onExit }) {
 
         {/* CANVAS */}
         <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14 }}>
-          <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: 1.2, color: T.muted, marginBottom: 10 }}>YOUR PAGE (top → bottom)</div>
-          {layout.length === 0 && <div style={{ color: T.muted, fontSize: 13, padding: "20px 4px" }}>Add components from the left to start building.</div>}
+          <div style={{ fontFamily: T.mono, fontSize: 12.5, letterSpacing: 1.2, color: T.muted, marginBottom: 10 }}>YOUR PAGE (top → bottom)</div>
+          {layout.length === 0 && <div style={{ color: T.muted, fontSize: 14.5, padding: "20px 4px" }}>Add components from the left to start building.</div>}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {layout.map((id, i) => (
               <React.Fragment key={id}>
@@ -563,25 +564,25 @@ function WireframeStudio({ cfg, onExit }) {
         {/* DESIGN REVIEW */}
         <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14, position: "sticky", top: 78 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: 1.2, color: T.muted }}>DESIGN REVIEW</span>
-            <span style={{ width: 30, height: 30, borderRadius: 8, background: GRADE_COL[review.grade], color: T.onAccent, fontFamily: T.display, fontWeight: 700, fontSize: 17, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{review.grade}</span>
+            <span style={{ fontFamily: T.mono, fontSize: 12.5, letterSpacing: 1.2, color: T.muted }}>DESIGN REVIEW</span>
+            <span style={{ width: 30, height: 30, borderRadius: 8, background: GRADE_COL[review.grade], color: T.onAccent, fontFamily: T.display, fontWeight: 700, fontSize: 18.5, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{review.grade}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 10 }}>
             <span style={{ color: T.muted }}>Est. load time</span>
             <span style={{ fontFamily: T.mono, fontWeight: 700, color: loadCol(review.loadMs) }}>{review.loadMs}ms {review.loadMs > LOAD_BUDGET ? "⚠" : ""}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {review.checks.map((c) => (
               <div key={c.id} style={{ display: "flex", gap: 8 }} title={c.tip}>
-                <span style={{ color: CHECK_COL[c.state], fontWeight: 800, fontSize: 13, width: 12, flexShrink: 0 }}>{CHECK_ICON[c.state]}</span>
+                <span style={{ color: CHECK_COL[c.state], fontWeight: 800, fontSize: 14.5, minWidth: 14, flexShrink: 0 }}>{CHECK_ICON[c.state]}</span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, color: c.state === "fail" ? T.text : T.muted }}>{c.label}</div>
-                  <div style={{ fontSize: 11, color: T.faint, lineHeight: 1.35 }}>{c.tip}</div>
+                  <div style={{ fontSize: 14, color: c.state === "fail" ? T.text : T.muted }}>{c.label}</div>
+                  <div style={{ fontSize: 12.5, color: T.faint, lineHeight: 1.35 }}>{c.tip}</div>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 10.5, color: T.faint, textAlign: "center", margin: "10px 0 6px" }}>Predicted conversion is hidden — you'll commit your own estimate next.</div>
+          <div style={{ fontSize: 12, color: T.faint, textAlign: "center", margin: "10px 0 6px" }}>Predicted conversion is hidden — you'll commit your own estimate next.</div>
           <button onClick={() => setStep("hypothesis")} disabled={!review.buyable}
             style={{ ...btn(review.buyable ? PLAYER : T.panel2), width: "100%", padding: "12px 0", opacity: review.buyable ? 1 : 0.6, cursor: review.buyable ? "pointer" : "default", color: review.buyable ? T.onAccent : T.muted }}>
             {review.buyable ? "Set your hypothesis →" : "Add the missing essentials first"}
@@ -604,7 +605,7 @@ function WireframeVerdict({ res, exp, review, hypo, brief, cfg, onRefine, onNewB
   const hCol = !sig ? T.amber : better ? T.pos : T.neg;
   return (
     <div className="rise" style={{ maxWidth: 840, margin: "28px auto 0" }}>
-      <div style={{ fontFamily: T.mono, fontSize: 11, letterSpacing: 1.5, color: T.muted, marginBottom: 6 }}>WIREFRAME · {brief.name.toUpperCase()}</div>
+      <div style={{ fontFamily: T.mono, fontSize: 12.5, letterSpacing: 1.5, color: T.muted, marginBottom: 6 }}>WIREFRAME · {brief.name.toUpperCase()}</div>
       <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 32, letterSpacing: -0.6, margin: "0 0 12px", color: hCol }}>{headline}</h1>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 12, marginBottom: 16 }}>
@@ -624,7 +625,7 @@ function WireframeVerdict({ res, exp, review, hypo, brief, cfg, onRefine, onNewB
           you={`${hypo.plannedN.toLocaleString("en-GB")}/arm`} truth={underpowered ? "under-powered" : sig ? "adequate" : "no real effect to find"} />
       </div>
 
-      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "14px 16px", marginBottom: 16, fontSize: 13, color: T.muted, lineHeight: 1.6 }}>
+      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "14px 16px", marginBottom: 16, fontSize: 14.5, color: T.muted, lineHeight: 1.6 }}>
         The design's true conversion was <b style={{ color: T.text }}>{pct(review.rate)}</b> ({pp(trueDiff)} vs the {pct(brief.base)} current page) — a{" "}
         <b style={{ color: T.text }}>{tBand.label.toLowerCase()}</b> effect.{" "}
         {metricOk ? `Revenue-per-visitor was the right lens for a ${brief.short || brief.name.toLowerCase()} brief.` : brief.id === "flash" ? "For a low-value impulse sale, conversion rate is the right primary metric — revenue-per-visitor adds noise here." : `For this brief, order value varies enough that revenue per visitor — not raw conversion — is the metric that should decide it.`}{" "}
@@ -646,63 +647,63 @@ function WFScore({ ok, neutral, title, you, truth }) {
     <div style={{ background: T.panel, border: `1px solid ${c}55`, borderRadius: 11, padding: "11px 13px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
         <span style={{ color: c, fontWeight: 800 }}>{neutral ? "•" : ok ? "✓" : "✕"}</span>
-        <span style={{ fontSize: 12, fontWeight: 700 }}>{title}</span>
+        <span style={{ fontSize: 13.5, fontWeight: 700 }}>{title}</span>
       </div>
-      <div style={{ fontSize: 11.5, color: T.muted }}>You: <b style={{ color: T.text }}>{you || "—"}</b></div>
-      {!ok && !neutral && <div style={{ fontSize: 11.5, color: T.muted }}>Actual: <b style={{ color: T.text }}>{truth}</b></div>}
+      <div style={{ fontSize: 13, color: T.muted }}>You: <b style={{ color: T.text }}>{you || "—"}</b></div>
+      {!ok && !neutral && <div style={{ fontSize: 13, color: T.muted }}>Actual: <b style={{ color: T.text }}>{truth}</b></div>}
     </div>
   );
 }
 function MiniStat({ label, value, accent }) {
   return (
     <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: "12px 14px" }}>
-      <div style={{ color: T.muted, fontSize: 11, letterSpacing: 0.5, marginBottom: 3 }}>{label}</div>
+      <div style={{ color: T.muted, fontSize: 12.5, letterSpacing: 0.5, marginBottom: 3 }}>{label}</div>
       <div style={{ color: accent, fontFamily: T.mono, fontWeight: 700, fontSize: 22 }}>{value}</div>
     </div>
   );
 }
 function MiniTag({ label }) {
-  return <span style={{ fontFamily: T.mono, fontSize: 10.5, color: T.muted, border: `1px solid ${T.border}`, borderRadius: 6, padding: "2px 7px" }}>{label}</span>;
+  return <span style={{ fontFamily: T.mono, fontSize: 12, color: T.muted, border: `1px solid ${T.border}`, borderRadius: 6, padding: "2px 7px" }}>{label}</span>;
 }
 
 /* ---- MOCK CHRICHTON PAGES ----------------------------------- */
 function MockPage({ kind, variant }) {
   const isB = variant === "B";
   const frame = { background: "#FAFAFB", color: "#26242B", borderRadius: 12, border: `1px solid ${T.border}`, overflow: "hidden", fontFamily: T.body, position: "relative" };
-  const priceRow = <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "0 14px" }}><span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 20 }}>£24.99</span><span style={{ color: "#85838C", fontSize: 12, textDecoration: "line-through" }}>£32.00</span></div>;
-  const title = <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, padding: "10px 14px 4px" }}>Heritage Terracotta Planter</div>;
-  const banner = (text, bg) => <div style={{ background: bg, color: "#211F25", fontSize: 11.5, fontWeight: 700, textAlign: "center", padding: "6px 0", letterSpacing: 0.2 }}>{text}</div>;
+  const priceRow = <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "0 14px" }}><span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 20 }}>£24.99</span><span style={{ color: "#85838C", fontSize: 13.5, textDecoration: "line-through" }}>£32.00</span></div>;
+  const title = <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, padding: "10px 14px 4px" }}>Heritage Terracotta Planter</div>;
+  const banner = (text, bg) => <div style={{ background: bg, color: "#211F25", fontSize: 13, fontWeight: 700, textAlign: "center", padding: "6px 0", letterSpacing: 0.2 }}>{text}</div>;
 
   const heroBox = (label, bg) => <div style={{ height: 120, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>{label}</div>;
-  const cta = (color, textColor) => <div style={{ margin: "10px 14px 14px", background: color, color: textColor, textAlign: "center", padding: "11px 0", borderRadius: 9, fontWeight: 700, fontSize: 14 }}>Add to cart</div>;
+  const cta = (color, textColor) => <div style={{ margin: "10px 14px 14px", background: color, color: textColor, textAlign: "center", padding: "11px 0", borderRadius: 9, fontWeight: 700, fontSize: 15.5 }}>Add to cart</div>;
 
   let body;
   if (kind === "cta") {
     body = <>{title}{priceRow}{heroBox("🪴", "#ECEBEE")}{isB ? cta("#2E9E5B", "#fff") : cta("#C7C6CC", "#46444C")}</>;
   } else if (kind === "imgbg") {
-    body = <>{title}{priceRow}{heroBox("🪴", isB ? "#F1EFF3" : "#FFFFFF")}<div style={{ color: "#85838C", fontSize: 10.5, padding: "0 14px 2px", textAlign: "center" }}>{isB ? "warm off-white" : "white"} background</div>{cta("#2E9E5B", "#fff")}</>;
+    body = <>{title}{priceRow}{heroBox("🪴", isB ? "#F1EFF3" : "#FFFFFF")}<div style={{ color: "#85838C", fontSize: 12, padding: "0 14px 2px", textAlign: "center" }}>{isB ? "warm off-white" : "white"} background</div>{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "scarcity") {
-    body = <>{title}{priceRow}{isB && <div style={{ margin: "8px 14px 0", display: "inline-block", background: "#F3D9CE", color: "#9c3a1c", fontSize: 11.5, fontWeight: 700, padding: "4px 9px", borderRadius: 6 }}>🔥 Only 3 left in stock</div>}{heroBox("🪴", "#ECEBEE")}{cta("#2E9E5B", "#fff")}</>;
+    body = <>{title}{priceRow}{isB && <div style={{ margin: "8px 14px 0", display: "inline-block", background: "#F3D9CE", color: "#9c3a1c", fontSize: 13, fontWeight: 700, padding: "4px 9px", borderRadius: 6 }}>🔥 Only 3 left in stock</div>}{heroBox("🪴", "#ECEBEE")}{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "social") {
-    body = <>{title}{priceRow}{isB && <div style={{ padding: "6px 14px 0", color: "#3a7d4f", fontSize: 12, fontWeight: 600 }}>👥 327 gardeners bought this</div>}{heroBox("🪴", "#ECEBEE")}{cta("#2E9E5B", "#fff")}</>;
+    body = <>{title}{priceRow}{isB && <div style={{ padding: "6px 14px 0", color: "#3a7d4f", fontSize: 13.5, fontWeight: 600 }}>👥 327 gardeners bought this</div>}{heroBox("🪴", "#ECEBEE")}{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "shipping") {
-    body = <>{isB && banner("🚚 FREE shipping on all orders", "#F6C667")}{title}{priceRow}{heroBox("🪴", "#ECEBEE")}{!isB && <div style={{ color: "#85838C", fontSize: 11.5, padding: "0 14px" }}>+ £3.50 shipping</div>}{cta("#2E9E5B", "#fff")}</>;
+    body = <>{isB && banner("🚚 FREE shipping on all orders", "#F6C667")}{title}{priceRow}{heroBox("🪴", "#ECEBEE")}{!isB && <div style={{ color: "#85838C", fontSize: 13, padding: "0 14px" }}>+ £3.50 shipping</div>}{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "checkout") {
     const steps = isB
-      ? <div style={{ padding: "12px 14px", fontSize: 12, color: "#46444C" }}><b>One-page checkout</b><div style={{ marginTop: 6, display: "grid", gap: 5 }}>{["Email & delivery", "Payment", "Place order"].map((s) => <div key={s} style={{ background: "#ECEBEE", borderRadius: 6, padding: "6px 8px" }}>{s}</div>)}</div></div>
-      : <div style={{ padding: "12px 14px", fontSize: 12, color: "#46444C" }}><b>Step 1 of 3</b><div style={{ marginTop: 6, display: "flex", gap: 5 }}>{[1, 2, 3].map((s) => <div key={s} style={{ flex: 1, background: s === 1 ? "#C7C6CC" : "#ECEBEE", borderRadius: 6, padding: "10px 0", textAlign: "center" }}>{s}</div>)}</div><div style={{ marginTop: 8, background: "#ECEBEE", borderRadius: 6, padding: "8px" }}>Your details</div></div>;
+      ? <div style={{ padding: "12px 14px", fontSize: 13.5, color: "#46444C" }}><b>One-page checkout</b><div style={{ marginTop: 6, display: "grid", gap: 5 }}>{["Email & delivery", "Payment", "Place order"].map((s) => <div key={s} style={{ background: "#ECEBEE", borderRadius: 6, padding: "6px 8px" }}>{s}</div>)}</div></div>
+      : <div style={{ padding: "12px 14px", fontSize: 13.5, color: "#46444C" }}><b>Step 1 of 3</b><div style={{ marginTop: 6, display: "flex", gap: 5 }}>{[1, 2, 3].map((s) => <div key={s} style={{ flex: 1, background: s === 1 ? "#C7C6CC" : "#ECEBEE", borderRadius: 6, padding: "10px 0", textAlign: "center" }}>{s}</div>)}</div><div style={{ marginTop: 8, background: "#ECEBEE", borderRadius: 6, padding: "8px" }}>Your details</div></div>;
     body = <>{title}{priceRow}{steps}{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "promo") {
     body = isB
       ? <>{banner("🔥 SPRING SALE — up to 30% OFF", "#F6C667")}<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, padding: "10px 14px" }}>{["🪴", "🌷", "🌿"].map((e, i) => <div key={i} style={{ background: "#ECEBEE", borderRadius: 6, height: 46, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{e}</div>)}</div>{cta("#2E9E5B", "#fff")}</>
-      : <>{heroBox("🌿", "#E7EFE0")}<div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13.5, padding: "10px 14px 0" }}>Heritage plants, grown with care since 1962</div>{cta("#2E9E5B", "#fff")}</>;
+      : <>{heroBox("🌿", "#E7EFE0")}<div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15, padding: "10px 14px 0" }}>Heritage plants, grown with care since 1962</div>{cta("#2E9E5B", "#fff")}</>;
   } else if (kind === "subject") {
     const subj = isB ? "You won't believe what's inside… 😱" : "Your spring planting guide + 10% off";
-    body = <div style={{ padding: "12px 14px" }}><div style={{ fontSize: 11, color: "#85838C", marginBottom: 6 }}>Inbox · Chrichton</div><div style={{ background: "#FFFFFF", border: "1px solid #E3E1E7", borderRadius: 8, padding: "10px 12px" }}><div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3 }}>Chrichton Garden Co.</div><div style={{ fontSize: 12.5, color: "#26242B" }}>{subj}</div><div style={{ fontSize: 11, color: "#85838C", marginTop: 4 }}>Spring is here — time to plant…</div></div></div>;
+    body = <div style={{ padding: "12px 14px" }}><div style={{ fontSize: 12.5, color: "#85838C", marginBottom: 6 }}>Inbox · Chrichton</div><div style={{ background: "#FFFFFF", border: "1px solid #E3E1E7", borderRadius: 8, padding: "10px 12px" }}><div style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 3 }}>Chrichton Garden Co.</div><div style={{ fontSize: 14, color: "#26242B" }}>{subj}</div><div style={{ fontSize: 12.5, color: "#85838C", marginTop: 4 }}>Spring is here — time to plant…</div></div></div>;
   }
   return (
     <div style={frame}>
-      <div style={{ background: "#2E5A3E", color: "#EAF3E6", fontSize: 11, fontWeight: 700, padding: "5px 12px", display: "flex", justifyContent: "space-between" }}><span>chrichton</span><span style={{ opacity: 0.7 }}>{kind === "subject" ? "✉️" : "🛒"}</span></div>
+      <div style={{ background: "#2E5A3E", color: "#EAF3E6", fontSize: 12.5, fontWeight: 700, padding: "5px 12px", display: "flex", justifyContent: "space-between" }}><span>chrichton</span><span style={{ opacity: 0.7 }}>{kind === "subject" ? "✉️" : "🛒"}</span></div>
       {body}
     </div>
   );
@@ -715,28 +716,28 @@ function Bench({ exp, base, cfg, predWinner, setPredWinner, predBand, setPredBan
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>EXPERIMENT {base.n}</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 14.5, fontWeight: 700 }}>EXPERIMENT {base.n}</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>{base.title}</h2>
         <Chip>{base.principle}</Chip>
       </div>
-      <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.55, marginTop: 8, maxWidth: 860 }}>{base.context}</p>
+      <p style={{ color: T.muted, fontSize: 16, lineHeight: 1.55, marginTop: 8, maxWidth: 860 }}>{base.context}</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 12 }}>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 12 }}>
         <VariantCard tag="A · Control" color={T.armA} kind={base.mock.kind} variant="A" label={base.control.label} note={base.control.note} />
         <VariantCard tag="B · Challenger" color={T.armB} kind={base.mock.kind} variant="B" label={base.variant.label} note={base.variant.rationale} isHypothesis />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 16 }}>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 16 }}>
         <div style={card()}>
           <SectionTitle>1 · Form your hypothesis</SectionTitle>
-          <div style={{ fontSize: 12.5, color: T.muted, marginBottom: 8 }}>Chrichton's product page currently converts at about <b style={{ color: T.text }}>{pct(base.baselineRate)}</b>. Which version wins, and by how much?</div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, margin: "10px 0 7px" }}>Your predicted winner</div>
+          <div style={{ fontSize: 14, color: T.muted, marginBottom: 8 }}>Chrichton's product page currently converts at about <b style={{ color: T.text }}>{pct(base.baselineRate)}</b>. Which version wins, and by how much?</div>
+          <div style={{ fontSize: 14, fontWeight: 600, margin: "10px 0 7px" }}>Your predicted winner</div>
           <div style={{ display: "flex", gap: 8 }}>
             {[["a", "A wins"], ["none", "No difference"], ["b", "B wins"]].map(([id, lab]) => (
               <button key={id} onClick={() => setPredWinner(id)} style={pillBtn(predWinner === id)}>{lab}</button>
             ))}
           </div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, margin: "16px 0 7px" }}>Predicted effect size <Term term="mde">(the band)</Term></div>
+          <div style={{ fontSize: 14, fontWeight: 600, margin: "16px 0 7px" }}>Predicted effect size <Term term="mde">(the band)</Term></div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {BANDS.map((b) => (
               <button key={b.id} onClick={() => setPredBand(b.id)} style={{ ...pillBtn(predBand === b.id), textAlign: "left", padding: "9px 12px" }}>{b.label}</button>
@@ -746,13 +747,13 @@ function Bench({ exp, base, cfg, predWinner, setPredWinner, predBand, setPredBan
 
         <div style={card()}>
           <SectionTitle>2 · Plan the sample size</SectionTitle>
-          <div style={{ fontSize: 12.5, color: T.muted, marginBottom: 12, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 14, color: T.muted, marginBottom: 12, lineHeight: 1.5 }}>
             How many visitors <i>per arm</i> do you need? Bigger effects are easy to spot; small ones need huge samples. Commit before you peek at any data.
           </div>
           <NumRow label="Assumed baseline rate" value={baseAssume} suffix="%" step={0.1} onChange={setBaseAssume} />
           <NumRow label={<><Term term="mde">Minimum detectable effect</Term></>} value={mdeAssume} suffix="pp" step={0.1} onChange={setMdeAssume} />
           <div style={{ background: T.panel2, borderRadius: 10, padding: "12px 14px", margin: "6px 0 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div><div style={{ fontSize: 11, color: T.muted }}>Required per arm (at <Term term="alpha">α</Term>={cfg.alpha}, <Term term="power">power</Term> {Math.round(cfg.power * 100)}%)</div>
+            <div><div style={{ fontSize: 12.5, color: T.muted }}>Required per arm (at <Term term="alpha">α</Term>={cfg.alpha}, <Term term="power">power</Term> {Math.round(cfg.power * 100)}%)</div>
               <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 22, color: PLAYER }}>{isFinite(reqN) ? reqN.toLocaleString() : "∞"}</div></div>
             <button onClick={() => setPlannedN(clamp(reqN, 200, cfg.maxVisitors))} disabled={!isFinite(reqN)} style={{ ...croBtn(!isFinite(reqN), true) }}>Use this →</button>
           </div>
@@ -767,11 +768,11 @@ function VariantCard({ tag, color, kind, variant, label, note, isHypothesis }) {
   return (
     <div style={{ ...card(), borderColor: color + "66" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <span style={{ fontFamily: T.mono, fontSize: 12, color, fontWeight: 700 }}>{tag}</span>
-        <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14 }}>{label}</span>
+        <span style={{ fontFamily: T.mono, fontSize: 13.5, color, fontWeight: 700 }}>{tag}</span>
+        <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{label}</span>
       </div>
       <MockPage kind={kind} variant={variant} />
-      <div style={{ fontSize: 12, color: T.muted, marginTop: 10, lineHeight: 1.45 }}>{isHypothesis ? <><b style={{ color: T.text }}>Hypothesis:</b> {note}</> : note}</div>
+      <div style={{ fontSize: 13.5, color: T.muted, marginTop: 10, lineHeight: 1.45 }}>{isHypothesis ? <><b style={{ color: T.text }}>Hypothesis:</b> {note}</> : note}</div>
     </div>
   );
 }
@@ -786,10 +787,10 @@ function Running({ exp, base, cfg, result, animN, total, liveStat, animComplete,
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 24, letterSpacing: -0.5, margin: 0 }}>Running — {base.title}</h2>
-        <span style={{ fontFamily: T.mono, color: T.muted, fontSize: 13 }}>{(animN * 2).toLocaleString()} / {(total * 2).toLocaleString()} visitors</span>
+        <span style={{ fontFamily: T.mono, color: T.muted, fontSize: 14.5 }}>{(animN * 2).toLocaleString()} / {(total * 2).toLocaleString()} visitors</span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 12 }}>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 12 }}>
         <ArmCounter tag="A · Control" color={T.armA} stat={liveStat} arm="A" exp={exp} />
         <ArmCounter tag="B · Challenger" color={T.armB} stat={liveStat} arm="B" exp={exp} />
       </div>
@@ -797,7 +798,7 @@ function Running({ exp, base, cfg, result, animN, total, liveStat, animComplete,
       <div style={{ ...card(), marginTop: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           <SectionTitle>Observed {metricOf(exp)} as data accrues</SectionTitle>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: chipColor + "22", border: `1px solid ${chipColor}`, color: chipColor, borderRadius: 20, padding: "5px 12px", fontWeight: 700, fontSize: 12.5, fontFamily: T.mono }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 7, background: chipColor + "22", border: `1px solid ${chipColor}`, color: chipColor, borderRadius: 20, padding: "5px 12px", fontWeight: 700, fontSize: 14, fontFamily: T.mono }}>
             <span style={{ width: 8, height: 8, borderRadius: 8, background: chipColor, animation: animComplete ? "none" : "pulse 1s infinite" }} />
             {liveStat.significant ? `SIGNIFICANT · ${verdict} leads · p=${liveStat.pValue.toFixed(3)}` : `NOT YET SIGNIFICANT · p=${liveStat.pValue.toFixed(3)}`}
           </span>
@@ -822,18 +823,18 @@ function Running({ exp, base, cfg, result, animN, total, liveStat, animComplete,
             <XAxis dataKey="n" tickLine={false} type="number" domain={[0, total]} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
             <YAxis tickLine={false} width={46} domain={[0, 1]} tickFormatter={(v) => v.toFixed(1)} />
             <Tooltip contentStyle={tipStyle} formatter={(v) => [v, "p-value"]} labelFormatter={(l) => `${l} per arm`} />
-            <ReferenceLine y={cfg.alpha} stroke={T.amber} strokeDasharray="5 4" label={{ value: `α=${cfg.alpha}`, fill: T.amber, fontSize: 11, position: "insideTopRight" }} />
+            <ReferenceLine y={cfg.alpha} stroke={T.amber} strokeDasharray="5 4" label={{ value: `α=${cfg.alpha}`, fill: T.amber, fontSize: 12.5, position: "insideTopRight" }} />
             <Line type="monotone" dataKey="p" stroke={PLAYER} strokeWidth={2.5} dot={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
-        {cfg.peeking && <div style={{ marginTop: 8, fontSize: 12, color: T.amber, lineHeight: 1.45 }}>⚠ <Term term="peeking">Peeking</Term> is enabled — you may stop the moment it dips below α. That's exactly the temptation that inflates false positives.</div>}
+        {cfg.peeking && <div style={{ marginTop: 8, fontSize: 13.5, color: T.amber, lineHeight: 1.45 }}>⚠ <Term term="peeking">Peeking</Term> is enabled — you may stop the moment it dips below α. That's exactly the temptation that inflates false positives.</div>}
       </div>
 
       <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 12 }}>
-        {!animComplete && !canStop && <div style={{ textAlign: "center", color: T.muted, fontSize: 13, fontFamily: T.mono }}>collecting data… {Math.round((animN / total) * 100)}%</div>}
+        {!animComplete && !canStop && <div style={{ textAlign: "center", color: T.muted, fontSize: 14.5, fontFamily: T.mono }}>collecting data… {Math.round((animN / total) * 100)}%</div>}
         {canStop && (
           <div style={{ background: "#FBF3DF", border: `1px solid ${T.amberFill}`, borderRadius: 12, padding: "14px 16px", textAlign: "center" }}>
-            <div style={{ fontSize: 13, marginBottom: 10 }}>You said you'd run to <b>{plannedN.toLocaleString()}</b> per arm. Stop early at <b>{animN.toLocaleString()}</b>?</div>
+            <div style={{ fontSize: 14.5, marginBottom: 10 }}>You said you'd run to <b>{plannedN.toLocaleString()}</b> per arm. Stop early at <b>{animN.toLocaleString()}</b>?</div>
             <button onClick={() => onCall(verdict === "none" ? "more" : verdict)} style={{ ...btn(T.amber), padding: "10px 18px" }}>⏹ Stop & call it now</button>
           </div>
         )}
@@ -849,11 +850,11 @@ function ArmCounter({ tag, color, stat, arm, exp }) {
   return (
     <div style={{ ...card(), borderColor: color + "55", padding: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontFamily: T.mono, fontSize: 12, color, fontWeight: 700 }}>{tag}</span>
-        <span style={{ fontFamily: T.mono, fontSize: 11.5, color: T.muted }}>{conv.toLocaleString()} / {stat.n.toLocaleString()}</span>
+        <span style={{ fontFamily: T.mono, fontSize: 13.5, color, fontWeight: 700 }}>{tag}</span>
+        <span style={{ fontFamily: T.mono, fontSize: 13, color: T.muted }}>{conv.toLocaleString()} / {stat.n.toLocaleString()}</span>
       </div>
       <div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 38, color, margin: "6px 0 2px" }}>{pct(rate, 2)}</div>
-      {prof != null && <div style={{ fontSize: 11.5, color: T.muted }}>≈ {gbp(prof)} profit / 1,000 visitors{arm === "B" ? " (after free shipping)" : ""}</div>}
+      {prof != null && <div style={{ fontSize: 13, color: T.muted }}>≈ {gbp(prof)} profit / 1,000 visitors{arm === "B" ? " (after free shipping)" : ""}</div>}
     </div>
   );
 }
@@ -863,7 +864,7 @@ function CallBar({ onCall }) {
       <SectionTitle>The data's in — what's your call?</SectionTitle>
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
         {[["b", "B is the winner", T.armB], ["a", "A is the winner", T.armA], ["none", "No real difference", T.muted], ["more", "Need more data", T.amber]].map(([id, lab, c]) => (
-          <button key={id} onClick={() => onCall(id)} style={{ background: "transparent", border: `1.5px solid ${c}`, color: c, borderRadius: 11, padding: "12px 18px", fontFamily: T.body, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>{lab}</button>
+          <button key={id} onClick={() => onCall(id)} style={{ background: "transparent", border: `1.5px solid ${c}`, color: c, borderRadius: 11, padding: "12px 18px", fontFamily: T.body, fontWeight: 700, fontSize: 15.5, cursor: "pointer" }}>{lab}</button>
         ))}
       </div>
     </div>
@@ -882,11 +883,11 @@ function Verdict({ exp, base, cfg, result, decisionN, record, predBand, call, on
   return (
     <div className="rise" style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>VERDICT · EXPERIMENT {base.n}</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 14.5, fontWeight: 700 }}>VERDICT · EXPERIMENT {base.n}</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{base.title}</h2>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 14 }}>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 14 }}>
         <div style={card()}>
           <SectionTitle>What you observed · {metricOf(exp)} at n={s.n.toLocaleString()}/arm</SectionTitle>
           {/* Headline first — the plain-English read and the two numbers that
@@ -894,10 +895,10 @@ function Verdict({ exp, base, cfg, result, decisionN, record, predBand, call, on
               the screen doesn't dump eight metrics at once. */}
           <RevealRow label="Observed difference (B − A)" value={pp(s.diff)} color={s.diff >= 0 ? T.pos : T.neg} />
           <RevealRow label={<Term term="pvalue">p-value</Term>} value={`${s.pValue.toFixed(4)} ${s.significant ? "· significant" : "· not significant"}`} color={s.significant ? T.pos : T.amber} />
-          <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
+          <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "11px 13px", fontSize: 14, lineHeight: 1.5 }}>
             {plainLanguage(s, cfg)}
           </div>
-          <button onClick={() => setShowStats((v) => !v)} style={{ marginTop: 12, background: "transparent", border: `1px solid ${T.border}`, color: T.muted, borderRadius: 8, padding: "7px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 12.5, fontWeight: 600 }}>
+          <button onClick={() => setShowStats((v) => !v)} style={{ marginTop: 12, background: "transparent", border: `1px solid ${T.border}`, color: T.muted, borderRadius: 8, padding: "7px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 14, fontWeight: 600 }}>
             {showStats ? "▲ Hide the full statistics" : "▼ Show the full statistics"}
           </button>
           {showStats && (
@@ -929,10 +930,10 @@ function Verdict({ exp, base, cfg, result, decisionN, record, predBand, call, on
           <ScoreCard ok={callOk} title="Your final call" you={callLabels[call]} truth={callTruthHint(s, truthDiff)} />
         </div>
         <div style={{ marginTop: 14, background: tBand.id === "none" && s.significant ? "#FBE9E7" : T.panel2, border: `1px solid ${tBand.id === "none" && s.significant ? T.negFill : T.border}`, borderRadius: 11, padding: "14px 16px" }}>
-          <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.playerText, marginBottom: 5 }}>🎓 {base.concept}</div>
-          <div style={{ fontSize: 13, lineHeight: 1.55 }}>{base.lesson}</div>
+          <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5, color: T.playerText, marginBottom: 5 }}>🎓 {base.concept}</div>
+          <div style={{ fontSize: 14.5, lineHeight: 1.55 }}>{base.lesson}</div>
           {result.firstSignificantN != null && result.firstSignificantN < result.arms.A.n && !exp.segments && (
-            <div style={{ marginTop: 9, fontSize: 12, color: T.amber, lineHeight: 1.45 }}>🔎 This run first read p&lt;α at just <b>{result.firstSignificantN.toLocaleString()}</b> visitors/arm. Had you peeked and stopped there, you'd have called it on thinner evidence — sometimes a false alarm.</div>
+            <div style={{ marginTop: 9, fontSize: 13.5, color: T.amber, lineHeight: 1.45 }}>🔎 This run first read p&lt;α at just <b>{result.firstSignificantN.toLocaleString()}</b> visitors/arm. Had you peeked and stopped there, you'd have called it on thinner evidence — sometimes a false alarm.</div>
           )}
         </div>
       </div>
@@ -944,27 +945,27 @@ function Verdict({ exp, base, cfg, result, decisionN, record, predBand, call, on
   );
 }
 function RevealRow({ label, value, color }) {
-  return <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}`, fontSize: 13.5 }}><span style={{ color: T.muted }}>{label}</span><span style={{ fontFamily: T.mono, fontWeight: 700, color }}>{value}</span></div>;
+  return <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}`, fontSize: 15 }}><span style={{ color: T.muted }}>{label}</span><span style={{ fontFamily: T.mono, fontWeight: 700, color }}>{value}</span></div>;
 }
 function ScoreCard({ ok, title, you, truth }) {
   return (
     <div style={{ background: ok ? "#EAF4E5" : "#FBF3DF", border: `1px solid ${ok ? T.posFill : T.amberFill}`, borderRadius: 11, padding: "13px 15px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <span style={{ fontSize: 12.5, color: T.muted }}>{title}</span>
-        <span style={{ color: ok ? T.pos : T.amber, fontWeight: 700, fontSize: 13 }}>{ok ? "✓ correct" : "✗ off"}</span>
+        <span style={{ fontSize: 14, color: T.muted }}>{title}</span>
+        <span style={{ color: ok ? T.pos : T.amber, fontWeight: 700, fontSize: 14.5 }}>{ok ? "✓ correct" : "✗ off"}</span>
       </div>
-      <div style={{ fontSize: 13 }}>You said <b>{you || "—"}</b></div>
-      <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>{truth}</div>
+      <div style={{ fontSize: 14.5 }}>You said <b>{you || "—"}</b></div>
+      <div style={{ fontSize: 13.5, color: T.muted, marginTop: 2 }}>{truth}</div>
     </div>
   );
 }
 function SegmentTable({ result }) {
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 7, color: T.amber }}>↘ Cut by <Term term="simpson">segment</Term> — the aggregate was hiding this:</div>
+      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 7, color: T.amber }}>↘ Cut by <Term term="simpson">segment</Term> — the aggregate was hiding this:</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {result.segments.map((sg) => (
-          <div key={sg.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: T.panel2, borderRadius: 8, padding: "8px 11px", fontSize: 12.5 }}>
+          <div key={sg.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: T.panel2, borderRadius: 8, padding: "8px 11px", fontSize: 14 }}>
             <span style={{ fontWeight: 600 }}>{sg.name}</span>
             <span style={{ fontFamily: T.mono, color: T.muted }}>A {pct(sg.rA, 1)} · B {pct(sg.rB, 1)}</span>
             <span style={{ fontFamily: T.mono, fontWeight: 700, color: sg.diff > 0 ? T.pos : T.neg }}>{pp(sg.diff, 1)} {sg.significant ? "✓" : ""}</span>
@@ -979,7 +980,7 @@ function ProfitNote({ exp, s }) {
   const pb = profitPerThousand(exp, s.rB, "B");
   const bWorse = pb < pa;
   return (
-    <div style={{ marginTop: 12, background: bWorse ? "#FBE9E7" : "#EAF4E5", border: `1px solid ${bWorse ? T.negFill : T.posFill}`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
+    <div style={{ marginTop: 12, background: bWorse ? "#FBE9E7" : "#EAF4E5", border: `1px solid ${bWorse ? T.negFill : T.posFill}`, borderRadius: 10, padding: "11px 13px", fontSize: 14, lineHeight: 1.5 }}>
       💷 <b>Business impact / 1,000 visitors:</b> A makes <b style={{ color: T.text }}>{gbp(pa)}</b>, B makes <b style={{ color: bWorse ? T.neg : T.pos }}>{gbp(pb)}</b>.
       {bWorse ? " B converts more, but the free shipping makes it LESS profitable — a test that wins on clicks but loses money." : " B wins on both conversion and profit here."}
     </div>
@@ -991,7 +992,7 @@ function GuardrailNote({ exp, s }) {
   const gb = guardrailPerThousand(exp, s.rB, "B");
   const bWorse = gb < ga;
   return (
-    <div style={{ marginTop: 12, background: bWorse ? "#FBE9E7" : "#EAF4E5", border: `1px solid ${bWorse ? T.negFill : T.posFill}`, borderRadius: 10, padding: "11px 13px", fontSize: 12.5, lineHeight: 1.5 }}>
+    <div style={{ marginTop: 12, background: bWorse ? "#FBE9E7" : "#EAF4E5", border: `1px solid ${bWorse ? T.negFill : T.posFill}`, borderRadius: 10, padding: "11px 13px", fontSize: 14, lineHeight: 1.5 }}>
       🚧 <b><Term term="guardrail">Guardrail</Term> — {exp.guardrail.label}:</b> A delivers <b style={{ color: T.text }}>{ga.toFixed(1)}</b>, B delivers <b style={{ color: bWorse ? T.neg : T.pos }}>{gb.toFixed(1)}</b>.
       {bWorse ? ` B won the test metric but the guardrail moved the wrong way (${Math.round((1 - gb / ga) * 100)}% fewer). ` : " B held up on the guardrail too. "}
       <span style={{ color: T.muted }}>{exp.guardrail.note}</span>
@@ -1029,24 +1030,24 @@ function QuizRound({ item, idx, total, onComplete }) {
   return (
     <div className="rise" style={{ marginTop: 22, maxWidth: 980, marginLeft: "auto", marginRight: "auto" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 13, fontWeight: 700 }}>QUESTION {idx + 1} / {total}</span>
+        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 14.5, fontWeight: 700 }}>QUESTION {idx + 1} / {total}</span>
         <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{item.title}</h2>
       </div>
-      <p style={{ color: T.muted, fontSize: 15, lineHeight: 1.5, marginTop: 6 }}>{item.question}</p>
+      <p style={{ color: T.muted, fontSize: 16.5, lineHeight: 1.5, marginTop: 6 }}>{item.question}</p>
 
       {/* the two variants (illustration) */}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 12 }}>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 16, marginTop: 12 }}>
         {["a", "b"].map((side) => {
           const isWin = stage === "reveal" && item.answer === side;
           const dim = stage === "reveal" && item.answer !== side && (item.answer === "a" || item.answer === "b");
           return (
             <div key={side} style={{ borderRadius: 16, overflow: "hidden", background: T.panel, border: `2px solid ${isWin ? T.pos : T.border}`, opacity: dim ? 0.5 : 1 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px 8px" }}>
-                <span style={{ fontFamily: T.mono, fontSize: 12, color: side === "a" ? T.armA : T.armB, fontWeight: 700 }}>{side.toUpperCase()}</span>
-                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15 }}>{side === "a" ? item.a : item.b}</span>
+                <span style={{ fontFamily: T.mono, fontSize: 13.5, color: side === "a" ? T.armA : T.armB, fontWeight: 700 }}>{side.toUpperCase()}</span>
+                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5 }}>{side === "a" ? item.a : item.b}</span>
               </div>
               <div style={{ padding: "0 16px 16px" }}><QuizMock kind={item.mock} side={side} /></div>
-              {stage === "reveal" && <div style={{ background: isWin ? "#EAF4E5" : "#ECEBEE", color: isWin ? T.pos : T.muted, fontFamily: T.mono, fontWeight: 700, fontSize: 12, textAlign: "center", padding: "7px 0" }}>{isWin ? "✓ this won" : (item.answer === "none" || item.answer === "depends") ? "—" : ""}</div>}
+              {stage === "reveal" && <div style={{ background: isWin ? "#EAF4E5" : "#ECEBEE", color: isWin ? T.pos : T.muted, fontFamily: T.mono, fontWeight: 700, fontSize: 13.5, textAlign: "center", padding: "7px 0" }}>{isWin ? "✓ this won" : (item.answer === "none" || item.answer === "depends") ? "—" : ""}</div>}
             </div>
           );
         })}
@@ -1057,18 +1058,18 @@ function QuizRound({ item, idx, total, onComplete }) {
         <div style={{ ...card(), marginTop: 16 }}>
           <QLabel n="1" text="Which won — and is there even a real winner?" />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-            {QDIR.map((d) => <button key={d.id} onClick={() => setDir(d.id)} style={{ ...pillBtn(dir === d.id), padding: "10px 12px", fontSize: 13, textAlign: "left" }}>{d.label}</button>)}
+            {QDIR.map((d) => <button key={d.id} onClick={() => setDir(d.id)} style={{ ...pillBtn(dir === d.id), padding: "10px 12px", fontSize: 14.5, textAlign: "left" }}>{d.label}</button>)}
           </div>
           <QLabel n="2" text="How big is the effect?" />
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
-            {magOptions.map((m) => <button key={m.id} onClick={() => setMag(m.id)} style={{ ...pillBtn(mag === m.id), padding: "8px 12px", fontSize: 12.5 }}>{m.label}</button>)}
+            {magOptions.map((m) => <button key={m.id} onClick={() => setMag(m.id)} style={{ ...pillBtn(mag === m.id), padding: "8px 12px", fontSize: 14 }}>{m.label}</button>)}
           </div>
           <QLabel n="3" text="How sure are you? (you're wagering points)" />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
             {WAGERS.map((w) => (
               <button key={w.id} onClick={() => setWager(w.id)} style={{ ...pillBtn(wager === w.id), padding: "9px 8px" }}>
-                <div style={{ fontWeight: 700, fontSize: 13 }}>{w.label}</div>
-                <div style={{ fontSize: 10.5, color: T.muted, fontFamily: T.mono, marginTop: 2 }}>{w.note}</div>
+                <div style={{ fontWeight: 700, fontSize: 14.5 }}>{w.label}</div>
+                <div style={{ fontSize: 12, color: T.muted, fontFamily: T.mono, marginTop: 2 }}>{w.note}</div>
               </button>
             ))}
           </div>
@@ -1084,7 +1085,7 @@ function QuizRound({ item, idx, total, onComplete }) {
         <div className="rise" style={{ ...card(), marginTop: 16 }}>
           <QLabel n="4" text="Whatever the result — which principle best explains it?" />
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-            {item.mech.options.map((o, i) => <button key={i} onClick={() => setMechPick(i)} style={{ ...pillBtn(mechPick === i), padding: "11px 13px", fontSize: 13, textAlign: "left" }}>{o}</button>)}
+            {item.mech.options.map((o, i) => <button key={i} onClick={() => setMechPick(i)} style={{ ...pillBtn(mechPick === i), padding: "11px 13px", fontSize: 14.5, textAlign: "left" }}>{o}</button>)}
           </div>
           <button onClick={() => setStage("reveal")} disabled={mechPick == null}
             style={{ ...btn(mechPick != null ? PLAYER : T.panel2), width: "100%", opacity: mechPick != null ? 1 : 0.6, cursor: mechPick != null ? "pointer" : "default", color: mechPick != null ? T.onAccent : T.muted }}>
@@ -1097,7 +1098,7 @@ function QuizRound({ item, idx, total, onComplete }) {
       {stage === "reveal" && (
         <div className="rise" style={{ ...card(), marginTop: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, color: points > 0 ? T.pos : points < 0 ? T.neg : T.muted }}>{points > 0 ? "+" : ""}{points} {Math.abs(points) === 1 ? "point" : "points"}</span>
+            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19.5, color: points > 0 ? T.pos : points < 0 ? T.neg : T.muted }}>{points > 0 ? "+" : ""}{points} {Math.abs(points) === 1 ? "point" : "points"}</span>
             <Chip>{item.stack} · CRO Stack</Chip>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 8, marginBottom: 12 }}>
@@ -1105,8 +1106,8 @@ function QuizRound({ item, idx, total, onComplete }) {
             <WFScore ok={magOk} title="Effect size" you={magLabel(mag)} truth={magLabel(item.mag)} />
             <WFScore ok={mechOk} title="Mechanism" you={`Option ${dir ? "" : ""}${mechPick + 1}`} truth={item.mech.options[item.mech.correct]} />
           </div>
-          <div style={{ fontSize: 13.5, lineHeight: 1.55, marginBottom: 8 }}>{item.result}</div>
-          <div style={{ background: T.panel2, borderRadius: 10, padding: "11px 13px", fontSize: 13, lineHeight: 1.55 }}>
+          <div style={{ fontSize: 15, lineHeight: 1.55, marginBottom: 8 }}>{item.result}</div>
+          <div style={{ background: T.panel2, borderRadius: 10, padding: "11px 13px", fontSize: 14.5, lineHeight: 1.55 }}>
             <b style={{ color: T.playerText }}>Why:</b> {item.term && GLOSSARY[item.term] ? <Term term={item.term}>{item.principle}</Term> : item.principle}
           </div>
           <button onClick={finish} style={{ ...btn(PLAYER), width: "100%", marginTop: 14 }}>{idx + 1 >= total ? "See your calibration →" : "Next question →"}</button>
@@ -1117,8 +1118,8 @@ function QuizRound({ item, idx, total, onComplete }) {
 }
 function QLabel({ n, text }) {
   return <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9 }}>
-    <span style={{ width: 20, height: 20, borderRadius: 20, background: T.panel2, border: `1px solid ${T.border}`, color: T.muted, fontFamily: T.mono, fontSize: 11, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{n}</span>
-    <span style={{ fontSize: 13.5, fontWeight: 600 }}>{text}</span>
+    <span style={{ width: 20, height: 20, borderRadius: 20, background: T.panel2, border: `1px solid ${T.border}`, color: T.muted, fontFamily: T.mono, fontSize: 12.5, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{n}</span>
+    <span style={{ fontSize: 15, fontWeight: 600 }}>{text}</span>
   </div>;
 }
 
@@ -1137,9 +1138,9 @@ function QuizDone({ results, total, onReplay, onLab }) {
     "The data humbles intuition — which is the entire reason we test rather than assert.";
   return (
     <div className="rise" style={{ marginTop: 28, maxWidth: 760, marginLeft: "auto", marginRight: "auto", textAlign: "center" }}>
-      <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>WHICH TEST WON?</div>
+      <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 13.5, letterSpacing: 2 }}>WHICH TEST WON?</div>
       <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 40, margin: "8px 0" }}>You scored <span style={{ color: pts >= 0 ? PLAYER : T.neg }}>{pts}</span><span style={{ color: T.muted, fontSize: 24 }}> / {maxPts}</span></h1>
-      <p style={{ color: T.muted, fontSize: 15.5, lineHeight: 1.6 }}>{verdict}</p>
+      <p style={{ color: T.muted, fontSize: 17, lineHeight: 1.6 }}>{verdict}</p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginTop: 18 }}>
         <MiniStat label="Direction" value={`${dirHits}/${total}`} accent={T.pos} />
         <MiniStat label="Effect size" value={`${magHits}/${total}`} accent={T.amber} />
@@ -1147,7 +1148,7 @@ function QuizDone({ results, total, onReplay, onLab }) {
       </div>
       <div style={{ ...card(), marginTop: 16, textAlign: "left" }}>
         <SectionTitle>{overconfident ? "You over-bet your certainty" : "Calibration is the real skill"}</SectionTitle>
-        <p style={{ fontSize: 13.5, lineHeight: 1.6, color: T.text, margin: 0 }}>
+        <p style={{ fontSize: 15, lineHeight: 1.6, color: T.text, margin: 0 }}>
           {overconfident
             ? <>You went <b>“Certain”</b> and were wrong {certainWrong} times — each cost you points. Confidence should track evidence, not conviction. </>
             : <>Notice the drop from getting the <i>direction</i> right to sizing the <i>effect</i> and naming the <i>mechanism</i>. </>}
@@ -1166,24 +1167,24 @@ function QuizDone({ results, total, onReplay, onLab }) {
 function QuizMock({ kind, side }) {
   const isB = side === "b";
   const box = (children, h = 96) => <div style={{ height: h, background: "#FAFAFB", borderRadius: 10, color: "#26242B", fontFamily: T.body, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, overflow: "hidden", padding: 8 }}>{children}</div>;
-  const btnBox = (bg, txt, color = "#fff") => <div style={{ background: bg, color, fontWeight: 700, fontSize: 13, padding: "9px 16px", borderRadius: 8 }}>{txt}</div>;
+  const btnBox = (bg, txt, color = "#fff") => <div style={{ background: bg, color, fontWeight: 700, fontSize: 14.5, padding: "9px 16px", borderRadius: 8 }}>{txt}</div>;
   const bar = (w = "100%") => <div style={{ width: w, height: 9, background: "#E3E8DD", borderRadius: 4 }} />;
   switch (kind) {
     case "guest": return box(isB ? btnBox("#2E9E5B", "Continue as guest") : btnBox("#C7C6CC", "Create an account", "#46444C"));
     case "fields": return box(<div style={{ display: "flex", flexDirection: "column", gap: 5, width: "70%" }}>{Array.from({ length: isB ? 4 : 8 }).map((_, i) => bar())}</div>, 110);
-    case "guarantee": return box(isB ? <div style={{ background: "#E3F0E4", color: "#2E5A3E", fontWeight: 700, padding: "8px 12px", borderRadius: 8, fontSize: 12.5 }}>✅ 30-day money-back</div> : <span style={{ color: "#85838C", fontSize: 12 }}>no guarantee</span>);
+    case "guarantee": return box(isB ? <div style={{ background: "#E3F0E4", color: "#2E5A3E", fontWeight: 700, padding: "8px 12px", borderRadius: 8, fontSize: 14 }}>✅ 30-day money-back</div> : <span style={{ color: "#85838C", fontSize: 13.5 }}>no guarantee</span>);
     case "columns": return box(isB
       ? <div style={{ display: "flex", gap: 8, width: "80%" }}>{[0, 1].map((c) => <div key={c} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5 }}>{bar()}{bar()}{bar()}</div>)}</div>
       : <div style={{ display: "flex", flexDirection: "column", gap: 5, width: "55%" }}>{bar()}{bar()}{bar()}</div>, 96);
-    case "reviews": return box(isB ? <div style={{ textAlign: "center" }}><div style={{ color: "#E8902E", fontSize: 18 }}>★★★★☆</div><div style={{ fontSize: 11, color: "#85838C" }}>412 reviews</div></div> : <span style={{ color: "#85838C", fontSize: 12 }}>reviews hidden</span>);
+    case "reviews": return box(isB ? <div style={{ textAlign: "center" }}><div style={{ color: "#E8902E", fontSize: 19.5 }}>★★★★☆</div><div style={{ fontSize: 12.5, color: "#85838C" }}>412 reviews</div></div> : <span style={{ color: "#85838C", fontSize: 13.5 }}>reviews hidden</span>);
     case "sticky": return box(<div style={{ position: "relative", width: 64, height: 84, background: "#E3E8DD", borderRadius: 8, overflow: "hidden" }}><div style={{ fontSize: 22, textAlign: "center", marginTop: 16 }}>🪴</div>{isB && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#2E9E5B", color: "#fff", fontSize: 8, fontWeight: 700, textAlign: "center", padding: "4px 0" }}>Add to cart</div>}</div>);
     case "video": return box(<div style={{ fontSize: 34 }}>{isB ? "▶️" : "🖼️"}</div>);
-    case "popup": return box(isB ? <div style={{ position: "relative", width: "85%", height: 70, background: "#E3E8DD", borderRadius: 8 }}><div style={{ position: "absolute", inset: "14px 18px", background: "#fff", border: "1px solid #C7C6CC", borderRadius: 6, fontSize: 10.5, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 4 }}>✉️ 10% off — before you go!</div></div> : <div style={{ width: "85%", height: 70, background: "#E3E8DD", borderRadius: 8 }} />);
+    case "popup": return box(isB ? <div style={{ position: "relative", width: "85%", height: 70, background: "#E3E8DD", borderRadius: 8 }}><div style={{ position: "absolute", inset: "14px 18px", background: "#fff", border: "1px solid #C7C6CC", borderRadius: 6, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 4 }}>✉️ 10% off — before you go!</div></div> : <div style={{ width: "85%", height: 70, background: "#E3E8DD", borderRadius: 8 }} />);
     case "decoy": return box(<div style={{ display: "flex", gap: 5 }}>{Array.from({ length: isB ? 4 : 3 }).map((_, i) => <div key={i} style={{ width: 26, height: 50, background: "#E3E8DD", borderRadius: 5, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 4, fontFamily: T.mono, fontSize: 9, fontWeight: 700 }}>£{[9, 19, 29, 39][i]}</div>)}</div>);
-    case "personalise": return box(<div style={{ textAlign: "center" }}><div style={{ fontSize: 11, fontWeight: 700, marginBottom: 5 }}>{isB ? "✨ Recommended for you" : "Bestsellers"}</div><div style={{ display: "flex", gap: 5, justifyContent: "center" }}>{["🪴", "🌷", "🌿"].map((e, i) => <div key={i} style={{ width: 30, height: 34, background: "#E3E8DD", borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>{e}</div>)}</div></div>);
+    case "personalise": return box(<div style={{ textAlign: "center" }}><div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 5 }}>{isB ? "✨ Recommended for you" : "Bestsellers"}</div><div style={{ display: "flex", gap: 5, justifyContent: "center" }}>{["🪴", "🌷", "🌿"].map((e, i) => <div key={i} style={{ width: 30, height: 34, background: "#E3E8DD", borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16.5 }}>{e}</div>)}</div></div>);
     case "microcopy": return box(<div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}><div style={{ width: 54, height: 40, background: "#E3E8DD", borderRadius: 6 }} />{btnBox("#2E9E5B", isB ? "Add to basket" : "Add to cart")}</div>);
     case "coupon": return box(<div style={{ width: "74%", display: "flex", flexDirection: "column", gap: 5 }}>{bar()}{bar()}{isB && <div style={{ display: "flex", alignItems: "center", gap: 5, border: "1px dashed #B2AFB8", borderRadius: 5, padding: "4px 6px", fontSize: 9.5, color: "#6A6872" }}>🎟️ Got a promo code?</div>}{bar()}<div style={{ background: "#2E9E5B", height: 12, borderRadius: 4, marginTop: 2 }} /></div>);
-    default: return box(<span style={{ color: "#85838C", fontSize: 12 }}>{isB ? "Variant B" : "Variant A"}</span>);
+    default: return box(<span style={{ color: "#85838C", fontSize: 13.5 }}>{isB ? "Variant B" : "Variant A"}</span>);
   }
 }
 
@@ -1195,7 +1196,7 @@ function Summary({ records, cfg, restart }) {
   return (
     <div className="rise" style={{ marginTop: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 12, letterSpacing: 2 }}>CHRICHTON · SEED {cfg.seed}</div>
+        <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 13.5, letterSpacing: 2 }}>CHRICHTON · SEED {cfg.seed}</div>
         <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 36, margin: "6px 0", letterSpacing: -0.5 }}>Your calibration report</h1>
         <div style={{ color: T.muted }}>Effect-size band <b style={{ color: T.playerText }}>{bandHits}/{ordered.length}</b> · final call <b style={{ color: T.playerText }}>{callHits}/{ordered.length}</b> correct.</div>
       </div>
@@ -1203,7 +1204,7 @@ function Summary({ records, cfg, restart }) {
       <div style={card()}>
         <SectionTitle>Every experiment, predicted vs actual</SectionTitle>
         <div role="region" aria-label="Experiment results table (scrollable)" tabIndex={0} style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <thead><tr style={{ color: T.muted, textAlign: "left" }}>{["Experiment", "Concept", "Your band", "Obs diff", "95% CI", "p", "Call", "✓"].map((h) => <th key={h} style={{ padding: "6px 8px", borderBottom: `1px solid ${T.border}`, fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>)}</tr></thead>
             <tbody>
               {ordered.map((r) => (
@@ -1226,21 +1227,21 @@ function Summary({ records, cfg, restart }) {
       <div style={{ ...card(), marginTop: 16 }}>
         <SectionTitle>What the lab was teaching</SectionTitle>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-          {EXPERIMENTS.map((e) => <div key={e.id} style={{ background: T.panel2, borderRadius: 11, padding: "13px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.playerText, marginBottom: 5 }}>{e.concept}</div><div style={{ fontSize: 12.5, color: T.text, lineHeight: 1.5 }}>{e.lesson}</div></div>)}
+          {EXPERIMENTS.map((e) => <div key={e.id} style={{ background: T.panel2, borderRadius: 11, padding: "13px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5, color: T.playerText, marginBottom: 5 }}>{e.concept}</div><div style={{ fontSize: 14, color: T.text, lineHeight: 1.5 }}>{e.lesson}</div></div>)}
         </div>
       </div>
 
       <div style={{ ...card(), marginTop: 16 }}>
         <SectionTitle>You just did <Term term="cro">CRO</Term></SectionTitle>
-        <p style={{ color: T.muted, fontSize: 13, lineHeight: 1.55, marginTop: -6, marginBottom: 14 }}>Every experiment ran the full <Term term="crostack">CRO Stack</Term> — the same loop you'll use on a real site.</p>
+        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.55, marginTop: -6, marginBottom: 14 }}>Every experiment ran the full <Term term="crostack">CRO Stack</Term> — the same loop you'll use on a real site.</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 10 }}>
           {CRO_STACK.map((s, i) => (
             <div key={s.k} style={{ background: T.panel2, borderRadius: 11, padding: "13px 14px", border: `1px solid ${T.border}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
-                <span style={{ width: 20, height: 20, borderRadius: 20, background: T.instructor, color: T.onAccent, fontFamily: T.mono, fontWeight: 700, fontSize: 11, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</span>
-                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14 }}>{s.k}</span>
+                <span style={{ width: 20, height: 20, borderRadius: 20, background: T.instructor, color: T.onAccent, fontFamily: T.mono, fontWeight: 700, fontSize: 12.5, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</span>
+                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 15.5 }}>{s.k}</span>
               </div>
-              <div style={{ color: T.muted, fontSize: 11.5, lineHeight: 1.45 }}>{s.d}</div>
+              <div style={{ color: T.muted, fontSize: 13, lineHeight: 1.45 }}>{s.d}</div>
             </div>
           ))}
         </div>
@@ -1248,7 +1249,7 @@ function Summary({ records, cfg, restart }) {
 
       <div style={{ ...card(), marginTop: 16, textAlign: "center" }}>
         <SectionTitle>Take your experiment log into class</SectionTitle>
-        <p style={{ color: T.muted, fontSize: 13, lineHeight: 1.5, maxWidth: 580, margin: "0 auto 16px" }}>Export the full record — hypothesis, planned vs actual sample size, observed diff/CI/p, the call, whether it was correct, and the business impact — as an assessable artifact with reflection prompts.</p>
+        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.5, maxWidth: 580, margin: "0 auto 16px" }}>Export the full record — hypothesis, planned vs actual sample size, observed diff/CI/p, the call, whether it was correct, and the business impact — as an assessable artifact with reflection prompts.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={() => downloadFile(`conversion-lab-${cfg.seed}.csv`, buildCSV(ordered, cfg), "text/csv")} style={btn(T.instructor)}>⬇ Download CSV</button>
           <button onClick={() => downloadFile(`conversion-lab-${cfg.seed}.md`, buildMarkdown(ordered, cfg), "text/markdown")} style={{ ...btn("transparent"), color: T.text, border: `1px solid ${T.border}` }}>⬇ Download Markdown</button>
@@ -1273,13 +1274,13 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
             <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
             <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>
           </div>
-          <p style={{ color: T.muted, fontSize: 12.5, lineHeight: 1.5, marginTop: 0 }}>Changes apply to the <b style={{ color: T.text }}>next test run</b>. A shared seed gives the whole cohort an identical run — so the debrief is about <b style={{ color: T.text }}>decisions</b>, not luck.</p>
+          <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, marginTop: 0 }}>Changes apply to the <b style={{ color: T.text }}>next test run</b>. A shared seed gives the whole cohort an identical run — so the debrief is about <b style={{ color: T.text }}>decisions</b>, not luck.</p>
 
           <PanelGroup title="Classroom">
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Run seed</div>
+              <div style={{ fontSize: 14.5, fontWeight: 500, marginBottom: 6 }}>Run seed</div>
               <div style={{ display: "flex", gap: 6 }}>
-                <input value={cfg.seed} onChange={(e) => set({ seed: e.target.value })} style={{ flex: 1, background: T.panel, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 13, outline: "none" }} />
+                <input value={cfg.seed} onChange={(e) => set({ seed: e.target.value })} style={{ flex: 1, background: T.panel, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 14.5, outline: "none" }} />
                 <button onClick={() => set({ seed: "LAB-" + Math.random().toString(36).slice(2, 7).toUpperCase() })} style={{ ...presetBtn, padding: "8px 10px" }}>🎲</button>
               </div>
             </div>
@@ -1307,7 +1308,7 @@ function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
             </div>
           </PanelGroup>
 
-          <button onClick={() => setCfg(defaults)} style={{ width: "100%", marginTop: 12, background: "transparent", color: T.muted, border: `1px solid ${T.border}`, borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13 }}>↺ Reset all to defaults</button>
+          <button onClick={() => setCfg(defaults)} style={{ width: "100%", marginTop: 12, background: "transparent", color: T.muted, border: `1px solid ${T.border}`, borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5 }}>↺ Reset all to defaults</button>
         </div>
       </div>
     </>
@@ -1335,53 +1336,53 @@ function businessNote(exp, s) {
 }
 
 /* ---- atoms -------------------------------------------------- */
-function SectionTitle({ children }) { return <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, marginBottom: 13, letterSpacing: -0.2 }}>{children}</div>; }
-function Chip({ children }) { return <span style={{ fontFamily: T.mono, fontSize: 11, color: T.instructor, border: `1px solid ${T.instructor}55`, borderRadius: 6, padding: "2px 8px" }}>{children}</span>; }
+function SectionTitle({ children }) { return <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, marginBottom: 13, letterSpacing: -0.2 }}>{children}</div>; }
+function Chip({ children }) { return <span style={{ fontFamily: T.mono, fontSize: 12.5, color: T.instructor, border: `1px solid ${T.instructor}55`, borderRadius: 6, padding: "2px 8px" }}>{children}</span>; }
 function Slider({ label, value, min, max, step, onChange, fmt, hint, accent }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 13.5, fontWeight: 600 }}>{label}</span><span style={{ fontFamily: T.mono, fontWeight: 700, color: accent }}>{fmt(value)}</span></div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 15, fontWeight: 600 }}>{label}</span><span style={{ fontFamily: T.mono, fontWeight: 700, color: accent }}>{fmt(value)}</span></div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", margin: "8px 0 5px", "--accent": accent, "--accent-soft": accent + "30" }} />
-      {hint && <div style={{ fontSize: 11.5, color: T.muted, lineHeight: 1.4 }}>{hint}</div>}
+      {hint && <div style={{ fontSize: 13, color: T.muted, lineHeight: 1.4 }}>{hint}</div>}
     </div>
   );
 }
 function NumRow({ label, value, suffix, step, onChange }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-      <span style={{ fontSize: 13, fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: 14.5, fontWeight: 500 }}>{label}</span>
       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <button onClick={() => onChange(Math.max(0, +(value - step).toFixed(2)))} style={stepBtn}>−</button>
-        <span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 14, width: 56, textAlign: "center" }}>{value}{suffix}</span>
+        <span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 15.5, minWidth: 56, textAlign: "center" }}>{value}{suffix}</span>
         <button onClick={() => onChange(+(value + step).toFixed(2))} style={stepBtn}>+</button>
       </span>
     </div>
   );
 }
-const stepBtn = { width: 26, height: 26, borderRadius: 7, background: T.panel2, border: `1px solid ${T.border}`, color: T.text, cursor: "pointer", fontSize: 16, fontWeight: 700, lineHeight: 1 };
+const stepBtn = { width: 26, height: 26, borderRadius: 7, background: T.panel2, border: `1px solid ${T.border}`, color: T.text, cursor: "pointer", fontSize: 17.5, fontWeight: 700, lineHeight: 1 };
 function ToggleRow({ label, on, onToggle, accent }) {
   return (
-    <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 13, fontWeight: 500 }}>
+    <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 14.5, fontWeight: 500 }}>
       <span>{label}</span>
       <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#FFFFFF", boxShadow: "0 1px 3px #00000040", transition: "left .15s" }} /></span>
     </div>
   );
 }
 function PanelGroup({ title, note, children }) {
-  return <div style={{ marginTop: 18 }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, letterSpacing: 0.3, textTransform: "uppercase", color: T.muted, marginBottom: 10 }}>{title}</div>{note && <div style={{ fontSize: 11.5, color: T.muted, marginTop: -4, marginBottom: 10, lineHeight: 1.4 }}>{note}</div>}{children}</div>;
+  return <div style={{ marginTop: 18 }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14.5, letterSpacing: 0.3, textTransform: "uppercase", color: T.muted, marginBottom: 10 }}>{title}</div>{note && <div style={{ fontSize: 13, color: T.muted, marginTop: -4, marginBottom: 10, lineHeight: 1.4 }}>{note}</div>}{children}</div>;
 }
 function InstructorSlider({ label, value, min, max, step, fmt, onChange, accent, changed }) {
   return (
     <div style={{ marginBottom: 13 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 13, fontWeight: 500 }}>{label}{changed && <span style={{ color: accent, marginLeft: 5 }}>•</span>}</span><span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 13, color: accent }}>{fmt(value)}</span></div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 14.5, fontWeight: 500 }}>{label}{changed && <span style={{ color: accent, marginLeft: 5 }}>•</span>}</span><span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 14.5, color: accent }}>{fmt(value)}</span></div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", marginTop: 7, "--accent": accent, "--accent-soft": accent + "30" }} />
     </div>
   );
 }
-const tipStyle = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 12, boxShadow: T.shadow };
-const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "9px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 12.5, lineHeight: 1.3 };
+const tipStyle = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 13.5, boxShadow: T.shadow };
+const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "9px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 14, lineHeight: 1.3 };
 const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20, boxShadow: T.shadow });
-const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 15.5, cursor: "pointer", letterSpacing: 0.2 });
-const pillBtn = (on) => ({ flex: 1, padding: "10px 8px", borderRadius: 9, cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 13, border: `1.5px solid ${on ? PLAYER : T.border}`, background: on ? PLAYER : "transparent", color: on ? T.onAccent : T.text });
-const croBtn = (disabled, primary) => ({ background: disabled ? T.panel2 : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text, border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 8, padding: "8px 12px", fontFamily: T.body, fontWeight: 600, fontSize: 12.5, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap" });
+const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 17, cursor: "pointer", letterSpacing: 0.2 });
+const pillBtn = (on) => ({ flex: 1, padding: "10px 8px", borderRadius: 9, cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5, border: `1.5px solid ${on ? PLAYER : T.border}`, background: on ? PLAYER : "transparent", color: on ? T.onAccent : T.text });
+const croBtn = (disabled, primary) => ({ background: disabled ? T.panel2 : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text, border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 8, padding: "8px 12px", fontFamily: T.body, fontWeight: 600, fontSize: 14, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap" });
 const td = () => ({ padding: "7px 8px", borderBottom: `1px solid ${T.border}` });
