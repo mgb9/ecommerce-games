@@ -90,7 +90,7 @@ skills record, self-rating, written task, printable log, cohort result code/tall
 - **Leaks ignored a free-shipping margin cut** (`leaks(rates, sessions, cfg, marginCut)` now values an
   order at the margin in force). **`ltvCac`** is `null`, not `Infinity`, when no traffic was bought
   (records are JSON). "Gross profit" was profit after spend and is labelled so. LO claim is now LO3 only
-  (the hub card still tags Funnel Fixer LO1 · LO3).
+  (the hub card was corrected to LO3 to match).
 - Engine numbers for a given seed and basket are unchanged except leak values after a margin cut.
 
 ### Structure
