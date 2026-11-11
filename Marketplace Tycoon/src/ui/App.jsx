@@ -24,7 +24,7 @@ import { WhatThisDevelops, SkillsPractised } from "./Outcomes.jsx";
 import SkillsRating from "./SkillsRating.jsx";
 import Recommendation from "./Recommendation.jsx";
 import DecisionLog from "./DecisionLog.jsx";
-import { instructorMode } from "./urlConfig.js";
+import { instructorMode, urlSeed } from "./urlConfig.js";
 import InstructorPanel from "./InstructorPanel.jsx";
 // staff pages: loaded only when an instructor opens them
 const InstructorTally = lazy(() => import("./InstructorTally.jsx"));
@@ -59,6 +59,12 @@ export default function App() {
   const go = (patch) => setG((a) => ({ ...base(a), ...patch, nav: (base(a).nav || 0) + 1 }));
   const upd = (patch) => setG((a) => ({ ...base(a), ...patch }));
   const updPlayer = (fn) => setG((a) => ({ ...base(a), stores: base(a).stores.map((s) => (s.isPlayer ? fn(s) : s)) }));
+
+  // a cohort link (?seed=NAME) sets the market seed on arrival, unless a game is under way
+  useEffect(() => {
+    const seed = urlSeed();
+    if (seed && !held.stores && cfg.seed !== seed) setCfg((c) => ({ ...c, seed }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- once, on arrival
 
   const { phase, name, selScenario, selPlatform, selFulfil, stores, round, log, prediction, predictionLog, nav, back } = g;
   const activeCfg = { ...cfg, scenarioId: selScenario };

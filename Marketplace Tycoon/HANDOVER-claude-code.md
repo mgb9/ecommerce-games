@@ -261,5 +261,8 @@ Open:
 - "eCommerce technology selection" is this file's name for the LO1 subject skill; it follows the syllabus heading
   (eCommerce Technology), but was not checked against the specification's own list of subject-specific skills.
 - The result code carries one seed (the first brief's); briefs played on different seeds are not distinguished.
-- There is no cohort seed link (`?seed=`) as Funnel Fixer has: a seed set in the Instructor panel stays in that
-  browser. The tutor's guide says so.
+- **Cohort link (2026-11-11):** `?seed=NAME` opens the game on that market seed, as in Funnel Fixer
+  (`urlSeed` / `cohortLink` in `urlConfig.js`; letters, digits, `_ . -`, 40 characters at most, anything else
+  is ignored). It is applied once on arrival and never to a game under way. The Instructor panel and the
+  tutor's guide show the link for the current seed. Only the seed travels: fees, platform prices, weights
+  and events stay in the instructor's browser.

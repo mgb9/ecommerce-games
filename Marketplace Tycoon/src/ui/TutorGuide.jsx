@@ -3,6 +3,7 @@ import { SCENARIOS, PLATFORMS, PMAP, FULFILMENT, COMPETITORS, EVENT_CALENDAR, DE
 import { evaluatePlatforms, CRITERIA } from "../engine/platformfit.js";
 import { SESSIONS, TUTOR_NOTES } from "../engine/tutorNotes.js";
 import { T } from "./theme.js";
+import { cohortLink, linkableSeed } from "./urlConfig.js";
 import { PrintBar, Section, articleStyle, useFocusOnMount, subHead, useDocumentTitle } from "./report.jsx";
 import { ACTIVITIES, OUTCOMES, MODULE, labelOf, losLabel, skillNamesOf, suiteCoverage } from "./outcomesModel.js";
 import { REC_CHECKS, clientOf } from "./Recommendation.jsx";
@@ -21,7 +22,7 @@ const pct0 = (v) => `${Math.round(v * 100)}%`;
 export default function TutorGuide({ cfg, onBack }) {
   useDocumentTitle("Marketplace Tycoon – Tutor's guide");
   const headRef = useFocusOnMount();
-  const link = typeof location === "undefined" ? "" : location.origin + location.pathname;
+  const link = cohortLink(cfg.seed);
   const { los, skills } = suiteCoverage();
   const fits = useMemo(() => Object.fromEntries(SCENARIOS.map((s) => [s.id, evaluatePlatforms(s)])), []);
   const rivals = useMemo(() => initialStores("", "shopify", "inhouse", 0, SCENARIOS[0], "guide").filter((s) => !s.isPlayer), []);
@@ -65,8 +66,8 @@ export default function TutorGuide({ cfg, onBack }) {
 
         <Section title="Running a session">
           <ul style={{ margin: 0, paddingLeft: 22 }}>
-            <li style={li}>Send students the plain link: <span style={mono}>{link}</span>. Everyone on the same seed faces the same market — the same demand, the same rival behaviour, the same true lift behind each conversion upgrade — so the debrief is about decisions, not luck.</li>
-            <li style={li}><b>Seed and settings</b> (Instructor panel) live in your browser only: students play the default seed unless they are at your machine. To change the market for a cohort, change it on the screen you are projecting and have students play there, or keep the defaults.</li>
+            <li style={li}>{linkableSeed(cfg.seed) ? <>Send students this link: <span style={mono}>{link}</span>. It opens the game on the seed set here (<b style={mono}>{cfg.seed}</b>), without the instructor controls.</> : <>The seed set here (<b style={mono}>{cfg.seed}</b>) cannot go in a link: use only letters, digits, hyphens, underscores and full stops in the Instructor panel, then come back for the student link.</>} Everyone on the same seed faces the same market — the same demand, the same rival behaviour, the same true lift behind each conversion upgrade — so the debrief is about decisions, not luck.</li>
+            <li style={li}><b>Only the seed travels in the link.</b> The other Instructor panel settings (fees, platform prices, ranking weights, events) live in your browser only. To change those for a cohort, change them on the screen you are projecting and have students play there, or keep the defaults. A student who is part-way through a game keeps the seed they started on.</li>
             <li style={li}><b>Teaching shocks</b> (Instructor panel): raise the marketplace's fee, put up a platform's weekly price mid-game, or shift what the ranking rewards. They apply from the next week resolved, and show platform pricing power and lock-in better than any slide.</li>
             <li style={li}><b>Instructor tools</b> appear only once the game has been opened with <span style={mono}>?instructor</span>; the browser remembers it, and <span style={mono}>?instructor=off</span> forgets it. Never send students a link with it.</li>
             <li style={li}><b>Nothing leaves the student's browser.</b> Progress, recommendations and self-ratings stay there until a student shares a result code.</li>

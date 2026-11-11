@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef } from "react";
+import { cohortLink, linkableSeed } from "./urlConfig.js";
 import { PLATFORMS, PMAP, gbp } from "../engine/engine.js";
 import { T, presetBtn } from "./theme.js";
 import { ToggleRow } from "./shared.jsx";
@@ -54,6 +55,7 @@ export default function InstructorPanel({ cfg, setCfg, defaults, onClose, onOpen
                 <button type="button" aria-label="Random seed" title="Random seed" onClick={() => set({ seed: "M" + Math.random().toString(36).slice(2, 7).toUpperCase() })} style={{ ...presetBtn, padding: "8px 10px" }}><span aria-hidden="true">🎲</span></button>
               </div>
               <div style={{ fontSize: 13.5, color: T.muted, marginTop: 5 }}>Set before launch; also controls which CRO bets pay off.</div>
+              <p style={{ fontSize: 13.5, color: T.muted, margin: "7px 0 0", lineHeight: 1.45, overflowWrap: "anywhere" }}>{linkableSeed(cfg.seed) ? <>Link for students (opens on this seed, without these controls): <span style={{ fontFamily: T.mono, color: T.text }}>{cohortLink(cfg.seed)}</span></> : "To send this seed in a link, use only letters, digits, hyphens, underscores and full stops (40 at most)."}</p>
             </div>
             <ToggleRow label="Seasonal events on" on={cfg.eventsOn} accent={A} onToggle={() => set({ eventsOn: !cfg.eventsOn })} />
             <InstructorSlider label="Starting cash (new game)" accent={A} value={cfg.startingCash} min={0} max={12000} step={250} fmt={(v) => gbp(v)} onChange={(v) => set({ startingCash: v })} changed={cfg.startingCash !== defaults.startingCash} />
