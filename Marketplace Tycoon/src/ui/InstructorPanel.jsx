@@ -6,7 +6,7 @@ import { ToggleRow } from "./shared.jsx";
 /* Staff only (see App: it opens only after ?instructor). A modal dialog:
    focus moves in on open, Tab cycles inside, Escape or the backdrop closes
    it, and focus returns to whatever opened it. */
-export default function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
+export default function InstructorPanel({ cfg, setCfg, defaults, onClose, onOpenPage }) {
   const set = (patch) => setCfg((c) => ({ ...c, ...patch }));
   const setWeight = (k, v) => setCfg((c) => ({ ...c, weights: { ...c.weights, [k]: v } }));
   const setPlatCost = (id, v) => setCfg((c) => ({ ...c, platforms: { ...c.platforms, [id]: { ...c.platforms[id], fixedCost: v } } }));
@@ -92,6 +92,15 @@ export default function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
               {preset("📉 Demand crunch (×0.5)", { demandMult: 0.5 })}
             </div>
           </PanelGroup>
+
+          {onOpenPage && (
+            <PanelGroup title="For the seminar">
+              <div style={{ display: "grid", gap: 8 }}>
+                <button type="button" onClick={() => onOpenPage("tally")} style={presetBtn}>Cohort tally — paste students' result codes</button>
+                <button type="button" onClick={() => onOpenPage("guide")} style={presetBtn}>Tutor's guide — running and debriefing the simulation</button>
+              </div>
+            </PanelGroup>
+          )}
 
           <button type="button" onClick={() => setCfg((c) => ({ ...defaults, scenarioId: c.scenarioId }))} style={{ width: "100%", marginTop: 12, background: "transparent", color: T.muted, border: `1px solid ${T.border}`, borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5 }}>↺ Reset all to defaults</button>
         </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useState } from "react";
+import React, { Suspense, lazy, useEffect, useId, useMemo, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Cell,
@@ -17,17 +17,29 @@ import {
   SectionTitle, SubHead, ChoiceGroup, Slider, MiniStat, Banner,
 } from "./shared.jsx";
 import { useSessionState } from "./session.js";
-import { markHubPlayed } from "./progress.js";
+import { loadProgress, loadSkills, saveSkills, recordGame } from "./progress.js";
+import { runRecord } from "./cohort.js";
+import { OUTCOMES } from "./outcomesModel.js";
+import { WhatThisDevelops, SkillsPractised } from "./Outcomes.jsx";
+import SkillsRating from "./SkillsRating.jsx";
+import Recommendation from "./Recommendation.jsx";
+import DecisionLog from "./DecisionLog.jsx";
 import { instructorMode } from "./urlConfig.js";
 import InstructorPanel from "./InstructorPanel.jsx";
+// staff pages: loaded only when an instructor opens them
+const InstructorTally = lazy(() => import("./InstructorTally.jsx"));
+const TutorGuide = lazy(() => import("./TutorGuide.jsx"));
 
 /* Root: which screen is on show and the game behind it, mirrored to the
    tab's session so a refresh resumes where the student was. `nav` counts
    screen changes, so focus moves to each new screen's heading (not on
-   first load). The instructor panel exists only for staff (?instructor). */
+   first load). The instructor panel exists only for staff (?instructor).
+   `back` is the screen a page (the decision log, the tally, the tutor's
+   guide) was opened from. A refresh never lands a student on a staff page. */
 const VERSION = 2;
 const START = { v: VERSION, phase: "intro", name: "", selScenario: "fashion", selPlatform: "shopify", selFulfil: "inhouse",
-  stores: null, round: 1, log: [], prediction: null, predictionLog: [], nav: 0 };
+  stores: null, round: 1, log: [], prediction: null, predictionLog: [], nav: 0, back: null };
+const STAFF_PAGES = ["tally", "guide"], PAGES = ["log", ...STAFF_PAGES];
 const pct0 = (v) => `${Math.round(v * 100)}%`;
 const units = (n) => Math.round(n).toLocaleString("en-GB");
 
@@ -38,7 +50,9 @@ export default function App() {
   const [showInstructor, setShowInstructor] = useState(false);
   const live = saved?.v === VERSION ? saved : START;
   // a game screen with no game behind it (a stale or partial save) falls back to the start
-  const g = ["play", "result", "end"].includes(live.phase) && !live.stores ? START : live;
+  const held = ["play", "result", "end"].includes(live.phase) && !live.stores ? START : live;
+  const g = STAFF_PAGES.includes(held.phase) && !instructor ? { ...held, phase: held.back && !PAGES.includes(held.back) ? held.back : "intro" } : held;
+  const [progress, setProgress] = useState(loadProgress);
   const cfg = savedCfg?.v === VERSION ? savedCfg.cfg : DEFAULT_CFG;
   const setCfg = (fn) => setSavedCfg((s) => ({ v: VERSION, cfg: typeof fn === "function" ? fn(s?.v === VERSION ? s.cfg : DEFAULT_CFG) : fn }));
   const base = (a) => (a?.v === VERSION ? a : START);
@@ -46,18 +60,23 @@ export default function App() {
   const upd = (patch) => setG((a) => ({ ...base(a), ...patch }));
   const updPlayer = (fn) => setG((a) => ({ ...base(a), stores: base(a).stores.map((s) => (s.isPlayer ? fn(s) : s)) }));
 
-  const { phase, name, selScenario, selPlatform, selFulfil, stores, round, log, prediction, predictionLog, nav } = g;
+  const { phase, name, selScenario, selPlatform, selFulfil, stores, round, log, prediction, predictionLog, nav, back } = g;
   const activeCfg = { ...cfg, scenarioId: selScenario };
   const player = stores ? stores.find((s) => s.isPlayer) : null;
   const ranked = stores ? [...stores].sort((a, b) => b.cumProfit - a.cumProfit) : [];
   const rank = ranked.findIndex((s) => s.isPlayer) + 1;
 
-  useEffect(() => { if (phase === "end") markHubPlayed(); }, [phase]);
+  // a finished game goes on the record (the first on each brief is kept) and marks the hub
+  useEffect(() => { if (phase === "end" && player) setProgress(recordGame(runRecord(stores, player, activeCfg, predictionLog), cfg.seed)); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps -- once, on reaching the end
+  const openPage = (page) => { setShowInstructor(false); setProgress(loadProgress()); /* picks up a recommendation just written */ go({ phase: page, back: PAGES.includes(phase) ? back : phase }); };
+  const closePage = () => go({ phase: back && !PAGES.includes(back) ? back : "intro", back: null });
+  // before the first game, ask for the skills self-rating once (it can be skipped)
+  const toBriefs = () => go({ phase: loadSkills().before === undefined ? "rate" : "scenario" });
 
   function start() {
     go({ phase: "play", stores: initialStores(name, selPlatform, selFulfil, cfg.startingCash, SCMAP[selScenario], cfg.seed), round: 1, log: [], prediction: null, predictionLog: [] });
   }
-  const restart = () => go({ phase: "intro", stores: null, round: 1, log: [], prediction: null, predictionLog: [] });
+  const restart = () => { setProgress(loadProgress()); go({ phase: "intro", stores: null, round: 1, log: [], prediction: null, predictionLog: [] }); };
   const setPlayerDecision = (patch) => updPlayer((s) => ({ ...s, decision: { ...s.decision, ...patch } }));
   function croDeploy(leverId) {
     updPlayer((s) => {
@@ -106,20 +125,25 @@ export default function App() {
     <PlainModeProvider>
       <div style={{ minHeight: "100vh", background: T.ink, color: T.text, fontFamily: T.body }}>
         <style>{GLOBAL_CSS}</style>
-        <Frame screenKey={`${phase}:${round}`} autoFocus={nav > 0} subtitle={inGame ? `${SC(activeCfg).icon} ${SC(activeCfg).short}` : "e-commerce strategy lab"} stats={stats}
+        <Frame screenKey={`${phase}:${round}`} autoFocus={nav > 0} stats={stats}
+          subtitle={phase === "log" ? "Decision log" : phase === "tally" ? "Instructor · cohort tally" : phase === "guide" ? "Instructor · tutor's guide" : inGame ? `${SC(activeCfg).icon} ${SC(activeCfg).short}` : "e-commerce strategy lab"}
           actions={instructor && <InstructorButton onClick={() => setShowInstructor(true)} />}>
-          {phase === "intro" && <Intro name={name} setName={(v) => upd({ name: v })} onNext={() => go({ phase: "scenario" })} />}
+          {phase === "intro" && <Intro name={name} setName={(v) => upd({ name: v })} onNext={toBriefs} progress={progress} onLog={() => openPage("log")} />}
+          {phase === "rate" && <RateFirst onSave={(r) => { saveSkills({ before: r, beforeAt: new Date().toISOString().slice(0, 10) }); go({ phase: "scenario" }); }} onSkip={() => { saveSkills({ before: null }); go({ phase: "scenario" }); }} onBack={() => go({ phase: "intro" })} />}
           {phase === "scenario" && <ScenarioSelect selected={selScenario} setSelected={(v) => upd({ selScenario: v })} onNext={() => go({ phase: "platform" })} onBack={() => go({ phase: "intro" })} />}
           {phase === "platform" && <SetupSelect scenario={SCMAP[selScenario]} platform={selPlatform} setPlatform={(v) => upd({ selPlatform: v })} fulfil={selFulfil} setFulfil={(v) => upd({ selFulfil: v })} cfg={activeCfg} onLaunch={start} onBack={() => go({ phase: "scenario" })} />}
           {phase === "play" && player && <PlayBoard stores={stores} ranked={ranked} round={round} cfg={activeCfg} player={player} setPlayerDecision={setPlayerDecision} croDeploy={croDeploy} croTest={croTest} sellWeek={sellWeek} prediction={prediction} setPrediction={(v) => upd({ prediction: v })} />}
           {phase === "result" && player && <ResultView ranked={ranked} log={log} round={round} nextWeek={nextWeek} player={player} cfg={activeCfg} predictionLog={predictionLog} />}
-          {phase === "end" && player && <EndView stores={stores} ranked={ranked} restart={restart} player={player} cfg={activeCfg} predictionLog={predictionLog} />}
+          {phase === "end" && player && <EndView stores={stores} ranked={ranked} restart={restart} player={player} cfg={activeCfg} predictionLog={predictionLog} onLog={() => openPage("log")} />}
+          {phase === "log" && <DecisionLog progress={progress} cfg={cfg} onBack={closePage} onProgress={() => setProgress(loadProgress())} />}
+          {phase === "tally" && instructor && <Suspense fallback={<Loading what="Opening the tally…" />}><InstructorTally onBack={closePage} /></Suspense>}
+          {phase === "guide" && instructor && <Suspense fallback={<Loading what="Opening the tutor's guide…" />}><TutorGuide cfg={cfg} onBack={closePage} /></Suspense>}
         </Frame>
         {/* spoken once when a week resolves; the figures are on screen too */}
         <div role="status" aria-live="polite" className="sr-only">
           {last ? `Week ${round} resolved. Weekly profit ${gbp(last.profit)}. You are ${rank} of ${stores.length} on the leaderboard.` : ""}
         </div>
-        {showInstructor && instructor && <InstructorPanel cfg={cfg} setCfg={setCfg} defaults={DEFAULT_CFG} onClose={() => setShowInstructor(false)} />}
+        {showInstructor && instructor && <InstructorPanel cfg={cfg} setCfg={setCfg} defaults={DEFAULT_CFG} onClose={() => setShowInstructor(false)} onOpenPage={openPage} />}
       </div>
     </PlainModeProvider>
   );
@@ -132,7 +156,22 @@ function PlatformPill({ id }) {
 const h1Style = { fontFamily: T.display, fontWeight: 700, fontSize: 30, letterSpacing: -0.5, margin: 0 };
 
 /* ---- INTRO -------------------------------------------------- */
-export function Intro({ name, setName, onNext }) {
+function Loading({ what }) { return <p role="status" style={{ margin: "40px auto", textAlign: "center", color: T.body2 }}>{what}</p>; }
+
+/* ---- THE SELF-RATING, BEFORE THE FIRST GAME ------------------ */
+export function RateFirst({ onSave, onSkip, onBack }) {
+  return (
+    <div className="rise" style={{ maxWidth: 820, margin: "32px auto 0" }}>
+      <ScreenHead title="Before you start: where are you now?" onBack={onBack} />
+      <p style={{ color: T.muted, fontSize: 16.5, lineHeight: 1.55, margin: "8px 0 16px" }}>One minute, once. You will rate yourself again after playing, and your decision log sets the two side by side.</p>
+      <SkillsRating title="Rate yourself" saveLabel="Save and choose a client brief →" onSave={onSave} onSkip={onSkip}
+        intro="There are no right answers, and nobody sees this unless you choose to share your result code." />
+    </div>
+  );
+}
+
+export function Intro({ name, setName, onNext, progress = {}, onLog }) {
+  const played = SCENARIOS.filter((s) => progress[s.id]);
   const nameId = useId();
   return (
     <div className="rise" style={{ maxWidth: 820, margin: "48px auto 0" }}>
@@ -160,7 +199,17 @@ export function Intro({ name, setName, onNext }) {
           <li><b style={{ color: T.text }}>LO1.</b> {LOS.LO1} <span style={{ color: T.muted }}>— you choose and justify a platform for a client brief.</span></li>
           <li><b style={{ color: T.text }}>LO3.</b> {LOS.LO3} <span style={{ color: T.muted }}>— you decide which conversion, fulfilment and retention work is worth its cost.</span></li>
         </ul>
+        <p style={{ margin: "10px 0 0", color: T.body2, fontSize: 15, lineHeight: 1.55 }}>Each game ends with a short recommendation to your client. Your <b style={{ color: T.text }}>decision log</b> keeps a record of the skills you practised, with lines you can use on a CV.</p>
       </section>
+      {onLog && (
+        <section aria-labelledby="mt-sofar" style={{ ...card(), marginTop: 14, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+          <div>
+            <h2 id="mt-sofar" style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, margin: "0 0 4px" }}>Your decision log</h2>
+            <p style={{ margin: 0, color: T.body2, fontSize: 15, lineHeight: 1.5 }}>{played.length ? `In this browser you have finished a game on ${played.length} of ${SCENARIOS.length} client briefs: ${played.map((s) => s.short).join(", ")}.` : "Nothing in it yet — it fills in when you finish a game."}</p>
+          </div>
+          <button type="button" onClick={onLog} style={{ ...ghostBtn, border: `1.5px solid ${T.muted}`, padding: "11px 20px", fontSize: 15.5 }}>Open your decision log</button>
+        </section>
+      )}
       <TermsHint />
     </div>
   );
@@ -216,6 +265,7 @@ export function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
         <div style={{ color: T.muted, fontSize: 15 }}>Briefing the team on <b style={{ color: T.text }}>{sel.name}</b>.</div>
         <button onClick={onNext} style={btn(T.playerBtn)}>Set up your store →</button>
       </div>
+      <WhatThisDevelops outcomes={OUTCOMES[sel.id]} title={`What the ${sel.short} brief develops`} style={{ marginTop: 20 }} />
     </div>
   );
 }
@@ -528,7 +578,7 @@ export function ResultView({ ranked, log, round, nextWeek, player, cfg, predicti
 }
 
 /* ---- END + DEBRIEF ------------------------------------------ */
-export function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
+export function EndView({ stores, ranked, restart, player, cfg, predictionLog, onLog }) {
   const winner = ranked[0]; const sc = SC(cfg);
   const playerRank = ranked.findIndex((s) => s.isPlayer) + 1;
   const wentNegative = player.history.find((h) => h.cash < 0);
@@ -577,10 +627,13 @@ export function EndView({ stores, ranked, restart, player, cfg, predictionLog })
         </div>
       </div>
       <Debrief stores={stores} player={player} cfg={cfg} predictionLog={predictionLog} />
+      <Recommendation brief={sc.id} />
+      <SkillsPractised outcomes={OUTCOMES[sc.id]} style={{ marginTop: 18 }} />
       <div style={{ ...card(), marginTop: 18, textAlign: "center" }}>
         <SectionTitle>Take your decision log into class</SectionTitle>
-        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.5, maxWidth: 560, margin: "0 auto 16px" }}>Export the full record — brief, platform, fulfilment, every weekly decision, CRO, returns, cash, leaderboard position and predictions — with reflection prompts.</p>
+        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.5, maxWidth: 600, margin: "0 auto 16px" }}>Your decision log gathers this game's result, your recommendation, a skills record and lines for your CV, and saves as a PDF. The week-by-week figures — every decision, CRO, returns, cash, leaderboard position and predictions — download as a spreadsheet or as text with reflection prompts.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          {onLog && <button onClick={onLog} style={btn(T.playerBtn)}>Open your decision log</button>}
           <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.csv`, buildCSV(stores, player, predictionLog), "text/csv")} style={btn(T.platformFill)}>Download CSV</button>
           <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.md`, buildMarkdown(stores, player, predictionLog, cfg), "text/markdown")} style={ghostBtn}>Download Markdown</button>
         </div>

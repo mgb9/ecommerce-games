@@ -124,7 +124,7 @@ The current artifact (`marketplace-tycoon.jsx`) is the source of truth for engin
 
 ## 9. First release pass (2026-11-11) — towards the Data Detective / Conversion Lab standard
 
-Run: `npm test` (99 tests) · `npx vite build --base=/ecommerce-games/marketplace-tycoon/`. The weekly tick's numbers are
+Run: `npm test` (120 tests) · `npx vite build --base=/ecommerce-games/marketplace-tycoon/`. The weekly tick's numbers are
 unchanged (same seed + decisions → same result as before); only text, new helpers and three extra history fields.
 
 **Correctness**
@@ -166,7 +166,7 @@ focus trap and Escape. Simpler English follows the WMG shell switch (bridge scri
 **Not done / open**
 - No true working-capital mechanic (stock is not paid for up front) — see the cash card.
 - No screen-reader test. (axe: no violations on any student screen of the built site inside the WMG shell.)
-- Second pass (skills record, decision-log page, result code, tally, tutor's guide) not started.
+- Second pass: done — see § 11.
 - There is no multiplayer client in `src/ui`; `party/` is untouched and its tests pass.
 
 ## 10. Platform balance retune (2026-11-11)
@@ -207,3 +207,50 @@ What is *not* true, and the wording does not claim it:
 The setup screen and debrief now say a well-run store "tends to earn a few per cent more" on the top-fit platform
 and that pricing, stock, advertising and conversion work move profit far more. Saved-state `VERSION` is 2, so a tab
 holding a game from the old numbers starts fresh.
+
+## 11. Skills, decision log, tally and tutor's guide (2026-11-11, second pass)
+The Data Detective / Conversion Lab features, so the simulation makes its skills visible. Ported from Conversion
+Lab's files of the same names; the unit is a **client brief** (one game), where the lab's is an experiment.
+- `src/engine/outcomes.js` — the spec's LO wording (shared with DD and CL), the skills catalogue with
+  Tycoon-specific `how`, and per brief `OUTCOMES` (LOs, syllabus, skills with what practising them looked like,
+  the client the recommendation is written to, a CV line). Honest: every brief LO1 + LO3; no LO2 or LO4.
+  `src/ui/outcomesModel.js` has the shared read models (`losOf`, `skillsOf`, `suiteCoverage`).
+- Brief screen: "What the <brief> brief develops" (follows the selection). Final results screen: **"Your
+  recommendation to <client>"** (writing task with a four-point self-check, saved as you type) and "Skills you
+  practised" (`Outcomes.jsx`, `Recommendation.jsx`).
+- **Self-rating** (`SkillsRating.jsx`, six statements in `cohort.js`) asked once on a screen of its own (phase
+  `rate`) between the intro and the first brief (skippable), again from the log; stored in `mt-skills`.
+- **Decision log** (`DecisionLog.jsx`, phase `log`, from the intro and the final results; printable as a PDF —
+  `.mt-report` / `.mt-noprint` / `.mt-print-only` print CSS in `theme.js`, `report.jsx`): the **first completed
+  game on each brief** (`runRecord` in `cohort.js`, kept by `recordGame` in `progress.js`; replays never
+  overwrite it) — platform and its fit rank, fulfilment, profit and place, ran out of cash or not, place
+  predictions right, conversion tiers deployed and how many were tested first; how the judgement held up; the
+  recommendations; a skills record (communication counts only written recommendations; self-assessment carries
+  its score); CV lines; LOs (LO2 "not covered", LO4 "assessed through the group Website Build"); assessment use;
+  the self-rating; and a **result code**
+  `MT1|seed|brief:platform:fitRank:finalRank:hits/weeks:i|s[:rN],…|S:before/after`.
+- **Instructor only** (behind `?instructor`, lazy-loaded as separate chunks): **cohort tally**
+  (`InstructorTally.jsx`: per brief — played, platforms chosen, how many chose the top fit, mean final place, ran
+  out of cash, prediction hit rate, recommendations; skills ratings before / after) and the **tutor's guide**
+  (`TutorGuide.jsx` + authored, number-free `src/engine/tutorNotes.js`): at a glance, running a session,
+  suggested sessions, debriefing, the fit table and how far the simulation's results agree with it (the § 10
+  facts, worded to stay true; warns when the instructor's settings differ from the defaults), the market
+  (rivals, events, platform and fulfilment costs, CRO, cash), skills, accessibility, and per brief the client's
+  economics, debrief questions, wrong turns and a stretch. Both open from the Instructor panel ("For the
+  seminar"). A refresh never lands a student on a staff page (`STAFF_PAGES` guard in `App.jsx`); being lazy, the
+  two pages focus their own h1 on mount (`useFocusOnMount`).
+- `progress.js`: `mt-progress` (first game per brief + recommendation), `mt-skills`, `mt-student-name`.
+- Tests: `outcomes.test.js`, `cohort.test.js` (record, code round-trip, parser errors, tally), and smoke renders
+  of the rating screen, log (empty / full), tally, guide and panel.
+
+Checked in the dev server: a full fashion game and a grocer game, the rating before and after, the
+recommendation, the log (also at 375px — no page overflow), the code pasted into the tally, the guide, the
+`?instructor=off` guard; axe reported no violations on the brief, rating, final results, log, tally, guide and
+panel. **Not checked:** inside the built site with the WMG shell, the printed PDF itself, a screen reader.
+
+Open:
+- "eCommerce technology selection" is this file's name for the LO1 subject skill; it follows the syllabus heading
+  (eCommerce Technology), but was not checked against the specification's own list of subject-specific skills.
+- The result code carries one seed (the first brief's); briefs played on different seeds are not distinguished.
+- There is no cohort seed link (`?seed=`) as Funnel Fixer has: a seed set in the Instructor panel stays in that
+  browser. The tutor's guide says so.
