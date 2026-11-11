@@ -1,144 +1,80 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useId, useMemo, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Cell,
 } from "recharts";
 import {
   SCENARIOS, SCMAP, SC, FULFILMENT, fulfilOf, CRO_LEVERS, CMAP, botCro, croConvOf,
-  PLATFORMS, PMAP, DEFAULT_CFG, eventFor, GLOSSARY, PLAYER_COLOR, gbp, makeRng,
+  PLATFORMS, PMAP, DEFAULT_CFG, eventFor, PLAYER_COLOR, gbp, gbp2, makeRng,
   getPlatform, initialStores, maturityOf, botDecide, resolveRound, leaderDecisionOf,
-  buildCSV, buildMarkdown, downloadFile,
+  unitEconomics, CRO_TEST_FRACTION, buildCSV, buildMarkdown, downloadFile,
 } from "../engine/engine.js";
 import { evaluatePlatforms, rationaleFor, fitOf, CRITERIA } from "../engine/platformfit.js";
-const FONT_IMPORT = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
-`;
-/* Light WMG redesign (2026-07): page #F5F5F6, white cards, shared red
-   primary #EE3124, dark #211F25 header band. Text tokens are AA on light
-   surfaces; *Fill tokens are for bars/dots/lines only, never small text.
-   The player's STORE identity stays MT blue: #009DDC for lines/graphics
-   (PLAYER_COLOR in the engine), #0272A0 where it colours text. */
-const T = {
-  ink: "#F5F5F6", panel: "#FFFFFF", panel2: "#F4F3F5", border: "#E4E4E7",
-  text: "#211F25", body2: "#454B50", muted: "#616265", faint: "#8A8A8E",
-  pos: "#2F7D33", neg: "#B3271E", platform: "#8A6D45",
-  posFill: "#3A9E3A", negFill: "#E2654E", amberFill: "#FBB034",
-  player: "#EE3124", playerText: "#D6261B", youText: "#0272A0",
-  sel: "#FDEBE9", track: "#E7E6E9", onAccent: "#FFFFFF", amber: "#946A11", gold: "#946A11",
-  hdrBg: "#211F25", hdrText: "#F5F4F6", hdrMuted: "#9A9A9E", hdrBorder: "#3B3843",
-  shadow: "0 12px 30px -26px rgba(0,0,0,0.5)",
-  display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
-};
-const PLAYER = T.player;
+import { debriefCards } from "../engine/debrief.js";
+import { T, PLAYER, GLOBAL_CSS, card, btn, ghostBtn, gatedBtn, pickCard, croBtn, tipStyle, backBtn } from "./theme.js";
+import {
+  PlainModeProvider, PT, Term, TermsHint, LOS, Eyebrow, Frame, InstructorButton, Chart,
+  SectionTitle, SubHead, ChoiceGroup, Slider, MiniStat, Banner,
+} from "./shared.jsx";
+import { useSessionState } from "./session.js";
+import { markHubPlayed } from "./progress.js";
+import { instructorMode } from "./urlConfig.js";
+import InstructorPanel from "./InstructorPanel.jsx";
 
-function Term({ term, children }) {
-  const [open, setOpen] = useState(false);
-  const def = GLOSSARY[term];
-  if (!def) return <span>{children}</span>;
-  return (
-    <span style={{ position: "relative", display: "inline-block" }}>
-      <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
-      {open && (
-        <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 210, fontWeight: 400,
-          background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "8px 10px", fontSize: 13, color: T.hdrText, lineHeight: 1.45, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>
-      )}
-    </span>
-  );
-}
-function TermsHint() {
-  return (
-    <div style={{ marginTop: 16, fontSize: 14, color: T.muted, display: "flex", alignItems: "center", gap: 7 }}>
-      <span style={{ fontSize: 15.5 }}>💡</span>
-      <span>Tip: any word with a <span style={{ borderBottom: `1px dotted ${T.muted}` }}>dotted underline</span> is clickable — tap it for a plain-English definition.</span>
-    </div>
-  );
-}
-
-/* ---- PLAIN-LANGUAGE TOGGLE (⑪) ------------------------------ */
-const PlainCtx = React.createContext(false);
-function PT({ rich, plain }) { return React.useContext(PlainCtx) ? plain : rich; }
-function usePlainMode() {
-  const [plain, setPlain] = useState(() => { try { return localStorage.getItem("mt-plain") === "1"; } catch { return false; } });
-  const toggle = () => setPlain((v) => { const nv = !v; try { localStorage.setItem("mt-plain", nv ? "1" : "0"); } catch {} return nv; });
-  return [plain, toggle];
-}
-/* ---- LEARNING-OUTCOME BADGES (⑦) ---------------------------- */
-const LOS = {
-  LO1: { title: "Technology → solution", full: "LO1 — Select appropriate technologies and turn them into a solution for specific e-commerce use-cases." },
-  LO2: { title: "Design patterns & implementation", full: "LO2 — Apply design patterns and best practice, and implement the solution." },
-  LO3: { title: "Enhance UX & conversion", full: "LO3 — Evaluate functionalities to enhance user experience and conversions." },
-  LO4: { title: "Collaborative analysis & build", full: "LO4 — Collaboratively analyse, and build a live e-commerce site." },
-};
-function LOBadges({ los }) {
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 18 }}>
-      <span style={{ fontSize: 12.5, color: T.muted, fontFamily: T.mono, letterSpacing: 1 }}>🎓 WM956-15</span>
-      {los.map((k) => (
-        <span key={k} title={LOS[k].full}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, background: T.panel2, border: `1px solid ${T.border}`, borderRadius: 999, padding: "3px 10px 3px 8px", fontSize: 13.5, cursor: "help", whiteSpace: "nowrap" }}>
-          <b style={{ color: T.amber, fontFamily: T.mono, fontWeight: 700 }}>{k}</b>
-          <span style={{ color: T.muted }}>{LOS[k].title}</span>
-        </span>
-      ))}
-    </div>
-  );
-}
-function PlainToggle({ plain, toggle }) {
-  return (
-    <button onClick={toggle} title="Swap stylised wording for simpler, literal English"
-      style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5, display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ fontSize: 16.5 }}>🗣️</span> Simpler English
-    </button>
-  );
-}
+/* Root: which screen is on show and the game behind it, mirrored to the
+   tab's session so a refresh resumes where the student was. `nav` counts
+   screen changes, so focus moves to each new screen's heading (not on
+   first load). The instructor panel exists only for staff (?instructor). */
+const VERSION = 2;
+const START = { v: VERSION, phase: "intro", name: "", selScenario: "fashion", selPlatform: "shopify", selFulfil: "inhouse",
+  stores: null, round: 1, log: [], prediction: null, predictionLog: [], nav: 0 };
+const pct0 = (v) => `${Math.round(v * 100)}%`;
+const units = (n) => Math.round(n).toLocaleString("en-GB");
 
 export default function App() {
-  const [phase, setPhase] = useState("intro");
-  const [name, setName] = useState("");
-  const [selScenario, setSelScenario] = useState("fashion");
-  const [selPlatform, setSelPlatform] = useState("shopify");
-  const [selFulfil, setSelFulfil] = useState("inhouse");
-  const [cfg, setCfg] = useState(DEFAULT_CFG);
-  const [stores, setStores] = useState(() => initialStores("", "shopify", "inhouse", DEFAULT_CFG.startingCash, SCENARIOS[0], DEFAULT_CFG.seed));
-  const [round, setRound] = useState(1);
-  const [log, setLog] = useState([]);
+  const [saved, setG] = useSessionState("game", START);
+  const [savedCfg, setSavedCfg] = useSessionState("cfg", { v: VERSION, cfg: DEFAULT_CFG });
+  const [instructor] = useState(() => instructorMode());
   const [showInstructor, setShowInstructor] = useState(false);
-  const [prediction, setPrediction] = useState(null);
-  const [predictionLog, setPredictionLog] = useState([]);
-  const [plain, togglePlain] = usePlainMode();
+  const live = saved?.v === VERSION ? saved : START;
+  // a game screen with no game behind it (a stale or partial save) falls back to the start
+  const g = ["play", "result", "end"].includes(live.phase) && !live.stores ? START : live;
+  const cfg = savedCfg?.v === VERSION ? savedCfg.cfg : DEFAULT_CFG;
+  const setCfg = (fn) => setSavedCfg((s) => ({ v: VERSION, cfg: typeof fn === "function" ? fn(s?.v === VERSION ? s.cfg : DEFAULT_CFG) : fn }));
+  const base = (a) => (a?.v === VERSION ? a : START);
+  const go = (patch) => setG((a) => ({ ...base(a), ...patch, nav: (base(a).nav || 0) + 1 }));
+  const upd = (patch) => setG((a) => ({ ...base(a), ...patch }));
+  const updPlayer = (fn) => setG((a) => ({ ...base(a), stores: base(a).stores.map((s) => (s.isPlayer ? fn(s) : s)) }));
 
-  const player = stores.find((s) => s.isPlayer);
-  const ranked = [...stores].sort((a, b) => b.cumProfit - a.cumProfit);
+  const { phase, name, selScenario, selPlatform, selFulfil, stores, round, log, prediction, predictionLog, nav } = g;
   const activeCfg = { ...cfg, scenarioId: selScenario };
+  const player = stores ? stores.find((s) => s.isPlayer) : null;
+  const ranked = stores ? [...stores].sort((a, b) => b.cumProfit - a.cumProfit) : [];
+  const rank = ranked.findIndex((s) => s.isPlayer) + 1;
+
+  useEffect(() => { if (phase === "end") markHubPlayed(); }, [phase]);
 
   function start() {
-    const scen = SCMAP[selScenario];
-    setCfg((c) => ({ ...c, scenarioId: selScenario }));
-    setStores(initialStores(name, selPlatform, selFulfil, cfg.startingCash, scen, cfg.seed));
-    setRound(1); setPredictionLog([]); setPrediction(null); setPhase("play");
+    go({ phase: "play", stores: initialStores(name, selPlatform, selFulfil, cfg.startingCash, SCMAP[selScenario], cfg.seed), round: 1, log: [], prediction: null, predictionLog: [] });
   }
-  function restart() { setPredictionLog([]); setPrediction(null); setPhase("intro"); }
-  function setPlayerDecision(patch) {
-    setStores((prev) => prev.map((s) => (s.isPlayer ? { ...s, decision: { ...s.decision, ...patch } } : s)));
-  }
+  const restart = () => go({ phase: "intro", stores: null, round: 1, log: [], prediction: null, predictionLog: [] });
+  const setPlayerDecision = (patch) => updPlayer((s) => ({ ...s, decision: { ...s.decision, ...patch } }));
   function croDeploy(leverId) {
-    setStores((prev) => prev.map((s) => {
-      if (!s.isPlayer) return s;
+    updPlayer((s) => {
       const tier = s.cro[leverId] || 0; if (tier >= 3) return s;
       const cost = CMAP[leverId].cost[tier];
       if ((s.croSpendThisWeek || 0) + cost > s.cash) return s;
       return { ...s, cro: { ...s.cro, [leverId]: tier + 1 }, croSpendThisWeek: (s.croSpendThisWeek || 0) + cost };
-    }));
+    });
   }
   function croTest(leverId) {
-    setStores((prev) => prev.map((s) => {
-      if (!s.isPlayer) return s;
+    updPlayer((s) => {
       const tier = s.cro[leverId] || 0; if (tier >= 3) return s;
       const key = leverId + ":" + (tier + 1); if (s.croTested[key]) return s;
-      const cost = Math.round(CMAP[leverId].cost[tier] * 0.18);
+      const cost = Math.round(CMAP[leverId].cost[tier] * CRO_TEST_FRACTION);
       if ((s.croSpendThisWeek || 0) + cost > s.cash) return s;
       return { ...s, croTested: { ...s.croTested, [key]: true }, croSpendThisWeek: (s.croSpendThisWeek || 0) + cost };
-    }));
+    });
   }
   function sellWeek() {
     const rng = makeRng(cfg.seed + ":" + round);
@@ -147,380 +83,248 @@ export default function App() {
     const stats = { lastTotalDemand, leaderDecision: leaderDecisionOf(stores) };
     const withBots = stores.map((s) => (s.isPlayer ? s : { ...s, decision: botDecide(s, stats, round, activeCfg, rng, sc) }));
     const { stores: resolved, log: lines } = resolveRound(withBots, round, activeCfg, rng);
-    const order = [...resolved].sort((a, b) => b.cumProfit - a.cumProfit);
-    const actualRank = order.findIndex((s) => s.isPlayer) + 1;
-    setPredictionLog((p) => [...p, { round, predicted: prediction, actual: actualRank, hit: prediction === actualRank }]);
-    setStores(resolved); setLog(lines); setPhase("result");
+    const actual = [...resolved].sort((a, b) => b.cumProfit - a.cumProfit).findIndex((s) => s.isPlayer) + 1;
+    go({ phase: "result", stores: resolved, log: lines, predictionLog: [...predictionLog, { round, predicted: prediction, actual, hit: prediction === actual }] });
   }
   function nextWeek() {
-    setPrediction(null);
-    if (round >= cfg.maxRounds) { setPhase("end"); return; }
-    setRound((r) => r + 1); setPhase("play");
+    if (round >= cfg.maxRounds) { go({ phase: "end", prediction: null }); return; }
+    go({ phase: "play", round: round + 1, prediction: null });
   }
 
-  return (
-    <PlainCtx.Provider value={plain}>
-    <div style={{ minHeight: "100vh", background: T.ink, color: T.text, fontFamily: T.body }}>
-      <style>{FONT_IMPORT + `
-        * { box-sizing: border-box; }
-        input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
-        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%;
-          cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; }
-        @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
-        @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
-        .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
-        @media (max-width:720px){ .cols2{ grid-template-columns:minmax(0,1fr) !important; } }
-        .recharts-cartesian-axis-tick text{ fill:${T.muted}; font-family:${T.mono}; font-size:12.5px; }
-      `}</style>
-
-      <Header round={round} phase={phase} player={player} cfg={activeCfg} rank={ranked.findIndex((s) => s.isPlayer) + 1} plain={plain} togglePlain={togglePlain} onToggleInstructor={() => setShowInstructor((v) => !v)} />
-
-      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "0 20px 64px" }}>
-        {phase === "intro" && <Intro name={name} setName={setName} cfg={activeCfg} onNext={() => setPhase("scenario")} />}
-        {phase === "scenario" && <ScenarioSelect selected={selScenario} setSelected={setSelScenario} onNext={() => setPhase("platform")} onBack={() => setPhase("intro")} />}
-        {phase === "platform" && <SetupSelect scenario={SCMAP[selScenario]} platform={selPlatform} setPlatform={setSelPlatform} fulfil={selFulfil} setFulfil={setSelFulfil} cfg={activeCfg} onLaunch={start} onBack={() => setPhase("scenario")} />}
-        {phase === "play" && <PlayBoard stores={stores} ranked={ranked} round={round} cfg={activeCfg} player={player} setPlayerDecision={setPlayerDecision} croDeploy={croDeploy} croTest={croTest} sellWeek={sellWeek} prediction={prediction} setPrediction={setPrediction} />}
-        {phase === "result" && <ResultView stores={stores} ranked={ranked} log={log} round={round} nextWeek={nextWeek} player={player} cfg={activeCfg} predictionLog={predictionLog} />}
-        {phase === "end" && <EndView stores={stores} ranked={ranked} restart={restart} player={player} cfg={activeCfg} predictionLog={predictionLog} />}
-      </div>
-
-      {showInstructor && <InstructorPanel cfg={cfg} setCfg={setCfg} defaults={DEFAULT_CFG} onClose={() => setShowInstructor(false)} />}
-    </div>
-    </PlainCtx.Provider>
-  );
-}
-
-function Header({ round, phase, player, rank, cfg, plain, togglePlain, onToggleInstructor }) {
+  const inGame = !!player && ["play", "result", "end"].includes(phase);
   const feeRaised = cfg.commissionRate > DEFAULT_CFG.commissionRate + 1e-6;
-  const showStats = phase === "play" || phase === "result" || phase === "end";
-  const cashColor = player.insolvent || player.cash < 0 ? "#FF5A4A" : player.cash < cfg.startingCash * 0.3 ? "#FBB034" : "#7DCB6A";
+  const stats = inGame ? [
+    ["WEEK", `${round}/${cfg.maxRounds}`],
+    ["PROFIT", gbp(player.cumProfit), player.cumProfit >= 0 ? T.hdrPos : T.hdrPlayer],
+    ["CASH", gbp(player.cash), player.cash < 0 ? T.hdrPlayer : player.cash < cfg.startingCash * 0.3 ? T.hdrAmber : T.hdrPos],
+    ["PLACE", `${rank} of ${stores.length}`, PLAYER_COLOR],
+    ["FEE", pct0(cfg.commissionRate), feeRaised ? T.hdrPlayer : T.hdrPlatform],
+  ] : [];
+  const last = inGame && phase === "result" ? player.last : null;
+
   return (
-    <div style={{ background: T.hdrBg, color: T.hdrText, position: "sticky", top: 0, zIndex: 30 }}>
-      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Marketplace <span style={{ color: PLAYER }}>Tycoon</span></span>
-          <span style={{ color: T.hdrMuted, fontSize: 14.5, fontFamily: T.mono }}>{showStats ? SC(cfg).icon + " " + SC(cfg).short : "e-commerce strategy lab"}</span>
+    <PlainModeProvider>
+      <div style={{ minHeight: "100vh", background: T.ink, color: T.text, fontFamily: T.body }}>
+        <style>{GLOBAL_CSS}</style>
+        <Frame screenKey={`${phase}:${round}`} autoFocus={nav > 0} subtitle={inGame ? `${SC(activeCfg).icon} ${SC(activeCfg).short}` : "e-commerce strategy lab"} stats={stats}
+          actions={instructor && <InstructorButton onClick={() => setShowInstructor(true)} />}>
+          {phase === "intro" && <Intro name={name} setName={(v) => upd({ name: v })} onNext={() => go({ phase: "scenario" })} />}
+          {phase === "scenario" && <ScenarioSelect selected={selScenario} setSelected={(v) => upd({ selScenario: v })} onNext={() => go({ phase: "platform" })} onBack={() => go({ phase: "intro" })} />}
+          {phase === "platform" && <SetupSelect scenario={SCMAP[selScenario]} platform={selPlatform} setPlatform={(v) => upd({ selPlatform: v })} fulfil={selFulfil} setFulfil={(v) => upd({ selFulfil: v })} cfg={activeCfg} onLaunch={start} onBack={() => go({ phase: "scenario" })} />}
+          {phase === "play" && player && <PlayBoard stores={stores} ranked={ranked} round={round} cfg={activeCfg} player={player} setPlayerDecision={setPlayerDecision} croDeploy={croDeploy} croTest={croTest} sellWeek={sellWeek} prediction={prediction} setPrediction={(v) => upd({ prediction: v })} />}
+          {phase === "result" && player && <ResultView ranked={ranked} log={log} round={round} nextWeek={nextWeek} player={player} cfg={activeCfg} predictionLog={predictionLog} />}
+          {phase === "end" && player && <EndView stores={stores} ranked={ranked} restart={restart} player={player} cfg={activeCfg} predictionLog={predictionLog} />}
+        </Frame>
+        {/* spoken once when a week resolves; the figures are on screen too */}
+        <div role="status" aria-live="polite" className="sr-only">
+          {last ? `Week ${round} resolved. Weekly profit ${gbp(last.profit)}. You are ${rank} of ${stores.length} on the leaderboard.` : ""}
         </div>
-        <div style={{ display: "flex", gap: "10px 16px", alignItems: "center", flexWrap: "wrap", fontFamily: T.mono, fontSize: 14.5 }}>
-          {showStats && <>
-            <Stat label="WEEK" value={`${round}/${cfg.maxRounds}`} />
-            <Stat label="PROFIT" value={gbp(player.cumProfit)} accent={player.cumProfit >= 0 ? "#7DCB6A" : "#FF5A4A"} />
-            <Stat label="CASH" value={gbp(player.cash)} accent={cashColor} />
-            <Stat label="RANK" value={`#${rank}`} accent={PLAYER_COLOR} />
-            <Stat label="FEE" value={`${Math.round(cfg.commissionRate * 100)}%`} accent={feeRaised ? "#FF5A4A" : "#C4A578"} />
-          </>}
-          <PlainToggle plain={plain} toggle={togglePlain} />
-          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5, display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 16.5 }}>⚙</span> Instructor
-          </button>
-        </div>
+        {showInstructor && instructor && <InstructorPanel cfg={cfg} setCfg={setCfg} defaults={DEFAULT_CFG} onClose={() => setShowInstructor(false)} />}
       </div>
-    </div>
+    </PlainModeProvider>
   );
 }
-// Header-only: values sit on the dark band, so accents use the bright palette.
-function Stat({ label, value, accent }) {
-  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 11.5, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 16.5 }}>{value}</div></div>;
-}
+
 function PlatformPill({ id }) {
   const p = PMAP[id]; if (!p) return null;
-  return <span style={{ fontFamily: T.mono, fontSize: 11.5, color: T.muted, border: `1px solid ${T.border}`, borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" }}>{p.short}</span>;
+  return <span style={{ fontFamily: T.mono, fontSize: 13, color: T.muted, border: `1px solid ${T.border}`, borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" }}><span className="sr-only">on </span>{p.short}</span>;
 }
+const h1Style = { fontFamily: T.display, fontWeight: 700, fontSize: 30, letterSpacing: -0.5, margin: 0 };
 
-function Eyebrow({ children, title }) {
-  return (
-    <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
-      <span aria-hidden="true" style={{ width: 26, height: 3, background: PLAYER, borderRadius: 3 }} />
-      <span style={{ color: T.playerText, fontSize: 14.5, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
-    </div>
-  );
-}
-function Intro({ name, setName, onNext, cfg }) {
+/* ---- INTRO -------------------------------------------------- */
+export function Intro({ name, setName, onNext }) {
+  const nameId = useId();
   return (
     <div className="rise" style={{ maxWidth: 820, margin: "48px auto 0" }}>
-      <Eyebrow title={`${LOS.LO1.full}\n${LOS.LO3.full}\n${LOS.LO4.full}`}>Strategy simulation · LO1 · LO3 · LO4</Eyebrow>
-      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 50, lineHeight: 1.04, letterSpacing: -1.2, margin: "16px 0 0" }}>
+      <Eyebrow>Strategy simulation · LO1 · LO3</Eyebrow>
+      <h1 className="mt-h1" style={{ fontFamily: T.display, fontWeight: 700, fontSize: 50, lineHeight: 1.04, letterSpacing: -1.2, margin: "16px 0 0" }}>
         <PT rich={<>Pick a client. Build the store.<br /><span style={{ color: PLAYER }}>Ten weeks to win.</span></>}
             plain={<>Choose a client. Set up the store.<br /><span style={{ color: PLAYER }}>Run it for ten weeks.</span></>} />
       </h1>
       <p style={{ color: T.body2, fontSize: 19, lineHeight: 1.6, marginTop: 18 }}>
         Choose a <b style={{ color: T.text }}>client brief</b>, a <b style={{ color: T.text }}>storefront platform</b> and a{" "}
         <b style={{ color: T.text }}>fulfilment model</b>, then run the store: set price, ad spend and stock, and invest in{" "}
-        <Term term="cro">conversion optimization</Term> each week. Win loyal regulars, manage cash and returns, survive
-        seasonal shocks, and outlast four rivals. The right strategy depends on the brief.
+        <Term term="cro">conversion optimisation</Term> each week. Win loyal regulars, manage cash and returns, survive
+        seasonal shocks, and out-earn four rivals. The right strategy depends on the brief.
       </p>
-      <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 22, flexWrap: "wrap" }}>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name your store…" style={{ flex: 1, minWidth: 220, background: T.panel, border: `1.5px solid ${T.border}`, color: T.text, borderRadius: 12, padding: "14px 16px", fontSize: 17.5, fontFamily: T.body, outline: "none" }} />
-        <button onClick={onNext} style={btn(PLAYER)}>Choose your client brief →</button>
+      <div style={{ marginTop: 22 }}>
+        <label htmlFor={nameId} style={{ display: "block", fontSize: 15, fontWeight: 600, marginBottom: 6 }}>Store name (optional)</label>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <input id={nameId} value={name} onChange={(e) => setName(e.target.value)} placeholder="Your Store" maxLength={40} style={{ flex: 1, minWidth: 220, background: T.panel, border: `1.5px solid ${T.muted}`, color: T.text, borderRadius: 12, padding: "14px 16px", fontSize: 17.5, fontFamily: T.body }} />
+          <button onClick={onNext} style={btn(T.playerBtn)}>Choose your client brief →</button>
+        </div>
       </div>
+      <section aria-labelledby="mt-develops" style={{ ...card(), marginTop: 26, padding: "16px 18px" }}>
+        <h2 id="mt-develops" style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, margin: "0 0 8px" }}>What this develops</h2>
+        <ul style={{ margin: 0, paddingLeft: 20, color: T.body2, fontSize: 15, lineHeight: 1.55 }}>
+          <li><b style={{ color: T.text }}>LO1.</b> {LOS.LO1} <span style={{ color: T.muted }}>— you choose and justify a platform for a client brief.</span></li>
+          <li><b style={{ color: T.text }}>LO3.</b> {LOS.LO3} <span style={{ color: T.muted }}>— you decide which conversion, fulfilment and retention work is worth its cost.</span></li>
+        </ul>
+      </section>
       <TermsHint />
     </div>
   );
 }
 
-function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
+/* ---- CLIENT BRIEF ------------------------------------------- */
+const volWord = (v) => (v >= 0.2 ? "high" : v >= 0.12 ? "medium" : "low");
+function ScreenHead({ title, onBack }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+      <h1 style={h1Style}>{title}</h1>
+      {onBack && <button onClick={onBack} style={backBtn}>← Back</button>}
+    </div>
+  );
+}
+function SpecRow({ label, value, mono }) {
+  return <span style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 14, marginBottom: 4 }}><span style={{ color: T.muted }}>{label}</span><span style={{ fontFamily: mono ? T.mono : T.body, fontWeight: 600, color: T.text, textAlign: "right" }}>{value}</span></span>;
+}
+const cardHead = (title, on) => (
+  <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+    <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17.5 }}>{title}</span>
+    {on && <span style={{ color: T.selText, fontWeight: 700, fontSize: 14 }}><span aria-hidden="true">✓ </span>chosen</span>}
+  </span>
+);
+const cardText = { display: "block", color: T.muted, fontSize: 14, lineHeight: 1.45, margin: "5px 0 9px" };
+
+export function ScenarioSelect({ selected, setSelected, onNext, onBack }) {
   const sel = SCMAP[selected];
   return (
     <div className="rise" style={{ maxWidth: 980, margin: "32px auto 0" }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 30, letterSpacing: -0.5, margin: 0 }}>Choose your client brief</h2>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 15.5 }}>← back</button>
-      </div>
+      <ScreenHead title="Choose your client brief" onBack={onBack} />
       <p style={{ color: T.muted, fontSize: 16.5, lineHeight: 1.55, marginTop: 8 }}>
         Each industry has a different shape — margins, demand volatility, return rates, how mobile its shoppers are, and
         whether ads or trust win. The same levers reward very different strategies. Your rivals face the same brief.
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginTop: 18 }}>
-        {SCENARIOS.map((s) => {
-          const on = s.id === selected;
-          return (
-            <button key={s.id} onClick={() => setSelected(s.id)} style={{ ...pickCard(on), borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18.5 }}>{s.icon} {s.name}</span>
-                {on && <span style={{ color: T.playerText, fontSize: 19.5 }}>✓</span>}
-              </div>
-              <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.45, margin: "2px 0 8px" }}>{s.brief}</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <SpecRow label="Margin" value={<>{gbp(s.priceMin)}–{gbp(s.priceMax)} · <Term term="cogs">COGS</Term> {gbp(s.unitCost)}</>} />
-                <SpecRow label="Demand / volatility" value={`${s.demandBase.toLocaleString()} · ${s.volatility >= 0.2 ? "high" : s.volatility >= 0.12 ? "med" : "low"}`} />
-                <SpecRow label="Return rate" value={`${Math.round(s.returnRate * 100)}%`} />
-                <SpecRow label="Mobile traffic" value={`${Math.round(s.mobileShare * 100)}%`} />
-              </div>
-              <div style={{ fontSize: 13, color: T.platform, lineHeight: 1.4, marginTop: 8 }}>{s.teach}</div>
-            </button>
-          );
-        })}
-      </div>
+      <ChoiceGroup label="Client brief" options={SCENARIOS} value={selected} onChange={setSelected}
+        style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginTop: 18 }}
+        btnStyle={(on) => ({ ...pickCard(on), borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 2 })}
+        render={(s, on) => (
+          <>
+            {cardHead(<><span aria-hidden="true">{s.icon} </span>{s.name}</>, on)}
+            <span style={cardText}>{s.brief}</span>
+            <SpecRow label="Price range" value={`${gbp(s.priceMin)}–${gbp(s.priceMax)}`} />
+            <SpecRow label="Unit cost (before fulfilment)" value={gbp(s.unitCost)} />
+            <SpecRow label="New buyers / week (whole market)" value={`about ${s.demandBase.toLocaleString("en-GB")}`} />
+            <SpecRow label="Demand volatility" value={volWord(s.volatility)} />
+            <SpecRow label="Return rate" value={pct0(s.returnRate)} />
+            <SpecRow label="Mobile traffic" value={pct0(s.mobileShare)} />
+            <span style={{ display: "block", fontSize: 13.5, color: T.platform, lineHeight: 1.4, marginTop: 8 }}>{s.teach}</span>
+          </>
+        )} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 20, flexWrap: "wrap" }}>
         <div style={{ color: T.muted, fontSize: 15 }}>Briefing the team on <b style={{ color: T.text }}>{sel.name}</b>.</div>
-        <button onClick={onNext} style={btn(PLAYER)}>Set up your store →</button>
+        <button onClick={onNext} style={btn(T.playerBtn)}>Set up your store →</button>
       </div>
     </div>
   );
 }
 
 /* ---- PLATFORM-FIT EVALUATION (LO1) -------------------------- */
-const VERDICT_COL = { "Strong fit": T.pos, "Workable": T.gold, "Poor fit": T.neg };
+const VERDICT_COL = { "Strong fit": [T.pos, T.posTint], "Workable": [T.amber, T.amberTint], "Poor fit": [T.neg, T.negTint] };
 function FitChip({ verdict, fit }) {
-  const c = VERDICT_COL[verdict] || T.muted;
-  return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: `${c}1a`, border: `1px solid ${c}55`, color: c, borderRadius: 6, padding: "1px 7px", fontSize: 12.5, fontWeight: 600 }}>
-      {verdict} · {Math.round(fit * 100)}%
-    </span>
-  );
+  const [c, bg] = VERDICT_COL[verdict] || [T.muted, T.panel2];
+  return <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: bg, border: `1px solid ${c}`, color: c, borderRadius: 6, padding: "1px 7px", fontSize: 13, fontWeight: 700 }}>{verdict} · fit {Math.round(fit * 100)}/100</span>;
 }
 function PlatformFitPanel({ scenario, evalr, platform }) {
   const topNeeds = [...CRITERIA].map((c) => ({ ...c, w: evalr.weights[c.key] })).sort((a, b) => b.w - a.w);
-  const maxW = topNeeds[0].w || 1;
   const recRow = evalr.rows.find((r) => r.id === evalr.recommended);
   const f = fitOf(scenario, platform);
   const matched = platform === evalr.recommended;
   return (
-    <div style={{ marginTop: 16, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 16.5 }}>🧭</span>
-        <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5 }}>Which stack fits a {scenario.short} store?</span>
-      </div>
-      <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, margin: "0 0 12px" }}>{scenario.brief}</p>
+    <section aria-labelledby="mt-fit" style={{ marginTop: 16, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16 }}>
+      <h3 id="mt-fit" style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, margin: "0 0 4px" }}><span aria-hidden="true">🧭 </span>Which stack fits a {scenario.short} store?</h3>
+      <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, margin: "0 0 12px" }}>{scenario.brief} The fit score weighs each platform's attributes by what this brief needs. It is a requirements argument, not a forecast. In this simulation a well-run store tends to earn most on the top-fit platform, but only by a few per cent: your pricing, stock, advertising and conversion work move profit far more.</p>
       <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(180px,1fr) minmax(220px,1.3fr)", gap: 18 }}>
         <div>
-          <div style={{ fontFamily: T.mono, fontSize: 12, letterSpacing: 1, color: T.muted, marginBottom: 8 }}>WHAT THIS BRIEF NEEDS MOST</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <h4 style={{ fontFamily: T.mono, fontSize: 13, letterSpacing: 1, color: T.muted, margin: "0 0 8px", fontWeight: 700 }}>WHAT THIS BRIEF NEEDS MOST</h4>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 6 }}>
             {topNeeds.map((n) => (
-              <div key={n.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 13, color: T.text, width: 116, flexShrink: 0 }}>{n.label}</span>
-                <div style={{ flex: 1, height: 6, background: T.track, borderRadius: 6, overflow: "hidden" }}>
-                  <div style={{ width: `${Math.round((n.w / maxW) * 100)}%`, height: "100%", background: T.platform }} />
-                </div>
-              </div>
+              <li key={n.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 13.5, color: T.text, width: 150, flexShrink: 0 }}>{n.label}</span>
+                <span aria-hidden="true" style={{ flex: 1, height: 6, background: T.track, borderRadius: 6, overflow: "hidden" }}>
+                  <span style={{ display: "block", width: `${Math.round((n.w / (topNeeds[0].w || 1)) * 100)}%`, height: "100%", background: T.platformFill }} />
+                </span>
+                <span style={{ fontFamily: T.mono, fontSize: 13, color: T.muted, width: 38, textAlign: "right" }}>{pct0(n.w)}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
         <div>
-          <div style={{ fontFamily: T.mono, fontSize: 12, letterSpacing: 1, color: T.muted, marginBottom: 8 }}>THE VERDICT</div>
-          <div style={{ fontSize: 14.5, lineHeight: 1.55, color: T.text, marginBottom: 8 }}>
-            <b style={{ color: T.youText }}>★ {recRow.name}</b> is the strongest fit. {rationaleFor(recRow, scenario)}
-          </div>
-          <div style={{ fontSize: 14, lineHeight: 1.5, color: matched ? T.pos : T.gold, borderTop: `1px solid ${T.border}`, paddingTop: 8 }}>
+          <h4 style={{ fontFamily: T.mono, fontSize: 13, letterSpacing: 1, color: T.muted, margin: "0 0 8px", fontWeight: 700 }}>THE EVALUATION</h4>
+          <p style={{ fontSize: 14.5, lineHeight: 1.55, color: T.text, margin: "0 0 8px" }}>
+            <b style={{ color: T.youText }}>{recRow.name}</b> scores highest against these needs. {rationaleFor(recRow, scenario)}
+          </p>
+          <p style={{ fontSize: 14.5, lineHeight: 1.5, color: T.text, borderTop: `1px solid ${T.border}`, paddingTop: 8, margin: 0 }}>
             {matched
-              ? <>✓ Your pick matches the strongest fit for this brief.</>
-              : <>Your pick — <b style={{ color: T.text }}>{f.row.name}</b> ({f.row.verdict}, ranked {f.rank}/{f.total}) — isn't the top fit here. There's no single right answer, but be ready to justify it in your report.</>}
-          </div>
+              ? <>Your pick is the highest-scoring fit for this brief.</>
+              : <>Your pick — <b>{f.row.name}</b> ({f.row.verdict.toLowerCase()}, {f.rank} of {f.total}) — is not the highest-scoring fit. There is no single right answer, but be ready to justify it.</>}
+          </p>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLaunch, onBack, cfg }) {
+export function SetupSelect({ scenario, platform, setPlatform, fulfil, setFulfil, onLaunch, onBack, cfg }) {
   const evalr = evaluatePlatforms(scenario);
   const fitById = Object.fromEntries(evalr.rows.map((r) => [r.id, r]));
+  const grid = { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 };
   return (
     <div className="rise" style={{ maxWidth: 980, margin: "32px auto 0" }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Set up your store — {scenario.icon} {scenario.short}</h2>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 15.5 }}>← back</button>
-      </div>
-
-      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "20px 0 10px" }}>1 · Storefront platform</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}>
-        {PLATFORMS.map((base) => {
-          const p = getPlatform(cfg, base.id); const on = base.id === platform;
-          const f = fitById[base.id]; const rec = base.id === evalr.recommended;
+      <ScreenHead title={<>Set up your store — <span aria-hidden="true">{scenario.icon} </span>{scenario.short}</>} onBack={onBack} />
+      <SubHead id="mt-plat">1 · Storefront platform</SubHead>
+      <ChoiceGroup labelId="mt-plat" options={PLATFORMS} value={platform} onChange={setPlatform} style={grid}
+        btnStyle={(on) => ({ ...pickCard(on), borderRadius: 14, padding: 15 })}
+        render={(base, on) => {
+          const p = getPlatform(cfg, base.id); const f = fitById[base.id];
           return (
-            <button key={base.id} onClick={() => setPlatform(base.id)} style={{ ...pickCard(on), borderRadius: 14, padding: 15 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>{base.name}</span>{on && <span style={{ color: T.playerText }}>✓</span>}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "6px 0 2px" }}>
+            <>
+              {cardHead(base.name, on)}
+              <span style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6, margin: "6px 0 2px" }}>
                 <FitChip verdict={f.verdict} fit={f.fit} />
-                {rec && <span title="Strongest fit for this brief" style={{ fontFamily: T.mono, fontSize: 11.5, letterSpacing: 0.5, color: T.youText, border: `1px solid ${T.youText}66`, borderRadius: 5, padding: "1px 5px" }}>★ BEST FIT</span>}
-              </div>
-              <p style={{ color: T.muted, fontSize: 13.5, lineHeight: 1.4, margin: "5px 0 9px" }}>{base.blurb}</p>
-              <SpecRow label="Cost / week" value={gbp(p.fixedCost) + (p.txnFee ? ` + ${(p.txnFee * 100).toFixed(p.txnFee * 100 % 1 ? 1 : 0)}%` : "")} />
-              <SpecRow label="Time to value" value={base.rampWeeks <= 1 ? "Instant" : `${base.rampWeeks} wks`} />
-              <SpecRow label="Ceiling" value={"●".repeat(base.ceiling) + "○".repeat(4 - base.ceiling)} mono />
-            </button>
+                {base.id === evalr.recommended && <span style={{ fontFamily: T.mono, fontSize: 13, color: T.youText, border: `1px solid ${T.youText}`, borderRadius: 5, padding: "1px 5px" }}><span aria-hidden="true">★ </span>TOP FIT</span>}
+              </span>
+              <span style={cardText}>{base.blurb}</span>
+              <SpecRow label="Cost / week" value={gbp(p.fixedCost) + (p.txnFee ? ` + ${(p.txnFee * 100).toFixed((p.txnFee * 100) % 1 ? 1 : 0)}% of sales` : "")} />
+              <SpecRow label="Time to full power" value={base.rampWeeks <= 1 ? "Instant" : `${base.rampWeeks} weeks`} />
+              <SpecRow label="Performance ceiling" value={`${base.ceiling} of 4`} mono />
+            </>
           );
-        })}
-      </div>
+        }} />
 
       <PlatformFitPanel scenario={scenario} evalr={evalr} platform={platform} />
-      <div style={{ marginTop: 8 }}><LOBadges los={["LO1"]} /></div>
 
       {!scenario.digital ? (
         <>
-          <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, color: T.muted, textTransform: "uppercase", letterSpacing: 0.4, margin: "22px 0 10px" }}>2 · Fulfilment model</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}>
-            {FULFILMENT.map((f) => {
-              const on = f.id === fulfil;
-              return (
-                <button key={f.id} onClick={() => setFulfil(f.id)} style={{ ...pickCard(on), borderRadius: 14, padding: 15 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17 }}>{f.icon} {f.short}</span>{on && <span style={{ color: T.playerText }}>✓</span>}
-                  </div>
-                  <p style={{ color: T.muted, fontSize: 13.5, lineHeight: 1.4, margin: "5px 0 9px" }}>{f.blurb}</p>
-                  <SpecRow label="Cost / unit" value={f.perUnitCost ? gbp(f.perUnitCost) : (f.marginCut ? `${Math.round(f.marginCut * 100)}% cut` : "£0")} />
-                  <SpecRow label="Weekly fee" value={f.fixed ? gbp(f.fixed) : "—"} />
-                  <SpecRow label="Stock risk" value={f.infiniteStock ? "none (unlimited)" : f.stockMult > 1 ? "cushioned" : "you carry it"} />
-                </button>
-              );
-            })}
-          </div>
+          <SubHead id="mt-ful">2 · Fulfilment model</SubHead>
+          <ChoiceGroup labelId="mt-ful" options={FULFILMENT} value={fulfil} onChange={setFulfil} style={grid}
+            btnStyle={(on) => ({ ...pickCard(on), borderRadius: 14, padding: 15 })}
+            render={(f, on) => (
+              <>
+                {cardHead(<><span aria-hidden="true">{f.icon} </span>{f.short}</>, on)}
+                <span style={cardText}>{f.blurb}</span>
+                <SpecRow label="Cost / unit shipped" value={f.perUnitCost ? gbp2(f.perUnitCost) : f.marginCut ? `${pct0(f.marginCut)} of sales` : gbp2(0)} />
+                <SpecRow label="Weekly fee" value={f.fixed ? gbp(f.fixed) : "none"} />
+                <SpecRow label="Stock risk" value={f.infiniteStock ? "none (unlimited)" : f.stockMult > 1 ? "cushioned" : "you carry it"} />
+              </>
+            )} />
         </>
       ) : (
         <div style={{ marginTop: 22, background: T.panel, border: `1px solid ${T.border}`, borderRadius: 14, padding: 16, color: T.muted, fontSize: 15 }}>
-          ⬇️ <b style={{ color: T.text }}>Digital delivery</b> — this brief ships electronically. No fulfilment choice, no stock limit, no shipping cost. Checkout UX and pricing are everything.
+          <span aria-hidden="true">⬇️ </span><b style={{ color: T.text }}>Digital delivery</b> — this brief ships electronically. No fulfilment choice, no stock limit, no shipping cost. Checkout UX and pricing are everything.
         </div>
       )}
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 22 }}>
-        <button onClick={onLaunch} style={btn(PLAYER)}>Launch store →</button>
+        <button onClick={onLaunch} style={btn(T.playerBtn)}>Launch store →</button>
       </div>
-    </div>
-  );
-}
-function SpecRow({ label, value, mono }) {
-  return <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 4 }}><span style={{ color: T.muted }}>{label}</span><span style={{ fontFamily: mono ? T.mono : T.body, fontWeight: 600, color: T.text }}>{value}</span></div>;
-}
-
-/* ---- INSTRUCTOR PANEL -------------------------------------- */
-function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
-  const set = (patch) => setCfg((c) => ({ ...c, ...patch }));
-  const setWeight = (k, v) => setCfg((c) => ({ ...c, weights: { ...c.weights, [k]: v } }));
-  const setPlatCost = (id, v) => setCfg((c) => ({ ...c, platforms: { ...c.platforms, [id]: { ...c.platforms[id], fixedCost: v } } }));
-  const A = T.platform;
-  const preset = (label, patch) => <button key={label} onClick={() => set(patch)} style={presetBtn}>{label}</button>;
-  const platShock = (label, build) => <button key={label} onClick={() => setCfg((c) => build(c))} style={presetBtn}>{label}</button>;
-  const hikeFixed = (c, ids, mult) => { const platforms = { ...c.platforms }; ids.forEach((id) => { platforms[id] = { ...platforms[id], fixedCost: Math.round(PMAP[id].fixedCost * mult) }; }); return { ...c, platforms }; };
-  return (
-    <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#00000066", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: T.panel, borderLeft: `1px solid ${T.border}`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #00000030" }}>
-        <div style={{ padding: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
-            <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>
-          </div>
-          <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, marginTop: 0 }}>Changes apply to the <b style={{ color: T.text }}>next week resolved</b>. The brief sets base economics; these tune the market around it.</p>
-
-          <PanelGroup title="Classroom" note="A shared seed gives the whole cohort an identical market — then debrief why results differed.">
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 500, marginBottom: 6 }}>Market seed</div>
-              <div style={{ display: "flex", gap: 6 }}>
-                <input value={cfg.seed} onChange={(e) => set({ seed: e.target.value })} style={{ flex: 1, background: T.panel, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 14.5, outline: "none" }} />
-                <button onClick={() => set({ seed: "M" + Math.random().toString(36).slice(2, 7).toUpperCase() })} style={{ ...presetBtn, padding: "8px 10px" }}>🎲</button>
-              </div>
-              <div style={{ fontSize: 12.5, color: T.muted, marginTop: 5 }}>Set before launch; also controls which CRO bets pay off.</div>
-            </div>
-            <ToggleRow label="Seasonal events on" on={cfg.eventsOn} accent={A} onToggle={() => set({ eventsOn: !cfg.eventsOn })} />
-            <InstructorSlider label="Starting cash (new game)" accent={A} value={cfg.startingCash} min={0} max={12000} step={250} fmt={(v) => gbp(v)} onChange={(v) => set({ startingCash: v })} changed={cfg.startingCash !== defaults.startingCash} />
-          </PanelGroup>
-
-          <PanelGroup title="Marketplace economics">
-            <InstructorSlider label="Commission (the take)" accent={A} value={cfg.commissionRate} min={0} max={0.4} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(v) => set({ commissionRate: v })} changed={cfg.commissionRate !== defaults.commissionRate} />
-            <InstructorSlider label="Demand multiplier" accent={A} value={cfg.demandMult} min={0.3} max={2} step={0.05} fmt={(v) => `${v.toFixed(2)}×`} onChange={(v) => set({ demandMult: v })} changed={cfg.demandMult !== defaults.demandMult} />
-            <InstructorSlider label="Holding / spoilage ×" accent={A} value={cfg.holdingMult} min={0.3} max={2.5} step={0.1} fmt={(v) => `${v.toFixed(1)}×`} onChange={(v) => set({ holdingMult: v })} changed={cfg.holdingMult !== defaults.holdingMult} />
-          </PanelGroup>
-
-          <PanelGroup title="Platform rent — fixed cost / week" note="Raise mid-game to demonstrate platform pricing power; hits every store on that platform.">
-            {PLATFORMS.map((p) => <InstructorSlider key={p.id} label={p.short} accent={A} value={cfg.platforms[p.id].fixedCost} min={0} max={1500} step={10} fmt={(v) => `£${v}/wk`} onChange={(v) => setPlatCost(p.id, v)} changed={cfg.platforms[p.id].fixedCost !== defaults.platforms[p.id].fixedCost} />)}
-          </PanelGroup>
-
-          <PanelGroup title="Platform rent — transaction fee">
-            <InstructorSlider label="Transaction fee add-on (all)" accent={A} value={cfg.txnAddon} min={0} max={0.06} step={0.005} fmt={(v) => `+${(v * 100).toFixed(1)}%`} onChange={(v) => set({ txnAddon: v })} changed={cfg.txnAddon !== defaults.txnAddon} />
-          </PanelGroup>
-
-          <PanelGroup title="Search-ranking weights" note="Relative pull of each factor. They needn't sum to 1.">
-            <InstructorSlider label="Price sensitivity" accent={A} value={cfg.weights.price} min={0} max={0.8} step={0.05} fmt={(v) => v.toFixed(2)} onChange={(v) => setWeight("price", v)} changed={cfg.weights.price !== defaults.weights.price} />
-            <InstructorSlider label="Review weight" accent={A} value={cfg.weights.review} min={0} max={0.8} step={0.05} fmt={(v) => v.toFixed(2)} onChange={(v) => setWeight("review", v)} changed={cfg.weights.review !== defaults.weights.review} />
-            <InstructorSlider label="Ad visibility weight" accent={A} value={cfg.weights.ad} min={0} max={0.8} step={0.05} fmt={(v) => v.toFixed(2)} onChange={(v) => setWeight("ad", v)} changed={cfg.weights.ad !== defaults.weights.ad} />
-          </PanelGroup>
-
-          <PanelGroup title="Teaching shocks — one tap">
-            <div style={{ display: "grid", gap: 8 }}>
-              {platShock("🏢 SaaS price hike — Wix & Shopify +50%", (c) => hikeFixed(c, ["wix", "shopify"], 1.5))}
-              {platShock("💳 Transaction fees jump — +3% for everyone", (c) => ({ ...c, txnAddon: 0.03 }))}
-              {platShock("🖥 Headless infra spike — +60%", (c) => hikeFixed(c, ["headless"], 1.6))}
-              {platShock("🔌 Reset platform pricing only", (c) => ({ ...c, txnAddon: 0, platforms: defaults.platforms }))}
-              {preset("📈 Raise the take → 30%", { commissionRate: 0.30 })}
-              {preset("💸 Ad-driven market", { weights: { price: 0.25, review: 0.20, ad: 0.55 } })}
-              {preset("⭐ Quality-driven market", { weights: { price: 0.25, review: 0.55, ad: 0.20 } })}
-              {preset("🩸 Price war", { weights: { price: 0.70, review: 0.15, ad: 0.15 } })}
-              {preset("📉 Demand crunch (×0.5)", { demandMult: 0.5 })}
-            </div>
-          </PanelGroup>
-
-          <button onClick={() => setCfg(defaults)} style={{ width: "100%", marginTop: 8, background: "transparent", color: T.muted, border: `1px solid ${T.border}`, borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5 }}>↺ Reset all to defaults</button>
-        </div>
-      </div>
-    </>
-  );
-}
-const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "9px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 14, lineHeight: 1.3 };
-function ToggleRow({ label, on, onToggle, accent }) {
-  return (
-    <div onClick={onToggle} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: 13, fontSize: 14.5, fontWeight: 500 }}>
-      <span>{label}</span>
-      <span style={{ width: 38, height: 22, borderRadius: 22, background: on ? accent : T.track, position: "relative", transition: "background .15s" }}><span style={{ position: "absolute", top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 18, background: "#FFFFFF", boxShadow: "0 1px 3px #00000040", transition: "left .15s" }} /></span>
-    </div>
-  );
-}
-function PanelGroup({ title, note, children }) {
-  return <div style={{ marginTop: 18 }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14.5, letterSpacing: 0.3, textTransform: "uppercase", color: T.muted, marginBottom: 10 }}>{title}</div>{note && <div style={{ fontSize: 13, color: T.muted, marginTop: -4, marginBottom: 10, lineHeight: 1.4 }}>{note}</div>}{children}</div>;
-}
-function InstructorSlider({ label, value, min, max, step, fmt, onChange, accent, changed }) {
-  return (
-    <div style={{ marginBottom: 13 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 14.5, fontWeight: 500 }}>{label}{changed && <span style={{ color: accent, marginLeft: 5 }}>•</span>}</span><span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 14.5, color: accent }}>{fmt(value)}</span></div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", marginTop: 7, "--accent": accent, "--accent-soft": accent + "30" }} />
     </div>
   );
 }
 
 /* ---- PLAY BOARD --------------------------------------------- */
-function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTest, sellWeek, player, cfg, prediction, setPrediction }) {
+export function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTest, sellWeek, player, cfg, prediction, setPrediction }) {
   const sc = SC(cfg);
   const d = player.decision;
   const platform = getPlatform(cfg, player.platformId);
@@ -530,297 +334,270 @@ function PlayBoard({ stores, ranked, round, setPlayerDecision, croDeploy, croTes
   const croConv = croConvOf(player.cro, true, player.croLifts, sc);
   const committed = player.croSpendThisWeek || 0;
   const availCash = player.cash - committed;
-  const unitCostTotal = sc.unitCost + ful.perUnitCost;
-  const unitMargin = d.price - unitCostTotal - d.price * cfg.commissionRate - d.price * platform.txnFee - d.price * (ful.marginCut || 0);
-  const breakEvenUnits = unitMargin > 0 ? (d.ad + committed + platform.fixedCost + (ful.fixed || 0)) / unitMargin : Infinity;
+  const ue = unitEconomics(player, round, cfg);
   const hiked = platform.fixedCost !== PMAP[player.platformId].fixedCost || platform.txnFee !== PMAP[player.platformId].txnFee;
+  const wentNegative = player.history.find((h) => h.cash < 0);
+  const predId = useId();
 
   return (
-    <div className="rise cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(0,1fr)", gap: 18, marginTop: 22 }}>
-      <div style={card()}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18.5 }}>Your move — Week {round}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: T.mono, fontSize: 12.5, color: T.platform }}>{platform.short} · {ful.short}</span>
-        </div>
-        <div style={{ background: T.panel2, borderRadius: 9, padding: "8px 11px", marginBottom: 14, fontSize: 13, color: T.muted, lineHeight: 1.45 }}>
-          {sc.icon} <b style={{ color: T.text }}>{sc.name}:</b> {sc.teach}
-        </div>
-
-        {ev && <Banner bg="#F5EFE3" bd={`${T.platform}66`}><b>{ev.icon} This week: {ev.title}</b><div style={{ fontSize: 13.5, color: T.muted, marginTop: 3, lineHeight: 1.45 }}>{ev.desc}</div></Banner>}
-        {player.insolvent && <Banner bg="#FBE9E7" bd={T.negFill}>💀 You're <Term term="insolvent">insolvent</Term> — out of cash. Keep trading if you like, but this is where real stores die. Cut spend, rebuild margin.</Banner>}
-        {mat < 1 && <Banner bg="#F5EFE3" bd={`${T.platform}44`}>🏗 {platform.short} is {Math.round(mat * 100)}% built — paying {gbp(platform.fixedCost)}/wk in full while the edge ramps in (full power by week {platform.rampWeeks}).</Banner>}
-        {hiked && <Banner bg="#FBE9E7" bd={`${T.negFill}`}>⚡ Platform pricing changed — now {gbp(platform.fixedCost)}/wk{platform.txnFee ? ` + ${(platform.txnFee * 100).toFixed(1)}%` : ""}. You're locked in.</Banner>}
-
-        <Slider label="Price" accent={PLAYER} value={d.price} min={sc.priceMin} max={sc.priceMax} step={1} fmt={gbp} hint="A lower price wins more sales — but every £1 off comes straight out of your already small profit margin." onChange={(v) => setPlayerDecision({ price: v })} />
-        <Slider label="Ad spend" accent={PLAYER} value={d.ad} min={0} max={2500} step={50} fmt={gbp} hint={`Buys visibility (an auction). This brief is ${sc.adResponse >= 1.1 ? "ad-responsive" : sc.adResponse <= 0.8 ? "research-led — ads do less" : "moderately ad-responsive"}.`} onChange={(v) => setPlayerDecision({ ad: v })} />
-        {ful.infiniteStock ? (
-          <div style={{ marginBottom: 16, fontSize: 14, color: T.muted, background: T.panel2, borderRadius: 9, padding: "10px 12px" }}>
-            ♾ <b style={{ color: T.text }}>Unlimited inventory</b> — {sc.digital ? "digital goods never stock out." : "your dropship supplier holds the stock."} No stocking decision this week.
+    <div className="rise" style={{ marginTop: 22 }}>
+      <h1 style={{ ...h1Style, fontSize: 26 }}>Week {round} of {cfg.maxRounds} — your move</h1>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(0,1fr)", gap: 18, marginTop: 14 }}>
+        <div style={card()}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+            <SectionTitle>Your decisions</SectionTitle>
+            <span style={{ fontFamily: T.mono, fontSize: 13.5, color: T.platform }}>{platform.short} · {ful.short}</span>
           </div>
-        ) : (
-          <Slider label={<>Units stocked <Term term="newsvendor">(stocking)</Term></>} accent={PLAYER} value={d.stock} min={0} max={Math.round(sc.demandBase * 1.4)} step={25} fmt={(n) => n.toLocaleString()} hint={sc.holdingPerUnit >= 1.5 ? "Unsold units spoil, so ordering too much is very costly here. Match your stock to expected demand." : "Too few and you stock out; too much and you eat holding costs."} onChange={(v) => setPlayerDecision({ stock: v })} />
-        )}
-
-        <CROPanel player={player} sc={sc} croConv={croConv} availCash={availCash} onDeploy={croDeploy} onTest={croTest} />
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
-          <MiniStat label={<Term term="contribution">Contribution / unit</Term>} value={gbp(unitMargin)} sub={<><Term term="cogs">COGS</Term> {gbp(unitCostTotal)} + fees</>} accent={unitMargin > 0 ? T.pos : T.neg} />
-          <MiniStat label="Break-even volume" value={isFinite(breakEvenUnits) ? `${Math.ceil(breakEvenUnits)} units` : "—"} sub={<>covers ad + <Term term="cro">CRO</Term> + platform</>} accent={T.platform} />
-          <MiniStat label={<Term term="regulars">Returning regulars</Term>} value={Math.round(player.loyalBase).toLocaleString()} sub="uncontested recurring demand" accent={T.youText} />
-          <MiniStat label={<Term term="workingcapital">Cash available</Term>} value={gbp(availCash)} sub={committed > 0 ? `${gbp(committed)} committed to CRO` : "your runway"} accent={availCash < 0 ? T.neg : availCash < cfg.startingCash * 0.3 ? "#FBB034" : T.pos} />
-        </div>
-
-        <div style={{ marginTop: 16, background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 9 }}>Before you sell — where will you rank this week?</div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {[1, 2, 3, 4, 5].map((n) => <button key={n} onClick={() => setPrediction(n)} style={{ flex: 1, padding: "9px 0", borderRadius: 8, cursor: "pointer", fontFamily: T.mono, fontWeight: 700, fontSize: 14.5, border: `1px solid ${prediction === n ? PLAYER : T.border}`, background: prediction === n ? PLAYER : "transparent", color: prediction === n ? T.onAccent : T.text }}>#{n}</button>)}
+          <div style={{ background: T.panel2, borderRadius: 9, padding: "8px 11px", marginBottom: 14, fontSize: 14, color: T.muted, lineHeight: 1.45 }}>
+            <span aria-hidden="true">{sc.icon} </span><b style={{ color: T.text }}>{sc.name}:</b> {sc.teach}
           </div>
+
+          {ev && <Banner><b><span aria-hidden="true">{ev.icon} </span>This week: {ev.title}</b><div style={{ fontSize: 14, color: T.body2, marginTop: 3, lineHeight: 1.45 }}>{ev.desc}</div></Banner>}
+          {player.cash < 0
+            ? <Banner tone="bad"><span aria-hidden="true">💀 </span>You're <Term term="insolvent">insolvent</Term> — {gbp(-player.cash)} overdrawn. The game lets you keep trading; a real store would be closing. Cut spend and rebuild margin.</Banner>
+            : wentNegative && <Banner tone="bad">You ran out of cash in week {wentNegative.round} and have traded back to {gbp(player.cash)}. That week still counts against you in the final result.</Banner>}
+          {mat < 1 && <Banner><span aria-hidden="true">🏗 </span>{platform.short} is {pct0(mat)} built — you pay {gbp(platform.fixedCost)} a week in full while it converts and advertises below its finished level (full power by week {platform.rampWeeks}).</Banner>}
+          {hiked && <Banner tone="bad"><span aria-hidden="true">⚡ </span>Platform pricing changed — now {gbp(platform.fixedCost)} a week{platform.txnFee ? ` + ${(platform.txnFee * 100).toFixed(1)}% of sales` : ""}. You're locked in.</Banner>}
+
+          <Slider label="Price" accent={PLAYER} value={d.price} min={sc.priceMin} max={sc.priceMax} step={1} fmt={gbp} hint="A lower price wins a bigger share of new buyers, but every £1 off comes out of the contribution on every unit you ship." onChange={(v) => setPlayerDecision({ price: v })} />
+          <Slider label="Ad spend" accent={PLAYER} value={d.ad} min={0} max={2500} step={50} fmt={gbp} hint={`Buys visibility relative to your rivals' spend. This brief is ${sc.adResponse >= 1.1 ? "ad-responsive" : sc.adResponse <= 0.8 ? "research-led — ads do less" : "moderately ad-responsive"}.`} onChange={(v) => setPlayerDecision({ ad: v })} />
+          {ful.infiniteStock ? (
+            <div style={{ marginBottom: 16, fontSize: 14.5, color: T.muted, background: T.panel2, borderRadius: 9, padding: "10px 12px" }}>
+              <b style={{ color: T.text }}>Unlimited inventory</b> — {sc.digital ? "digital goods never stock out." : "your dropship supplier holds the stock."} No stocking decision this week.
+            </div>
+          ) : (
+            <Slider label="Units stocked" accent={PLAYER} value={d.stock} min={0} max={Math.round(sc.demandBase * 1.4)} step={25} fmt={(n) => n.toLocaleString("en-GB")} valueText={(n) => `${n.toLocaleString("en-GB")} units`}
+              hint={<>{sc.holdingPerUnit >= 1.5 ? "Unsold units spoil, so ordering too much is very costly here. Match your stock to expected demand." : "Too few and you stock out; too many and you pay to hold what is left."} This is the <Term term="newsvendor">stocking trade-off</Term>.</>} onChange={(v) => setPlayerDecision({ stock: v })} />
+          )}
+
+          <CROPanel player={player} sc={sc} croConv={croConv} availCash={availCash} onDeploy={croDeploy} onTest={croTest} />
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10, marginTop: 16 }}>
+            <MiniStat label={<><Term term="contribution">Contribution</Term> / unit shipped</>} value={gbp2(ue.contribution)} sub={<>after {pct0(ue.returnRate)} returns, {pct0(ue.feeRate)} fees and {gbp2(ue.unitCost)} <Term term="cogs">COGS</Term></>} accent={ue.contribution > 0 ? T.pos : T.neg} />
+            <MiniStat label="Break-even volume" value={isFinite(ue.breakEvenUnits) ? `${units(Math.ceil(ue.breakEvenUnits))} units` : "none"} sub={isFinite(ue.breakEvenUnits) ? <>to cover {gbp(ue.fixedWeek)} of ads, <Term term="cro">CRO</Term> and platform fees</> : "every unit shipped loses money at this price"} accent={T.platform} />
+            <MiniStat label={<Term term="regulars">Returning regulars</Term>} value={units(player.loyalBase)} sub="buy again without new ad spend" accent={T.youText} />
+            <MiniStat label={<Term term="workingcapital">Cash available</Term>} value={gbp(availCash)} sub={committed > 0 ? `${gbp(committed)} committed to CRO this week` : "what you can spend on CRO"} accent={availCash < 0 ? T.neg : availCash < cfg.startingCash * 0.3 ? T.amber : T.pos} />
+          </div>
+
+          <div style={{ marginTop: 16, background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>
+            <div id={predId} style={{ fontSize: 14.5, fontWeight: 600, marginBottom: 9 }}>Before you sell — where will you stand on the leaderboard (cumulative profit) after this week?</div>
+            <ChoiceGroup labelId={predId} options={stores.map((_, i) => ({ id: i + 1, label: `#${i + 1}` }))} value={prediction} onChange={setPrediction} style={{ display: "flex", gap: 6 }}
+              btnStyle={(on) => ({ flex: 1, padding: "10px 0", borderRadius: 8, cursor: "pointer", fontFamily: T.mono, fontWeight: 700, fontSize: 15, border: `1px solid ${on ? T.playerBtn : T.muted}`, background: on ? T.playerBtn : T.panel, color: on ? T.onAccent : T.text })} />
+          </div>
+
+          <button onClick={sellWeek} disabled={prediction == null} style={{ ...gatedBtn(prediction != null), width: "100%", marginTop: 16 }}>{prediction == null ? "Predict your position to continue" : "Run the week ▸"}</button>
         </div>
 
-        <button onClick={sellWeek} disabled={prediction == null} style={{ ...btn(PLAYER), width: "100%", marginTop: 16, opacity: prediction == null ? 0.45 : 1, cursor: prediction == null ? "not-allowed" : "pointer" }}>{prediction == null ? "Predict your rank to continue" : "Run the week ▸"}</button>
-      </div>
-
-      <div style={card()}>
-        <SectionTitle>The marketplace</SectionTitle>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{ranked.map((s, i) => <StoreRow key={s.id} s={s} pos={i + 1} firstRound={round === 1} sc={sc} round={round} />)}</div>
-        <p style={{ color: T.muted, fontSize: 14, marginTop: 14, lineHeight: 1.5 }}>Pills show each rival's platform. ★ reviews · ♥ regulars · bar is last week's share of new customers.</p>
+        <div style={card()}>
+          <SectionTitle>The marketplace</SectionTitle>
+          <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>{ranked.map((s, i) => <StoreRow key={s.id} s={s} pos={i + 1} firstRound={round === 1} />)}</ol>
+          <p style={{ color: T.muted, fontSize: 14, marginTop: 14, lineHeight: 1.5 }}>Ranked by cumulative profit. Each row shows the store's platform, review rating, returning regulars and its share of last week's new buyers.</p>
+        </div>
       </div>
     </div>
   );
-}
-
-function Banner({ bg, bd, children }) {
-  return <div style={{ background: bg, border: `1px solid ${bd}`, borderRadius: 10, padding: "10px 12px", marginBottom: 14, fontSize: 14.3, lineHeight: 1.45 }}>{children}</div>;
 }
 
 function CROPanel({ player, sc, croConv, availCash, onDeploy, onTest }) {
   return (
-    <div style={{ background: T.panel2, borderRadius: 12, padding: "13px 14px", marginBottom: 4 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-        <span style={{ fontWeight: 700, fontSize: 15.5 }}><Term term="cro">Conversion optimization</Term></span>
-        <span style={{ fontFamily: T.mono, fontSize: 14, color: T.pos }}>site conv ×{croConv.toFixed(3)}</span>
+    <section aria-labelledby="mt-cro" style={{ background: T.panel2, borderRadius: 12, padding: "13px 14px", marginBottom: 4 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+        <h3 id="mt-cro" style={{ fontWeight: 700, fontSize: 15.5, margin: 0 }}><Term term="cro">Conversion optimisation</Term></h3>
+        <span style={{ fontFamily: T.mono, fontSize: 14, color: T.pos }}>site conversion ×{croConv.toFixed(3)}</span>
       </div>
-      <div style={{ fontSize: 12.5, color: T.muted, marginBottom: 10, lineHeight: 1.4 }}>
-        Persistent upgrades. <Term term="abtest">A/B test</Term> to reveal a tier's true lift before you commit the bigger deploy cost.
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+      <p style={{ fontSize: 13.5, color: T.muted, margin: "0 0 10px", lineHeight: 1.4 }}>
+        Permanent upgrades, three tiers each. An <Term term="abtest">A/B test</Term> ({pct0(CRO_TEST_FRACTION)} of the deploy price) shows a tier's true lift before you commit.
+      </p>
+      <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>
         {CRO_LEVERS.map((l) => {
           const tier = player.cro[l.id] || 0;
           const maxed = tier >= 3;
           const cost = maxed ? 0 : l.cost[tier];
-          const testCost = maxed ? 0 : Math.round(cost * 0.18);
-          const key = l.id + ":" + (tier + 1);
-          const tested = !!player.croTested[key];
-          const realized = !maxed && player.croLifts ? player.croLifts[l.id][tier] : 0;
-          const shownLift = l.id === "mobile" ? realized * sc.mobileShare : realized;
-          const estLo = (l.id === "mobile" ? l.loLift * sc.mobileShare : l.loLift) * 100;
-          const estHi = (l.id === "mobile" ? l.hiLift * sc.mobileShare : l.hiLift) * 100;
+          const testCost = maxed ? 0 : Math.round(cost * CRO_TEST_FRACTION);
+          const tested = !!player.croTested[l.id + ":" + (tier + 1)];
+          const scale = l.id === "mobile" ? sc.mobileShare : 1;
+          const realised = !maxed && player.croLifts ? player.croLifts[l.id][tier] * scale : 0;
           return (
-            <div key={l.id} style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px 8px", fontSize: 14 }}>
-              <span style={{ width: 116, flexShrink: 0 }}>
-                <span>{l.icon} {l.name}</span>
-                <span style={{ display: "block", marginTop: 2, letterSpacing: 1, color: T.youText, fontSize: 12.5 }}>{"●".repeat(tier)}<span style={{ color: T.faint }}>{"○".repeat(3 - tier)}</span></span>
+            <li key={l.id} style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px 8px", fontSize: 14.5 }}>
+              <span style={{ width: 128, flexShrink: 0 }}>
+                <span><span aria-hidden="true">{l.icon} </span>{l.name}</span>
+                <span style={{ display: "block", marginTop: 2, color: T.muted, fontSize: 13 }}>tier {tier} of 3</span>
               </span>
               {maxed ? (
-                <span style={{ color: T.muted, fontFamily: T.mono, fontSize: 12.5 }}>maxed</span>
+                <span style={{ color: T.muted, fontFamily: T.mono, fontSize: 13.5 }}>fully deployed</span>
               ) : (
                 <>
-                  <span style={{ flex: "1 1 72px", fontFamily: T.mono, fontSize: 12, color: tested ? T.pos : T.muted }}>
-                    {tested ? `tested: +${(shownLift * 100).toFixed(1)}%` : `est +${estLo.toFixed(0)}–${estHi.toFixed(0)}%`}
+                  <span style={{ flex: "1 1 96px", fontFamily: T.mono, fontSize: 13, color: tested ? T.pos : T.muted }}>
+                    {tested ? `tested: +${(realised * 100).toFixed(1)}%` : `est. +${(l.loLift * scale * 100).toFixed(1)}% to +${(l.hiLift * scale * 100).toFixed(1)}%`}
                   </span>
-                  {!tested && <button onClick={() => onTest(l.id)} disabled={testCost > availCash} style={croBtn(testCost > availCash, false)}>test {gbp(testCost)}</button>}
-                  <button onClick={() => onDeploy(l.id)} disabled={cost > availCash} style={croBtn(cost > availCash, true)}>deploy {gbp(cost)}</button>
+                  {!tested && <button onClick={() => onTest(l.id)} disabled={testCost > availCash} aria-label={`Test ${l.name} tier ${tier + 1} for ${gbp(testCost)}`} style={croBtn(testCost > availCash, false)}>test {gbp(testCost)}</button>}
+                  <button onClick={() => onDeploy(l.id)} disabled={cost > availCash} aria-label={`Deploy ${l.name} tier ${tier + 1} for ${gbp(cost)}`} style={croBtn(cost > availCash, true)}>deploy {gbp(cost)}</button>
                 </>
               )}
-            </div>
+            </li>
           );
         })}
-      </div>
-    </div>
+      </ul>
+    </section>
   );
 }
-const croBtn = (disabled, primary) => ({
-  background: disabled ? T.panel2 : primary ? PLAYER : "transparent", color: disabled ? T.muted : primary ? T.onAccent : T.text,
-  border: `1px solid ${primary ? (disabled ? T.border : PLAYER) : T.border}`, borderRadius: 7, padding: "5px 8px",
-  fontFamily: T.body, fontWeight: 600, fontSize: 12.5, cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap",
-});
 
-function StoreRow({ s, pos, firstRound, sc, round }) {
+function StoreRow({ s, pos, firstRound }) {
   const share = s.last ? s.last.share : 0;
-  const cv = croConvOf(s.isPlayer ? s.cro : botCro(s.id, round), s.isPlayer, s.croLifts, sc);
   return (
-    <div style={{ background: s.isPlayer ? "#E7F4FB" : T.panel2, border: `1px solid ${s.isPlayer ? PLAYER_COLOR : T.border}`, borderRadius: 11, padding: "11px 13px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <span style={{ fontFamily: T.mono, color: T.muted, fontSize: 13.5, width: 16 }}>{pos}</span>
-          <span style={{ width: 9, height: 9, borderRadius: 9, background: s.color, flexShrink: 0 }} />
-          <span style={{ fontWeight: 700, fontSize: 15, minWidth: 0 }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
+    <li style={{ background: s.isPlayer ? T.youTint : T.panel2, border: `1px solid ${s.isPlayer ? PLAYER_COLOR : T.border}`, borderRadius: 11, padding: "11px 13px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flexWrap: "wrap" }}>
+          <span style={{ fontFamily: T.mono, color: T.muted, fontSize: 14, width: 16 }}>{pos}</span>
+          <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: 9, background: s.color, flexShrink: 0 }} />
+          <span style={{ fontWeight: 700, fontSize: 15, minWidth: 0 }}>{s.name}{s.isPlayer && <span style={{ color: T.youText }}> (you)</span>}</span>
           <PlatformPill id={s.platformId} />
-          {s.insolvent && <span style={{ fontSize: 11.5 }}>💀</span>}
+          {s.cash < 0 && <span style={{ fontSize: 13, color: T.neg, fontWeight: 700 }}>insolvent</span>}
         </div>
         <span style={{ fontFamily: T.mono, fontSize: 14.5, color: s.cumProfit >= 0 ? T.pos : T.neg, fontWeight: 700 }}>{gbp(s.cumProfit)}</span>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 7 }}>
-        <Stars value={s.review} color={s.color} />
-        <span style={{ fontFamily: T.mono, fontSize: 12.5, color: T.muted }}>{s.review.toFixed(1)}</span>
-        <span style={{ fontFamily: T.mono, fontSize: 12.5, color: T.muted }}>♥{Math.round(s.loyalBase)}</span>
-        <div style={{ flex: 1, height: 6, background: T.track, borderRadius: 6, overflow: "hidden" }}><div style={{ width: `${firstRound ? 0 : Math.round(share * 100)}%`, height: "100%", background: s.color }} /></div>
-        <span style={{ fontFamily: T.mono, fontSize: 12.5, color: T.muted, minWidth: 34, textAlign: "right" }}>{firstRound ? "—" : `${Math.round(share * 100)}%`}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 7, flexWrap: "wrap", fontFamily: T.mono, fontSize: 13.5, color: T.muted }}>
+        <span><span aria-hidden="true">★ </span><span className="sr-only">rating </span>{s.review.toFixed(1)}</span>
+        <span><span aria-hidden="true">♥ </span>{units(s.loyalBase)}<span className="sr-only"> regulars</span></span>
+        <span aria-hidden="true" style={{ flex: 1, minWidth: 60, height: 6, background: T.track, borderRadius: 6, overflow: "hidden" }}><span style={{ display: "block", width: `${firstRound ? 0 : Math.round(share * 100)}%`, height: "100%", background: s.color }} /></span>
+        <span style={{ minWidth: 34, textAlign: "right" }}>{firstRound ? "no sales yet" : <>{pct0(share)}<span className="sr-only"> of new buyers</span></>}</span>
       </div>
-    </div>
+    </li>
   );
 }
-function Stars({ value, color }) { return <div style={{ display: "flex", gap: 1 }}>{[1, 2, 3, 4, 5].map((i) => <span key={i} style={{ fontSize: 13.5, color: i <= Math.round(value) ? color : T.faint }}>★</span>)}</div>; }
 
 /* ---- RESULT ------------------------------------------------- */
-function ResultView({ stores, ranked, log, round, nextWeek, player, cfg, predictionLog }) {
+export function ResultView({ ranked, log, round, nextWeek, player, cfg, predictionLog }) {
   const r = player.last; const sc = SC(cfg); const platform = PMAP[player.platformId]; const ful = fulfilOf(player, sc);
   const pred = predictionLog.find((p) => p.round === round);
   const rows = [
-    ["Units sold (kept)", `${Math.round(r.keptSales)}`, T.text],
+    ["Units kept by buyers", units(r.keptSales), T.text],
     ["Revenue", gbp(r.revenue), T.text],
-    ["– COGS (incl. fulfilment)", "-" + gbp(r.cogs), T.muted],
-    [`– Marketplace fee (${Math.round(cfg.commissionRate * 100)}%)`, "-" + gbp(r.commission), T.platform],
-    [`– Platform · ${platform.short}`, "-" + gbp(r.fixed - (ful.fixed || 0) + r.platformTxn), T.platform],
-    [`– Fulfilment · ${ful.short}`, "-" + gbp((ful.fixed || 0) + r.dropshipCut), T.platform],
-    [`– Returns (${Math.round(r.returnedUnits)} units)`, "-" + gbp(r.returnHandling), T.neg],
-    ["– Ad spend", "-" + gbp(r.ad), T.muted],
-    ["– CRO investment", "-" + gbp(r.croCost), T.muted],
-    ["– Holding (unsold)", "-" + gbp(r.holding), T.muted],
+    [`Cost of goods and fulfilment (${units(r.grossSold)} shipped)`, gbp(-r.cogs), T.muted],
+    [`Marketplace fee (${pct0(cfg.commissionRate)})`, gbp(-r.commission), T.platform],
+    [`Platform · ${platform.short}`, gbp(-(r.fixed - (ful.fixed || 0) + r.platformTxn)), T.platform],
+    ...(sc.digital ? [] : [[`Fulfilment partner · ${ful.short}`, gbp(-((ful.fixed || 0) + r.dropshipCut)), T.platform]]),
+    [`Return handling (${units(r.returnedUnits)} units)`, gbp(-r.returnHandling), r.returnHandling > 0 ? T.neg : T.muted],
+    ["Ad spend", gbp(-r.ad), T.muted],
+    ["CRO investment", gbp(-r.croCost), T.muted],
+    ...(ful.infiniteStock ? [] : [[`Holding (${units(r.unsold)} unsold)`, gbp(-r.holding), T.muted]]),
   ];
+  const cell = { padding: "7px 0", borderBottom: `1px solid ${T.border}`, fontSize: 15 };
+  const note = (tone) => ({ marginTop: 10, background: tone === "bad" ? T.negTint : tone === "ok" ? T.posTint : T.panel2, border: `1px solid ${tone === "bad" ? T.negFill : tone === "ok" ? T.posFill : T.border}`, borderRadius: 10, padding: "10px 12px", fontSize: 14.5, lineHeight: 1.5 });
   return (
-    <div className="rise cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18, marginTop: 22 }}>
-      <div style={card()}>
-        <SectionTitle>Week {round} — your P&L</SectionTitle>
-        {rows.map(([k, v, c]) => <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${T.border}`, fontSize: 15 }}><span style={{ color: T.muted }}>{k}</span><span style={{ fontFamily: T.mono, color: c }}>{v}</span></div>)}
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0 2px", fontSize: 17.5, fontWeight: 700 }}><span>Weekly profit</span><span style={{ fontFamily: T.mono, color: r.profit >= 0 ? T.pos : T.neg }}>{gbp(r.profit)}</span></div>
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 14.5, color: T.muted }}><span>Cash after the week</span><span style={{ fontFamily: T.mono, color: r.cashAfter < 0 ? T.neg : T.muted }}>{gbp(r.cashAfter)}</span></div>
+    <div className="rise" style={{ marginTop: 22 }}>
+      <h1 style={{ ...h1Style, fontSize: 26 }}>Week {round} result — {r.profit >= 0 ? `${gbp(r.profit)} profit` : `${gbp(-r.profit)} loss`}</h1>
+      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18, marginTop: 14 }}>
+        <div style={card()}>
+          <SectionTitle>Your profit and loss</SectionTitle>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <tbody>
+              {rows.map(([k, v, c]) => <tr key={k}><th scope="row" style={{ ...cell, textAlign: "left", fontWeight: 400, color: T.muted }}>{k}</th><td style={{ ...cell, textAlign: "right", fontFamily: T.mono, color: c, whiteSpace: "nowrap" }}>{v}</td></tr>)}
+              <tr><th scope="row" style={{ padding: "12px 0 2px", textAlign: "left", fontSize: 17.5, fontWeight: 700 }}>Weekly profit</th><td style={{ padding: "12px 0 2px", textAlign: "right", fontSize: 17.5, fontWeight: 700, fontFamily: T.mono, color: r.profit >= 0 ? T.pos : T.neg }}>{gbp(r.profit)}</td></tr>
+              <tr><th scope="row" style={{ padding: "4px 0", textAlign: "left", fontSize: 14.5, fontWeight: 400, color: T.muted }}>Cash after the week</th><td style={{ padding: "4px 0", textAlign: "right", fontSize: 14.5, fontFamily: T.mono, color: r.cashAfter < 0 ? T.neg : T.muted }}>{gbp(r.cashAfter)}</td></tr>
+            </tbody>
+          </table>
 
-        <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "10px 12px", fontSize: 14, lineHeight: 1.5 }}>♥ Of {Math.round(r.keptSales)} kept sales, <b style={{ color: T.youText }}>{Math.round(r.returningServed)}</b> were returning regulars. You now hold <b style={{ color: T.youText }}>{Math.round(player.loyalBase)}</b>. Site conversion ran at <b style={{ color: T.pos }}>×{r.croConv.toFixed(3)}</b>.</div>
-        {pred && <div style={{ marginTop: 10, background: pred.hit ? "#EAF4E5" : "#F5EFE3", borderRadius: 10, padding: "10px 12px", fontSize: 14, border: `1px solid ${pred.hit ? T.posFill : T.platform}` }}>{pred.hit ? "✓" : "✗"} You predicted <b>#{pred.predicted}</b>, finished <b>#{pred.actual}</b> this week.</div>}
-        {r.returnedUnits > 8 && <div style={{ marginTop: 10, background: "#FBE9E7", border: `1px solid ${T.negFill}`, borderRadius: 10, padding: "10px 12px", fontSize: 14 }}>↩ <Term term="returns">Returns</Term> cost you {Math.round(r.returnedUnits)} sales plus {gbp(r.returnHandling)} handling. Trust & checkout CRO reduce them.</div>}
-        {r.lostSales > 5 && <div style={{ marginTop: 10, background: "#FBE9E7", border: `1px solid ${T.negFill}`, borderRadius: 10, padding: "10px 12px", fontSize: 14 }}>⚠ Stocked out — <b>{Math.round(r.lostSales)}</b> couldn't buy. Lost sales now, churned regulars later.</div>}
-      </div>
-
-      <div style={card()}>
-        <SectionTitle>Marketplace report</SectionTitle>
-        <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 14 }}>
-          {ranked.map((s, i) => (
-            <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, fontSize: 15, padding: "3px 0" }}>
-              <span style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}>
-                <span style={{ fontFamily: T.mono, color: T.muted, width: 14 }}>{i + 1}</span>
-                <span style={{ width: 8, height: 8, borderRadius: 8, background: s.color }} />
-                <span style={{ minWidth: 0 }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
-                <PlatformPill id={s.platformId} />
-              </span>
-              <span style={{ fontFamily: T.mono, color: T.muted, whiteSpace: "nowrap" }}>{Math.round(s.last.keptSales)} sold · {gbp(s.last.price)}</span>
-            </div>
-          ))}
+          <div style={note()}>Of {units(r.keptSales)} kept sales, <b style={{ color: T.youText }}>{units(r.returningServed)}</b> went to returning regulars. You now hold <b style={{ color: T.youText }}>{units(player.loyalBase)}</b> regulars. Site conversion ran at <b style={{ color: T.pos }}>×{r.croConv.toFixed(3)}</b>.</div>
+          {pred && <div style={note(pred.hit ? "ok" : undefined)}><b>{pred.hit ? "Prediction right." : "Prediction off."}</b> You predicted #{pred.predicted}; you are #{pred.actual} on the leaderboard after week {round}.</div>}
+          {r.returnedUnits >= 1 && <div style={note("bad")}><Term term="returns">Returns</Term>: {units(r.returnedUnits)} of the {units(r.grossSold)} units you shipped came back — no revenue on those, plus {gbp(r.returnHandling)} handling. Trust and checkout CRO reduce the return rate.</div>}
+          {r.lostSales >= 1 && <div style={note("bad")}>Stocked out — <b>{units(r.lostSales)}</b> buyers could not buy. Lost sales now, a lower rating and fewer regulars later.</div>}
         </div>
-        <div style={{ background: T.panel2, borderRadius: 10, padding: "12px 14px" }}>{log.map((line, i) => <div key={i} style={{ fontSize: 14.5, color: T.text, marginBottom: i < log.length - 1 ? 7 : 0, lineHeight: 1.45 }}>▸ {line}</div>)}</div>
-        <button onClick={nextWeek} style={{ ...btn(PLAYER), width: "100%", marginTop: 16 }}>{round >= cfg.maxRounds ? "See final results →" : `Plan week ${round + 1} →`}</button>
+
+        <div style={card()}>
+          <SectionTitle>Marketplace report</SectionTitle>
+          <ol style={{ listStyle: "none", margin: "0 0 14px", padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>
+            {ranked.map((s, i) => (
+              <li key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, fontSize: 15, padding: "3px 0", flexWrap: "wrap" }}>
+                <span style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: T.mono, color: T.muted, width: 14 }}>{i + 1}</span>
+                  <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 8, background: s.color }} />
+                  <span style={{ minWidth: 0 }}>{s.name}{s.isPlayer && <span style={{ color: T.youText, fontWeight: 700 }}> (you)</span>}</span>
+                  <PlatformPill id={s.platformId} />
+                </span>
+                <span style={{ fontFamily: T.mono, fontSize: 14, color: T.muted, whiteSpace: "nowrap" }}>{units(s.last.keptSales)} sold at {gbp(s.last.price)} · {gbp(s.cumProfit)} total</span>
+              </li>
+            ))}
+          </ol>
+          <ul style={{ listStyle: "none", margin: 0, background: T.panel2, borderRadius: 10, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 7 }}>{log.map((line, i) => <li key={i} style={{ fontSize: 14.5, color: T.text, lineHeight: 1.45 }}>{line}</li>)}</ul>
+          <button onClick={nextWeek} style={{ ...btn(T.playerBtn), width: "100%", marginTop: 16 }}>{round >= cfg.maxRounds ? "See final results →" : `Plan week ${round + 1} →`}</button>
+        </div>
       </div>
     </div>
   );
 }
 
 /* ---- END + DEBRIEF ------------------------------------------ */
-function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
+export function EndView({ stores, ranked, restart, player, cfg, predictionLog }) {
   const winner = ranked[0]; const sc = SC(cfg);
   const playerRank = ranked.findIndex((s) => s.isPlayer) + 1;
+  const wentNegative = player.history.find((h) => h.cash < 0);
   const chartData = useMemo(() => {
     const rounds = player.history.length;
     return Array.from({ length: rounds }, (_, i) => { const row = { week: i + 1 }; stores.forEach((s) => { row[s.id] = Math.round(s.history[i] ? s.history[i].cumProfit : 0); }); return row; });
   }, [stores, player]);
-  const shareData = ranked.map((s) => ({ name: s.name.split(" ").slice(-1)[0], value: Math.round(s.cumProfit), color: s.color }));
+  const shareData = ranked.map((s) => ({ name: s.isPlayer ? "You" : s.name.split(" ").slice(-1)[0], value: Math.round(s.cumProfit), color: s.color }));
+  const finals = ranked.map((s) => `${s.isPlayer ? "you" : s.name} ${gbp(s.cumProfit)}`).join(", ");
+  const kAxis = (v) => (v === 0 ? "£0" : `${v < 0 ? "−" : ""}£${Math.abs(v / 1000).toFixed(Math.abs(v) >= 10000 || v % 1000 === 0 ? 0 : 1)}k`);
   return (
     <div className="rise" style={{ marginTop: 24 }}>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 13.5, letterSpacing: 2 }}>{sc.icon} {sc.name.toUpperCase()} · SEED {cfg.seed}</div>
-        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{winner.isPlayer ? "You won the marketplace 🏆" : `${winner.name} took it`}</h1>
-        <div style={{ color: T.muted }}>You finished <b style={{ color: T.youText }}>#{playerRank}</b> on {PMAP[player.platformId].name} with {gbp(player.cumProfit)} profit{player.insolvent ? <span style={{ color: T.neg }}> — but traded insolvent</span> : <> and {gbp(player.cash)} cash</>}.</div>
+        <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 13.5, letterSpacing: 2 }}><span aria-hidden="true">{sc.icon} </span>{sc.name.toUpperCase()} · SEED {cfg.seed}</div>
+        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{winner.isPlayer ? <>You won the marketplace <span aria-hidden="true">🏆</span></> : `${winner.name} took it`}</h1>
+        <p style={{ color: T.muted, margin: 0 }}>You finished <b style={{ color: T.youText }}>{playerRank} of {stores.length}</b> on {PMAP[player.platformId].name} with {player.cumProfit >= 0 ? `${gbp(player.cumProfit)} profit` : `a ${gbp(-player.cumProfit)} loss`} and {gbp(player.cash)} cash{wentNegative && <span style={{ color: T.neg }}> — after running out of cash in week {wentNegative.round}</span>}.</p>
       </div>
       <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 18 }}>
         <div style={card()}>
           <SectionTitle>Cumulative profit over {player.history.length} weeks</SectionTitle>
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
-              <CartesianGrid stroke={T.border} strokeDasharray="3 3" /><XAxis dataKey="week" tickLine={false} /><YAxis tickFormatter={(v) => `£${(v / 1000).toFixed(0)}k`} tickLine={false} width={46} />
-              <Tooltip contentStyle={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 13.5 }} formatter={(v, n) => [gbp(v), stores.find((s) => s.id === n)?.name]} labelFormatter={(l) => `Week ${l}`} />
-              {stores.map((s) => <Line key={s.id} type="monotone" dataKey={s.id} stroke={s.color} strokeWidth={s.isPlayer ? 3.5 : 2} dot={false} />)}
-            </LineChart>
-          </ResponsiveContainer>
+          <Chart label={`Line chart of each store's cumulative profit by week. After week ${player.history.length}: ${finals}.`}>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -4 }}>
+                <CartesianGrid stroke={T.border} strokeDasharray="3 3" /><XAxis dataKey="week" tickLine={false} /><YAxis tickFormatter={kAxis} tickLine={false} width={52} />
+                <Tooltip contentStyle={tipStyle} formatter={(v, n) => [gbp(v), stores.find((s) => s.id === n)?.name]} labelFormatter={(l) => `Week ${l}`} />
+                {stores.map((s) => <Line key={s.id} type="monotone" dataKey={s.id} stroke={s.color} strokeWidth={s.isPlayer ? 3.5 : 2} strokeDasharray={s.isPlayer ? undefined : "5 3"} dot={false} />)}
+              </LineChart>
+            </ResponsiveContainer>
+          </Chart>
+          <p style={{ fontSize: 13.5, color: T.muted, margin: "6px 0 0" }}>Your store is the solid blue line; rivals are dashed.</p>
         </div>
         <div style={card()}>
           <SectionTitle>Final profit by store</SectionTitle>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={shareData} margin={{ top: 8, right: 8, bottom: 0, left: -8 }}>
-              <CartesianGrid stroke={T.border} strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" tickLine={false} /><YAxis tickFormatter={(v) => `£${(v / 1000).toFixed(0)}k`} tickLine={false} width={46} />
-              <Tooltip cursor={{ fill: "#ffffff08" }} contentStyle={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 13.5 }} formatter={(v) => gbp(v)} />
-              <Bar dataKey="value" radius={[6, 6, 0, 0]}>{shareData.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <Chart label={`Bar chart of final cumulative profit: ${finals}.`}>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={shareData} margin={{ top: 8, right: 8, bottom: 0, left: -4 }}>
+                <CartesianGrid stroke={T.border} strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" tickLine={false} /><YAxis tickFormatter={kAxis} tickLine={false} width={52} />
+                <Tooltip cursor={{ fill: "#00000008" }} contentStyle={tipStyle} formatter={(v) => gbp(v)} />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]}>{shareData.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Chart>
+          <ol style={{ margin: "8px 0 0", paddingLeft: 22, fontSize: 14, color: T.body2, lineHeight: 1.5 }}>
+            {ranked.map((s) => <li key={s.id}>{s.name}{s.isPlayer && " (you)"}: <span style={{ fontFamily: T.mono }}>{gbp(s.cumProfit)}</span></li>)}
+          </ol>
         </div>
       </div>
       <Debrief stores={stores} player={player} cfg={cfg} predictionLog={predictionLog} />
       <div style={{ ...card(), marginTop: 18, textAlign: "center" }}>
         <SectionTitle>Take your decision log into class</SectionTitle>
-        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.5, marginTop: -6, maxWidth: 560, margin: "0 auto 16px" }}>Export the full ten-week record — brief, platform, fulfilment, every decision, CRO, returns, cash, rank and predictions — as an assessable artifact with reflection prompts.</p>
+        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.5, maxWidth: 560, margin: "0 auto 16px" }}>Export the full record — brief, platform, fulfilment, every weekly decision, CRO, returns, cash, leaderboard position and predictions — with reflection prompts.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.csv`, buildCSV(stores, player, predictionLog), "text/csv")} style={btn(T.platform)}>⬇ Download CSV</button>
-          <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.md`, buildMarkdown(stores, player, predictionLog, cfg), "text/markdown")} style={{ ...btn("transparent"), color: T.text, border: `1px solid ${T.border}` }}>⬇ Download Markdown</button>
+          <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.csv`, buildCSV(stores, player, predictionLog), "text/csv")} style={btn(T.platformFill)}>Download CSV</button>
+          <button onClick={() => downloadFile(`tycoon-log-${cfg.seed}.md`, buildMarkdown(stores, player, predictionLog, cfg), "text/markdown")} style={ghostBtn}>Download Markdown</button>
         </div>
       </div>
-      <div style={{ textAlign: "center", marginTop: 22 }}><button onClick={restart} style={btn(PLAYER)}>Play again ↺</button></div>
+      <div style={{ textAlign: "center", marginTop: 22 }}><button onClick={restart} style={btn(T.playerBtn)}>Play again ↺</button></div>
     </div>
   );
 }
 
 function Debrief({ stores, player, cfg, predictionLog }) {
-  const sc = SC(cfg); const ful = fulfilOf(player, sc); const platform = PMAP[player.platformId];
-  const carl = stores.find((s) => s.id === "carl"); const quinn = stores.find((s) => s.id === "quinn");
-  const totalFees = stores.reduce((a, s) => a + s.history.reduce((sum, h) => sum + (h.commission || 0), 0), 0);
-  const myCro = player.history.reduce((a, h) => a + (h.croCost || 0), 0);
-  const totalReturns = player.history.reduce((a, h) => a + (h.returns || 0), 0);
-  const hits = predictionLog.filter((p) => p.hit).length;
-  const pf = fitOf(sc, player.platformId);
-  const recName = PMAP[pf.recommended].name;
-  const pfLine = pf.matchedBest
-    ? `Your platform pick was the strongest fit for this brief (${pf.row.verdict}).`
-    : `You chose ${platform.name} (${pf.row.verdict}, ranked ${pf.rank}/${pf.total}); the strongest fit for a ${sc.short} brief was ${recName}.`;
-  const cards = [
-    { t: `Fit to the brief: ${sc.short}`, b: `You ran ${platform.name} + ${ful.name} on a ${sc.name} brief. ${pfLine} ${sc.teach} The winning strategy is brief-specific — the same levers that win in one industry lose in another, which is exactly the technology-selection judgement a real platform recommendation demands.` },
-    { t: "CRO is a portfolio of bets", b: `You invested ${gbp(myCro)} in conversion optimization, ending at site conversion ×${croConvOf(player.cro, true, player.croLifts, sc).toFixed(3)}. Some tiers paid off and some didn't — which is why A/B testing the true lift before committing the bigger deploy spend is the discipline, not an optional extra.` },
-    { t: "Operations affect the margin", b: totalReturns > 0 ? `${Math.round(totalReturns)} units came back as returns over the game — each one was shipped, handled and refunded. When margins are small, your fulfilment choice and returns are where profit quietly disappears.` : `Your fulfilment model shaped delivery speed, stock risk and returns. On this brief the operations choice was as strategic as the storefront.` },
-    { t: "Retention is the cheap moat", b: `You finished holding ${Math.round(player.loyalBase)} regulars — recurring demand you didn't pay to re-acquire. Quality lifts reviews, reviews convert buyers to regulars, and regulars are <Term term="ltv">LTV</Term> that survives without ad spend.` },
-    { t: "Profit on paper vs cash", b: player.insolvent ? `You went insolvent — the lesson that kills real stores. Cumulative profit can look healthy while you run out of the cash needed to fund next week's stock, ads and CRO.` : `You stayed solvent on ${gbp(player.cash)}. Working capital is the constraint paper profit hides — spend must be funded before revenue lands.` },
-    { t: "Stacked platform rent", b: `The marketplace took ${gbp(totalFees)} in commission at ${Math.round(cfg.commissionRate * 100)}% — on top of your storefront's own charges. Sellers pay rent at multiple layers; when any of them raises its price, you're already locked in.` },
-    { t: "How calibrated were you?", b: `You called your weekly rank correctly ${hits} of ${predictionLog.length} times. Where predictions missed, your model of the market or rivals was off — and the same seed (${cfg.seed}) gave everyone an identical run, so differences are about decisions, not luck.` },
-  ];
+  const cards = debriefCards(stores, player, cfg, predictionLog);
   return (
     <div style={{ ...card(), marginTop: 18 }}>
-      <SectionTitle>Debrief — what the game was teaching</SectionTitle>
+      <SectionTitle>Debrief — what your run showed</SectionTitle>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-        {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, marginBottom: 6, color: T.playerText }}>{c.t}</div><div style={{ fontSize: 14.5, color: T.text, lineHeight: 1.5 }}>{c.b}</div></div>)}
+        {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><h3 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, margin: "0 0 6px", color: T.selText }}>{c.t}</h3><p style={{ fontSize: 14.5, color: T.text, lineHeight: 1.5, margin: 0 }}>{c.b}</p></div>)}
       </div>
     </div>
   );
 }
-
-/* ---- atoms -------------------------------------------------- */
-function SectionTitle({ children }) { return <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18.5, marginBottom: 14, letterSpacing: -0.2 }}>{children}</div>; }
-function Slider({ label, value, min, max, step, onChange, fmt, hint, accent }) {
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 15.5, fontWeight: 600 }}>{label}</span><span style={{ fontFamily: T.mono, fontWeight: 700, color: accent }}>{fmt(value)}</span></div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", margin: "8px 0 5px", "--accent": accent, "--accent-soft": accent + "30" }} />
-      <div style={{ fontSize: 13, color: T.muted, lineHeight: 1.4 }}>{hint}</div>
-    </div>
-  );
-}
-function MiniStat({ label, value, sub, accent }) {
-  return <div style={{ background: T.panel2, borderRadius: 10, padding: "11px 12px" }}><div style={{ color: T.muted, fontSize: 12.5 }}>{label}</div><div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 19.5, color: accent, margin: "2px 0" }}>{value}</div><div style={{ color: T.muted, fontSize: 12, lineHeight: 1.3 }}>{sub}</div></div>;
-}
-const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20, boxShadow: T.shadow });
-const pickCard = (on) => ({ textAlign: "left", cursor: "pointer", color: T.text, background: on ? T.sel : T.panel, border: `1.5px solid ${on ? PLAYER : T.border}` });
-const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 17, cursor: "pointer", letterSpacing: 0.2 });

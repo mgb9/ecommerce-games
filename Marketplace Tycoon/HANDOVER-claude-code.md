@@ -119,3 +119,91 @@ function playGame(scenarioId, fulfilId, platformId, seed) {
 3. Spike a minimal PartyKit room: host sets seed/scenario, two players join, lock decisions, server resolves one week and broadcasts. Grow from there.
 
 The current artifact (`marketplace-tycoon.jsx`) is the source of truth for engine behaviour — when in doubt, match it.
+
+---
+
+## 9. First release pass (2026-11-11) — towards the Data Detective / Conversion Lab standard
+
+Run: `npm test` (99 tests) · `npx vite build --base=/ecommerce-games/marketplace-tycoon/`. The weekly tick's numbers are
+unchanged (same seed + decisions → same result as before); only text, new helpers and three extra history fields.
+
+**Correctness**
+- **Contribution / break-even on the play board were wrong.** They ignored returns (revenue is earned only on kept units,
+  costs on every unit shipped) and the supplier-squeeze week's dearer unit cost, and rounded per-unit pounds to £1.
+  Now `unitEconomics(store, round, cfg)` in the engine — tested to reproduce each week's profit exactly
+  (`shipped × contribution − fixed − holding`). `returnRateOf()` is the one definition of the return rate.
+- Per-unit money uses `gbp2` (3PL showed "£3" for £2.60, in-house "£2" for £1.50); `gbp` prints `-£1,234`, not `£-1,234`.
+- **Debrief is built from the run** (`src/engine/debrief.js`, `debriefCards` / `runFacts`, pure and tested over
+  4 briefs × 6 policies × 6 seeds + instructor presets). The old cards asserted things regardless of the run
+  ("some tiers paid off and some didn't" with no CRO spend; a raw `<Term …>` tag printed in the retention card;
+  "the same seed gave everyone an identical run"; fulfilment talk on the digital brief; the market's total commission
+  presented as the player's rent).
+- **Cash lesson reworded to what the model does.** Cash is starting cash + cumulative profit (stock is charged as it
+  sells), so "profitable on paper but out of cash" cannot happen in the game; the card now says so and names the
+  real-world difference. `insolvent` stays sticky in the engine (bots rely on it) but the UI shows "insolvent" only
+  while cash is negative and otherwise "ran out of cash in week N".
+- The weekly prediction is, and always was, scored against the **cumulative-profit leaderboard** — the wording said
+  "rank this week". Wording fixed everywhere (board, result, CSV/Markdown text).
+- Brief cards: "Margin" was a price range; "COGS" was the unit cost before fulfilment — relabelled. CRO estimate
+  ranges show one decimal (mobile on B2B read "+1–2%" for 0.6–2.4%). `CRO_TEST_FRACTION` (18%) is one constant.
+- Platform fit: the panel now says it is a requirements argument, not a forecast; `rationaleFor` says "no platform
+  does better on X" only when true. LO4 claim removed (LO1 + LO3, spec wording).
+
+**Staff / saved state**
+- Instructor panel only after `?instructor` (remembered as `mt-instructor`; `?instructor=off` forgets) — `urlConfig.js`.
+- A refresh resumes the game: `sessionStorage` `mt-session:game` / `mt-session:cfg` (versioned, `v: 1`).
+  Reaching the end screen sets the hub's `wmg-games-progress.mt`.
+
+**Accessibility** (CL's patterns, copied into `src/ui/theme.js`, `shared.jsx`, `InstructorPanel.jsx`)
+Glossary terms are disclosure buttons; brief / platform / fulfilment / prediction are labelled groups of
+`aria-pressed` buttons; sliders have labels, `aria-valuetext` and described-by hints; one h1 per screen, cards h2,
+sub-sections h3; focus moves to each new screen's heading; the P&L is a table; charts are `role="img"` with the
+final figures in the label (and a text ranking beside them; the player's line is solid, rivals dashed); a polite
+status region announces each week's result; reduced motion honoured; the header band no longer sticks; contrast
+tokens (`playerBtn`, `selText`, `platform` #765B36, amber #85600F); the instructor panel is a modal dialog with a
+focus trap and Escape. Simpler English follows the WMG shell switch (bridge script removed from `index.html`).
+
+**Not done / open**
+- No true working-capital mechanic (stock is not paid for up front) — see the cash card.
+- No screen-reader test. (axe: no violations on any student screen of the built site inside the WMG shell.)
+- Second pass (skills record, decision-log page, result code, tally, tutor's guide) not started.
+- There is no multiplayer client in `src/ui`; `party/` is untouched and its tests pass.
+
+## 10. Platform balance retune (2026-11-11)
+Before this, WooCommerce out-earned every platform on all four briefs, so the "top fit" platform was the best earner
+only on B2B. Now a well-run store earns most on the top-fit platform on every brief. **This changes the weekly
+numbers for every seed** (the note in § 9 that they were unchanged applies only up to this point).
+
+Three mechanics in `platMods` (constants in `PLATFORM_RULES`), each one something the platform cards already claimed:
+- **Organic edge acts through the brief.** `organicBonus` is worth nothing where `organicReliance` ≤ 0.15, its full
+  value at ≥ 0.5, linear between (fashion 0, grocer 1/7, digital 3/7, B2B all of it).
+- **Build time is a drag, not a delay.** Until mature, conversion and ad efficiency sit below the finished level
+  (`launchDrag` 20% at week 1, easing to none). The old ramp started every platform at a neutral 1.0, which *helped*
+  a platform whose finished conversion was below 1.
+- **Owning the ops only costs.** `variance` is the worst share of a week's conversions lost; it was symmetric noise
+  with no expected cost.
+
+Numbers: Shopify £320 → £360 a week, conversion 1.05 → 1.07; WooCommerce £160 → £260, conversion 0.99 → 0.97,
+ad efficiency 1.05 → 1.00, variance 0.05 → 0.10, organic bonus 300 → 600; Headless £650 → £1,200, conversion
+1.12 → 1.18, ad efficiency 1.18 → 1.25. Wix unchanged. The fit model's recommendations are unchanged
+(Shopify / Wix / WooCommerce / Headless for fashion / grocer / B2B / digital).
+
+Average profit of the best of 16 sensible policies over 20 seeds, in-house fulfilment (`balance.test.js` pins the
+ordering, for in-house and 3PL, and that the edge stays under 15%):
+
+| brief | Wix | Shopify | WooCommerce | Headless | top fit's edge |
+|---|---|---|---|---|---|
+| fashion | £24.2k | **£26.6k** | £24.1k | £25.2k | 5% |
+| grocer | **£10.3k** | £9.6k | £9.6k | £3.0k | 7% |
+| B2B | £40.6k | £43.5k | **£45.6k** | £40.2k | 5% |
+| digital | £106.2k | £120.6k | £112.0k | **£130.6k** | 8% |
+
+What is *not* true, and the wording does not claim it:
+- With weak decisions a cheaper platform can win. On digital, Headless leads only when ad spend is high; averaged
+  over all 24 policies it is level with Shopify. That is the "only worth it at scale" lesson, not a fault.
+- Fashion with dropshipping (a poor fit — profit a third of in-house) is won by Wix, the cheapest.
+- Rivals: Quinn (on Headless) is weaker than before, most on the grocer brief; no rival goes bust that did not before.
+
+The setup screen and debrief now say a well-run store "tends to earn a few per cent more" on the top-fit platform
+and that pricing, stock, advertising and conversion work move profit far more. Saved-state `VERSION` is 2, so a tab
+holding a game from the old numbers starts fresh.

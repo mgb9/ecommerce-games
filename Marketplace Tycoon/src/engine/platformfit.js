@@ -106,7 +106,12 @@ function evaluatePlatforms(scenario) {
 // One-line justification for a platform under a brief (for the UI).
 function rationaleFor(row, s) {
   const need = (k) => CMAP[k].label.toLowerCase();
-  return `Best on ${need(row.strength.key)} — which ${s.short} depends on. Weakest on ${need(row.weakness.key)}.`;
+  // "Strongest of the four" only where that is literally so (score 1 after
+  // normalising across the platforms); otherwise say what it contributes.
+  const lead = row.strength.score >= 0.999
+    ? `No platform does better on ${need(row.strength.key)}, which matters most to a ${s.short} brief here.`
+    : `Its biggest contribution to a ${s.short} brief is ${need(row.strength.key)}.`;
+  return `${lead} Its main weakness for this brief is ${need(row.weakness.key)}.`;
 }
 
 // Compare the player's actual pick to the recommendation (debrief).

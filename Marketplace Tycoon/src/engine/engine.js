@@ -71,6 +71,8 @@ const CRO_LEVERS = [
 ];
 const CMAP = Object.fromEntries(CRO_LEVERS.map((l) => [l.id, l]));
 const BOT_TIER_LIFT = 0.03;
+// An A/B test of a tier costs this fraction of the tier's deploy price.
+const CRO_TEST_FRACTION = 0.18;
 const BOT_CRO_PLAN = {
   quinn: { order: ["trust", "speed", "mobile", "checkout"], rate: 1.4 },
   aisha: { order: ["checkout", "speed", "trust", "mobile"], rate: 2.2 },
@@ -122,20 +124,20 @@ const PLATFORMS = [
     pros: ["Instant launch", "Lowest weekly cost"], cons: ["Low ceiling on spend", "Hard to differentiate"],
     lesson: "Wix got you live instantly at rock-bottom cost, but its low ceiling capped how far your spend could go. Fine to validate; a constraint at scale." },
   { id: "shopify", name: "Shopify", short: "Shopify", tag: "Hosted SaaS", ceiling: 2,
-    fixedCost: 320, txnFee: 0.02, conv: 1.05, adEff: 1.0, rampWeeks: 1, variance: 0, organicBonus: 0,
+    fixedCost: 360, txnFee: 0.02, conv: 1.07, adEff: 1.0, rampWeeks: 1, variance: 0, organicBonus: 0,
     blurb: "Reliable and high-converting from day one. You rent that convenience via monthly + transaction fees.",
     pros: ["Fast launch", "Strong out-of-box conversion"], cons: ["Monthly + transaction fees", "Moderate ceiling"],
     lesson: "Shopify gave reliable conversion from week one with no build risk — paid for in fees. The pragmatic default, rarely cheapest at scale." },
   { id: "woo", name: "WooCommerce", short: "WooCommerce", tag: "Self-hosted · WordPress", ceiling: 3,
-    fixedCost: 160, txnFee: 0, conv: 0.99, adEff: 1.05, rampWeeks: 2, variance: 0.05, organicBonus: 300,
-    blurb: "Cheap, flexible and strong on organic reach — but you own the ops, and a bit of variance comes with that.",
-    pros: ["Low cost & flexible", "Content / SEO organic edge"], cons: ["You own the ops (variance)", "Short setup ramp"],
-    lesson: "WooCommerce kept costs low with an organic-reach edge, at the price of owning the ops. Build-vs-buy tilted toward build." },
+    fixedCost: 260, txnFee: 0, conv: 0.97, adEff: 1.0, rampWeeks: 2, variance: 0.1, organicBonus: 600,
+    blurb: "No transaction fee, flexible, and strong on organic reach where buyers search before they buy — but you own the ops: hosting, upkeep, and some sales lost to downtime.",
+    pros: ["No transaction fee", "Content / SEO organic edge"], cons: ["You own the ops (lost sales)", "Short setup ramp"],
+    lesson: "WooCommerce charged no transaction fee and gave an organic-reach edge, worth most where buyers search before they buy. The price was owning the ops: upkeep costs and some sales lost to downtime." },
   { id: "headless", name: "Headless / Composable", short: "Headless", tag: "Custom · API-first", ceiling: 4,
-    fixedCost: 650, txnFee: 0, conv: 1.12, adEff: 1.18, rampWeeks: 5, variance: 0, organicBonus: 0,
-    blurb: "The highest ceiling — spend works hardest here. But expensive, and slow to build before it pays off.",
+    fixedCost: 1200, txnFee: 0, conv: 1.18, adEff: 1.25, rampWeeks: 5, variance: 0, organicBonus: 0,
+    blurb: "The highest ceiling — spend works hardest here. But the most expensive by far, and it converts below par for weeks while it is built.",
     pros: ["Highest performance ceiling", "Spend compounds at scale"], cons: ["Expensive every week", "Slow to mature"],
-    lesson: "Headless cost you money and time for weeks before its higher limit paid off: a slow start, then it pulls ahead. Only worth it if you survive long enough to reach that point." },
+    lesson: "Headless cost you money and time for weeks before its higher limit paid off: a slow start, then it pulls ahead. Only worth it where margins and volume are large enough to repay the weekly cost." },
 ];
 const PMAP = Object.fromEntries(PLATFORMS.map((p) => [p.id, p]));
 
@@ -156,11 +158,11 @@ const EVENT_CALENDAR = {
 function eventFor(round, cfg) { return cfg.eventsOn ? (EVENT_CALENDAR[round] || null) : null; }
 
 const GLOSSARY = {
-  contribution: "What's left from each sale after item cost and platform fees — the money that covers ads, CRO and platform costs, then becomes profit.",
-  cogs: "Cost of Goods Sold — what each unit costs you (product + fulfilment) before any sale.",
+  contribution: "What one more unit shipped adds, on average: its price, less the share that is returned, less the fees taken on the sale, the cost of the goods and return handling. It pays for ads, CRO and platform costs, then becomes profit.",
+  cogs: "Cost of Goods Sold — what each unit you ship costs you (the product plus its fulfilment), whether or not the buyer keeps it.",
   commission: "The marketplace's cut of every sale: rent for access to its customers.",
   regulars: "Returning customers who come back without you paying again to win them. Their lifetime value (LTV) makes retention far cheaper than constant acquisition.",
-  workingcapital: "The cash on hand to fund spending before revenue arrives. Run out and you're insolvent — even while profitable on paper.",
+  workingcapital: "The cash on hand to fund spending before revenue arrives. In this simulation your cash is your starting cash plus every week's profit or loss. Real stores also pay suppliers before they are paid, so they can run out of cash while profitable on paper.",
   newsvendor: "The stocking trade-off: too little stock and you miss sales; too much and you pay storage (or spoilage) costs.",
   insolvent: "Out of cash to pay your bills — where a profitable-looking store can still fail.",
   cro: "Conversion Rate Optimization — improving the share of visitors who actually buy, via speed, trust, checkout and mobile UX.",
@@ -172,7 +174,9 @@ const GLOSSARY = {
 const KEEP_BASE = 0.78, STOCKOUT_KEEP_PEN = 0.30, LOYAL_FRAC_MAX = 0.30;
 const PLAYER_COLOR = "#009DDC";
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const gbp = (n) => "£" + Math.round(n).toLocaleString("en-GB");
+const gbp = (n) => (n < 0 ? "-£" : "£") + Math.abs(Math.round(n)).toLocaleString("en-GB");
+// Pounds and pence, for per-unit figures where rounding to £1 would mislead.
+const gbp2 = (n) => (n < 0 ? "-£" : "£") + Math.abs(n).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function mulberry32(a) {
   return function () {
@@ -211,12 +215,23 @@ function initialStores(playerName, playerPlatformId, playerFulfilId, startingCas
 }
 
 function maturityOf(p, round) { return !p || p.rampWeeks <= 1 ? 1 : clamp((round - 1) / (p.rampWeeks - 1), 0, 1); }
-function platMods(p, round, rng) {
+/* How a platform's attributes act in a given week, on a given brief.
+   - Build time: until the store is mature it converts and advertises below
+     its finished level (launchDrag at week 1, easing to none) — a build is
+     worse than the finished store, not merely "not yet better".
+   - Owning the ops: `variance` is the worst share of a week's conversions
+     lost to downtime, a broken update or a slow page. It only ever costs.
+   - Organic reach: a content / SEO edge is worth what the brief's buyers
+     make it worth — in full where half of them or more arrive by search
+     (organicRef), nothing where none do. */
+const PLATFORM_RULES = { launchDrag: 0.2, organicFloor: 0.15, organicRef: 0.5 };
+function platMods(p, round, rng, sc) {
   const mat = maturityOf(p, round);
-  const lerp = (b) => 1 + (b - 1) * mat;
-  let conv = lerp(p.conv);
-  if (p.variance) conv *= 1 + (rng() - 0.5) * 2 * p.variance;
-  return { mat, conv, adEff: lerp(p.adEff), organic: p.organicBonus || 0, fixedCost: p.fixedCost, txnFee: p.txnFee };
+  const built = 1 - PLATFORM_RULES.launchDrag * (1 - mat);
+  let conv = p.conv * built;
+  if (p.variance) conv *= 1 - rng() * p.variance;
+  const organicWorth = sc ? clamp((sc.organicReliance - PLATFORM_RULES.organicFloor) / (PLATFORM_RULES.organicRef - PLATFORM_RULES.organicFloor), 0, 1) : 1;
+  return { mat, conv, adEff: p.adEff * built, organic: (p.organicBonus || 0) * organicWorth, fixedCost: p.fixedCost, txnFee: p.txnFee };
 }
 
 function botDecide(store, stats, round, cfg, rng, sc) {
@@ -241,6 +256,36 @@ function botDecide(store, stats, round, cfg, rng, sc) {
   }
 }
 
+/* The share of shipped units that come back. Trust and checkout CRO trim
+   it; the fulfilment model scales it. One definition, used by the tick and
+   by the planning figures the player sees. */
+function returnRateOf(croLevels, ful, sc) {
+  const croReturnCut = (croLevels.trust / 3) * 0.06 + (croLevels.checkout / 3) * 0.04;
+  return clamp(sc.returnRate * ful.returnMod - croReturnCut, 0, 0.6);
+}
+/* What one more unit shipped is worth this week, as the tick will charge
+   it: revenue is earned only on units that are kept, but every unit
+   shipped costs its goods and fulfilment, and a returned one costs its
+   handling too. Uses this week's unit cost (a supplier-squeeze week is
+   dearer). breakEvenUnits = the units to ship before the week's fixed
+   outgoings (platform, fulfilment fee, ads, CRO) are covered. */
+function unitEconomics(store, round, cfg) {
+  const sc = SC(cfg);
+  const ev = eventFor(round, cfg);
+  const plat = getPlatform(cfg, store.platformId);
+  const ful = fulfilOf(store, sc);
+  const croLevels = store.isPlayer ? store.cro : botCro(store.id, round);
+  const returnRate = returnRateOf(croLevels, ful, sc);
+  const unitCost = sc.unitCost * (ev && ev.unitCostMult ? ev.unitCostMult : 1) + ful.perUnitCost;
+  const price = store.decision.price;
+  const feeRate = cfg.commissionRate + plat.txnFee + (ful.marginCut || 0);
+  const contribution = price * (1 - returnRate) * (1 - feeRate) - unitCost - returnRate * sc.returnHandling;
+  const croCost = store.isPlayer ? (store.croSpendThisWeek || 0) : botCroCost(store.id, round);
+  const fixedWeek = plat.fixedCost + (ful.fixed || 0) + store.decision.ad + croCost;
+  return { price, unitCost, returnRate, feeRate, contribution, fixedWeek,
+    breakEvenUnits: contribution > 0 ? fixedWeek / contribution : Infinity };
+}
+
 // ---- THE SERVER TICK (seeded, pure) -------------------------
 function resolveRound(stores, round, cfg, rng) {
   const sc = SC(cfg);
@@ -255,7 +300,7 @@ function resolveRound(stores, round, cfg, rng) {
   const ctx = stores.map((s) => {
     const plat = getPlatform(cfg, s.platformId);
     const ful = fulfilOf(s, sc);
-    const mods = platMods(plat, round, rng);
+    const mods = platMods(plat, round, rng, sc);
     const croLevels = s.isPlayer ? s.cro : botCro(s.id, round);
     const croConv = croConvOf(croLevels, s.isPlayer, s.croLifts, sc);
     const croQual = croQualityOf(croLevels, s.isPlayer, s.croLifts, sc);
@@ -289,8 +334,7 @@ function resolveRound(stores, round, cfg, rng) {
     const returningServed = Math.min(returning, grossSold);
 
     // returns (trust + checkout CRO reduce them)
-    const croReturnCut = (c.croLevels.trust / 3) * 0.06 + (c.croLevels.checkout / 3) * 0.04;
-    const effReturnRate = clamp(sc.returnRate * ful.returnMod - croReturnCut, 0, 0.6);
+    const effReturnRate = returnRateOf(c.croLevels, ful, sc);
     const returnedUnits = grossSold * effReturnRate;
     const keptSales = grossSold - returnedUnits;
 
@@ -332,7 +376,8 @@ function resolveRound(stores, round, cfg, rng) {
       history: [...s.history, { round, event: ev ? ev.title : "", price: d.price, ad: d.ad, stock: d.stock,
         croConv: +c.croConv.toFixed(3), sold: Math.round(keptSales), returns: Math.round(returnedUnits),
         returning: Math.round(returningServed), revenue, commission, platformCost: fixed + platformTxn + dropshipCut,
-        croCost, profit, cumProfit: s.cumProfit + profit, cash: cashAfter, review: +review.toFixed(2),
+        croCost, returnHandling, holding, lostSales: Math.round(lostSales),
+        profit, cumProfit: s.cumProfit + profit, cash: cashAfter, review: +review.toFixed(2),
         loyalBase: Math.round(loyalBase), share }] };
   });
 
@@ -346,15 +391,15 @@ function commentary(stores, round, cfg) {
   const stockedOut = stores.filter((s) => s.last.lostSales > 5);
   const cheapest = [...stores].sort((a, b) => a.last.price - b.last.price)[0];
   const topSeller = [...stores].sort((a, b) => b.last.keptSales - a.last.keptSales)[0];
-  const broke = stores.filter((s) => s.insolvent);
+  const broke = stores.filter((s) => s.cash < 0);
   const sc = SC(cfg);
   const lines = [];
   if (ev) lines.push(`${ev.icon} ${ev.title}: ${ev.desc}`);
-  lines.push(`The marketplace took ${gbp(platformTake)} in commission. ${Math.round(topSeller.last.keptSales)} ${sc.product} sold most by ${topSeller.name}.`);
+  lines.push(`The marketplace took ${gbp(platformTake)} in commission across all five stores. ${topSeller.name} sold the most: ${Math.round(topSeller.last.keptSales).toLocaleString("en-GB")} ${sc.product}.`);
   if (totalReturns > 10) lines.push(`${Math.round(totalReturns)} units came back as returns across the market — refunded, but already shipped and handled.`);
   if (cheapest.last.price <= sc.priceMin + (sc.priceMax - sc.priceMin) * 0.15) lines.push(`${cheapest.name} is racing prices to the floor at ${gbp(cheapest.last.price)}.`);
-  if (stockedOut.length) lines.push(`${stockedOut.map((s) => s.name.split(" ").slice(-1)).join(", ")} stocked out — losing sales and churning regulars.`);
-  if (broke.length) lines.push(`${broke.map((s) => s.name.split(" ").slice(-1)).join(", ")} ran out of cash and are trading insolvent.`);
+  if (stockedOut.length) lines.push(`${stockedOut.map((s) => s.name).join(", ")} stocked out — losing sales and churning regulars.`);
+  if (broke.length) lines.push(`${broke.map((s) => s.name).join(", ")} ${broke.length > 1 ? "are" : "is"} out of cash and trading insolvent.`);
   return lines;
 }
 function leaderDecisionOf(stores) {
@@ -387,7 +432,7 @@ function buildMarkdown(stores, player, predictionLog, cfg) {
   md += `**Platform:** ${plat.name}  ·  **Fulfilment:** ${ful.name}  ·  **Market seed:** ${cfg.seed}\n\n`;
   md += `**Final cumulative profit:** ${gbp(player.cumProfit)}  ·  **Final cash:** ${gbp(player.cash)}`;
   md += player.insolvent ? `  ·  ⚠️ *traded insolvent*\n\n` : `\n\n`;
-  md += `**Prediction calibration:** ${hits}/${predictionLog.length} weekly ranks called correctly.\n\n`;
+  md += `**Prediction calibration:** leaderboard position (by cumulative profit) called correctly in ${hits} of ${predictionLog.length} weeks.\n\n`;
   md += `| Wk | Event | Price | Ad | CRO× | Stock | Sold | Ret | Profit | Cum | Cash | ★ |\n`;
   md += `|----|-------|-------|----|------|-------|------|-----|--------|-----|------|---|\n`;
   player.history.forEach((h) => {
@@ -415,7 +460,8 @@ export {
   CRO_LEVERS, CMAP, BOT_TIER_LIFT, BOT_CRO_PLAN, botCro, botCroCost, rollCroLifts,
   croConvOf, croQualityOf, PLATFORMS, PMAP, DEFAULT_CFG, EVENT_CALENDAR, eventFor,
   GLOSSARY, KEEP_BASE, STOCKOUT_KEEP_PEN, LOYAL_FRAC_MAX, PLAYER_COLOR, clamp, gbp,
-  mulberry32, makeRng, getPlatform, makeStore, initialStores, maturityOf, platMods,
+  CRO_TEST_FRACTION, gbp2, returnRateOf, unitEconomics,
+  mulberry32, makeRng, getPlatform, makeStore, initialStores, maturityOf, platMods, PLATFORM_RULES,
   botDecide, resolveRound, commentary, leaderDecisionOf, rankAtWeek,
   buildCSV, buildMarkdown, downloadFile,
 };
