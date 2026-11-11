@@ -5,7 +5,12 @@ import { DEFAULT_CFG, initialState, resolveQuarter, previewSingles, leaks, bottl
 import { PlainModeProvider } from "./shared.jsx";
 import App from "./App.jsx";
 import InstructorPanel from "./InstructorPanel.jsx";
-import { Intro, Diagnose, Allocate, ResultView, EndView } from "./screens.jsx";
+import { Intro, Diagnose, Allocate, ResultView, EndView, BeforeYouStart } from "./screens.jsx";
+import DiagnosisLog from "./DiagnosisLog.jsx";
+import InstructorTally from "./InstructorTally.jsx";
+import TutorGuide from "./TutorGuide.jsx";
+import { summariseRun } from "./progress.js";
+import { buildDebrief } from "../engine/engine.js";
 
 // A build won't catch a symbol a screen forgot to import (a runtime
 // ReferenceError) — these render every screen directly from props, so it
@@ -86,5 +91,56 @@ describe("screens render", () => {
     const out = html(<InstructorPanel cfg={cfg} setCfg={noop} defaults={cfg} onClose={noop} />);
     expect(out).toContain('role="dialog"');
     expect(out).toContain('aria-valuetext="£15,000"');
+  });
+
+  it("the intro states the learning outcome in the specification's words, and the skills", () => {
+    const out = html(<Intro onStart={noop} onLog={noop} cfg={cfg} progress={{}} />);
+    expect(out).toContain("Critically evaluate advanced eCommerce functionalities");
+    expect(out).toContain("Research and data analysis");
+    expect(out).toContain("opens in a new tab");
+    expect(out).not.toMatch(/LO1|LO2|LO4/);
+  });
+  it("the self-rating: six labelled radio groups, skippable", () => {
+    const out = html(<BeforeYouStart onSave={noop} onSkip={noop} />);
+    expect(out.match(/<fieldset/g)).toHaveLength(6);
+    expect(out.match(/type="radio"/g)).toHaveLength(30);
+    expect(out).toContain("Skip for now");
+    expect(out.match(/<h1/g)).toHaveLength(1);
+  });
+  it("the debrief asks for a recommendation and lists the skills practised", () => {
+    const a = quarter(st0, ["guest"]);
+    const out = html(<EndView records={[a.rec]} state={a.r.newState} cfg={cfg} restart={noop} progress={{}} onLog={noop} />);
+    expect(out).toContain("Your recommendation to Chrichton");
+    expect(out.match(/type="checkbox"/g)).toHaveLength(4);
+    expect(out).toContain("Skills you practised");
+    expect(out).toContain("Open your diagnosis log");
+  });
+  it("the diagnosis log: empty, then a first run with its record, CV line, outcomes and result code", () => {
+    expect(html(<DiagnosisLog progress={{}} onBack={noop} />)).toContain("Nothing here yet");
+    const a = quarter(st0, ["guest"]);
+    const b = quarter(a.r.newState, [], { predLeak: NONE, predBest: NONE });
+    const records = [a.rec, b.rec];
+    const first = summariseRun({ seed: cfg.seed, records, profit: b.r.newState.cumProfit, untouched: 1000, cards: buildDebrief(records, cfg) });
+    const out = html(<DiagnosisLog progress={{ first, runs: 1, recommendation: { text: "Fix the checkout.", checks: 2 } }} onBack={noop} />);
+    expect(out.match(/<h1/g)).toHaveLength(1);
+    expect(out).toContain("Quarter by quarter");
+    expect(out).toContain("Fix the checkout.");
+    expect(out).toContain("2 of 4 points ticked");
+    expect(out).toContain("Communication");
+    expect(out).toContain("simulated e-commerce business");
+    expect(out).toContain("Assessed through the group Website Build");
+    expect(out).toContain("FF1|");
+    expect(out).toContain("Nothing"); // the quarter with no purchase
+    // an older saved run without rows still prints
+    expect(html(<DiagnosisLog progress={{ first: { seed: "X", quarters: 4, profit: 1, leakHits: 1, betHits: 2 } }} onBack={noop} />)).toContain("1 of 4");
+  });
+  it("the cohort tally and the tutor's guide render, for any settings", () => {
+    expect(html(<InstructorTally onBack={noop} />)).toContain("Paste the cohort");
+    for (const c of [cfg, { ...cfg, rates: { ...cfg.rates, checkout: 0.36, purchase: 0.42 } }, { ...cfg, rates: { ...cfg.benchmarks }, budget: 4000 }]) {
+      const out = html(<TutorGuide cfg={c} onBack={noop} />);
+      expect(out.match(/<h1/g)).toHaveLength(1);
+      expect(out).toContain("What the opening funnel shows");
+      expect(out).not.toMatch(/NaN|undefined|Infinity/);
+    }
   });
 });

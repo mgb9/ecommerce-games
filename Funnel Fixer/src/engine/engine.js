@@ -417,7 +417,7 @@ function buildDebrief(records, cfg) {
   else if (!lost.length) pay = `You spent ${gbp(spend)}, and every purchase had earned back its cost by the end of the plan.`;
   else pay = `You spent ${gbp(spend)}; ${gbp(lostSpend)} of it went on purchases that had not earned back their cost by the end of the plan: ${lost.join(", ")}.`;
   if (spend > 0) pay += ` A one-off fix earns in every quarter it is in place, so the same fix is worth less the later it is bought; bought traffic earns only in the quarter it is paid for.`;
-  if (idle.length && spend > 0) pay += ` You held the budget back in quarter ${idle.join(" and ")} — the right call whenever nothing on the menu pays back.`;
+  if (idle.length && spend > 0) pay += ` You held the budget back in ${idle.length > 1 ? "quarters" : "quarter"} ${idle.length > 1 ? idle.slice(0, -1).join(", ") + " and " + idle[idle.length - 1] : idle[0]} — the right call whenever nothing on the menu pays back.`;
   cards.push({ id: "payback", title: "Payback depends on the time left", body: pay });
 
   return cards;

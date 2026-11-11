@@ -113,3 +113,32 @@ moves to each new screen's heading; the funnel is a list with a plain sentence p
 `selText`, darker olive and instructor brown); the header no longer sticks; reduced motion respected;
 Simpler English follows the WMG shell's switch (the click-bridge script is gone). Checked at 375px.
 **Not run:** axe on the built page, a screen reader.
+
+## Skills, diagnosis log, tally and tutor's guide (2026-11-11, second pass)
+The Data Detective / Conversion Lab features, so the game makes its skills visible. Nothing in the engine's
+numbers changed.
+- `src/engine/outcomes.js` — the spec's LO wording (shared with DD and CL), the skills catalogue with
+  game-specific `how`, the game's `OUTCOMES` (LO3 only; syllabus; skills; a CV line). Communication and
+  self-assessment are "by doing": communication is recorded only if the recommendation was written.
+- Intro: "What this develops" (LO text, syllabus, skills, module link). Debrief: **"Your recommendation to
+  Chrichton's head of e-commerce"** (`Recommendation.jsx`, four self-checks, saved as typed) and "Skills you
+  practised".
+- **Self-rating** (`SkillsRating.jsx`, six statements in `cohort.js`): phase `rate`, asked once before the first
+  game (skippable), again from the log; stored in `ff-skills`.
+- **Diagnosis log** (`DiagnosisLog.jsx`, phase `log`, printable — the `.ff-report` print CSS was already in
+  `theme.js`): the first finished run quarter by quarter, how the calls held up, the debrief cards from that
+  run, the recommendation, a skills record, the CV line, the four LOs (LO1/LO2 not covered, LO4 via the Website
+  Build), assessment use, the ratings, and a **result code** `FF1|seed|L:bits|B:bits|P:±£k|R:checks|S:before/after`.
+- `progress.js` — `first` now keeps the whole first run (`summariseRun`: rows, hit bits, untouched-funnel
+  profit, debrief cards); `recommendation`; `ff-skills`. A `first` saved before this pass (no rows) still prints.
+- **Instructor only** (behind `?instructor`, lazy-loaded; a refresh never lands a student on them): **cohort
+  tally** (`InstructorTally.jsx`: per quarter how often each call was right, profit against an untouched funnel,
+  recommendations, ratings) and the **tutor's guide** (`TutorGuide.jsx` + authored, number-free
+  `src/engine/tutorNotes.js`): the opening funnel and first-quarter returns for the current settings, session
+  plans, debrief questions, wrong turns, stretch questions, what each preset is for, LOs and skills, accessibility.
+- Tests: `src/ui/cohort.test.js` (code round-trip, tally, outcomes), five more screen renders.
+- Checked in the browser on the dev server: rating → full run → recommendation → log → code pasted into the
+  tally → guide; `?instructor=off` on a staff page falls back to the game; log at 375px (table scrolls in its
+  region, no page overflow). On the built site inside the WMG shell: the lazy tutor's guide loads and takes
+  focus on its h1, no console errors. Not checked: the printed PDF itself, axe on the new pages, a screen
+  reader. The new screens' text has no Simpler English variants.

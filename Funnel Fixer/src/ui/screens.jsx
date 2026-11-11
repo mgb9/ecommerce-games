@@ -5,7 +5,10 @@ import {
   stageLabel, fixLabel, buildDebrief, buildCSV, buildMarkdown, downloadFile, gbp, gbpK, pct, pp,
 } from "../engine/engine.js";
 import { T, PLAYER, card, btn, ghostBtn, gatedBtn, tipStyle, td } from "./theme.js";
-import { PT, Term, TermsHint, Eyebrow, LOS, SectionTitle, ChoiceGroup, QuestionLabel, ScoreCard, Chart, useReducedMotion } from "./shared.jsx";
+import { WhatThisDevelops, SkillsPractised } from "./Outcomes.jsx";
+import SkillsRating from "./SkillsRating.jsx";
+import Recommendation from "./Recommendation.jsx";
+import { PT, Term, TermsHint, Eyebrow, SectionTitle, ChoiceGroup, QuestionLabel, ScoreCard, Chart, useReducedMotion } from "./shared.jsx";
 
 const times = (n) => (n < 0 ? "−" : "") + Math.abs(n).toFixed(2) + "×";
 const signed = (n) => (n < 0 ? "−" : "+") + gbp(Math.abs(n));
@@ -35,7 +38,7 @@ function ActsOn({ intv, cfg }) {
 }
 
 /* ---- INTRO --------------------------------------------------- */
-export function Intro({ onStart, cfg, progress }) {
+export function Intro({ onStart, onLog, cfg, progress }) {
   const steps = [
     ["01", "Diagnose", <>Read the funnel and call the biggest <b>money</b> leak before the £ sizing is shown.</>],
     ["02", "Back a fix", <>Say which purchase will return most per £ by the end of the plan — or that none will pay back.</>],
@@ -64,10 +67,7 @@ export function Intro({ onStart, cfg, progress }) {
           </li>
         ))}
       </ol>
-      <div style={{ ...card(), marginTop: 20, padding: "15px 18px" }}>
-        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 900, letterSpacing: 0.4 }}>What this develops</h2>
-        <p style={{ margin: "6px 0 0", color: T.body2, fontSize: 15.5, lineHeight: 1.55 }}><b style={{ color: T.text }}>Learning outcome 3.</b> {LOS.LO3} Here that means judging which store improvements are worth their cost — in profit, over a stated period — rather than by how large a conversion gap looks.</p>
-      </div>
+      <WhatThisDevelops style={{ marginTop: 20 }} />
       <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 26, flexWrap: "wrap" }}>
         <button type="button" onClick={onStart} style={btn(T.playerBtn)}>Open the dashboard <span aria-hidden="true">→</span></button>
         <span style={{ color: T.muted, fontSize: 15.5 }}>{cfg.quarters} quarters · {gbp(cfg.budget)} a quarter · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
@@ -76,9 +76,21 @@ export function Intro({ onStart, cfg, progress }) {
         <p style={{ margin: "14px 0 0", color: T.body2, fontSize: 15 }}>
           Your first run made <b style={{ color: T.text }}>{gbp(progress.first.profit)}</b> (biggest leak called {progress.first.leakHits}/{progress.first.quarters}, best bet {progress.first.betHits}/{progress.first.quarters}).
           {progress.runs > 1 && <> Best of {progress.runs} runs: <b style={{ color: T.text }}>{gbp(progress.best.profit)}</b>.</>}
+          {" "}<button type="button" onClick={onLog} style={{ background: "none", border: "none", padding: 0, color: T.text, fontFamily: T.body, fontSize: 15, fontWeight: 700, textDecoration: "underline", cursor: "pointer" }}>Open your diagnosis log</button>
         </p>
       )}
       <TermsHint />
+    </div>
+  );
+}
+
+/* ---- BEFORE THE FIRST GAME: the skills self-rating ------------ */
+export function BeforeYouStart({ onSave, onSkip }) {
+  return (
+    <div className="rise" style={{ maxWidth: 760, margin: "32px auto 0" }}>
+      <ScreenHead kicker="BEFORE YOU START">How confident are you now?</ScreenHead>
+      <SkillsRating style={{ marginTop: 16 }} title="Rate yourself" saveLabel="Save and open the dashboard" onSave={onSave} onSkip={onSkip}
+        intro="Six quick ratings, asked once. After you have played, your diagnosis log asks again, so you can set your confidence against what you actually did." />
     </div>
   );
 }
@@ -328,8 +340,9 @@ export function ResultView({ result: r, cfg, record, singles, onNext, lastQuarte
 }
 
 /* ---- END / DEBRIEF ------------------------------------------- */
-export function EndView({ records, state, cfg, restart, progress }) {
+export function EndView({ records, state, cfg, restart, progress, onLog }) {
   const reduced = useReducedMotion();
+  const [wrote, setWrote] = React.useState(false);
   const N = records.length;
   const leakHits = records.filter((r) => r.leakCorrect).length;
   const betHits = records.filter((r) => r.roiCorrect).length;
@@ -384,10 +397,14 @@ export function EndView({ records, state, cfg, restart, progress }) {
         </div>
       </section>
 
+      <Recommendation onChange={setWrote} style={{ marginTop: 18 }} />
+      <SkillsPractised wrote={wrote} style={{ marginTop: 18 }} />
+
       <section style={{ ...card(), marginTop: 18, textAlign: "center" }}>
         <SectionTitle>Take your diagnosis log into class</SectionTitle>
-        <p style={{ color: T.body2, fontSize: 15, lineHeight: 1.5, maxWidth: 600, margin: "0 auto 16px" }}>Each quarter's calls, what you bought, purchases, revenue, profit, CAC, LTV/CAC and the spend that had not paid back — with the notes above and reflection prompts in the Markdown file.</p>
+        <p style={{ color: T.body2, fontSize: 15, lineHeight: 1.5, maxWidth: 620, margin: "0 auto 16px" }}>Your diagnosis log is a document you can save as a PDF: your first run quarter by quarter, your recommendation, a skills record with a line for your CV, and a result code for your tutor. The CSV and Markdown files hold this run's figures: calls, purchases, revenue, profit, CAC and LTV/CAC.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          <button type="button" onClick={onLog} style={{ ...btn(T.playerBtn), padding: "12px 20px", fontSize: 16 }}>Open your diagnosis log</button>
           <button type="button" onClick={() => downloadFile(`funnel-fixer-${cfg.seed}.csv`, buildCSV(records, cfg), "text/csv")} style={ghostBtn}><span aria-hidden="true">⬇ </span>Download CSV</button>
           <button type="button" onClick={() => downloadFile(`funnel-fixer-${cfg.seed}.md`, buildMarkdown(records, cfg, state.cumProfit), "text/markdown")} style={ghostBtn}><span aria-hidden="true">⬇ </span>Download Markdown</button>
         </div>

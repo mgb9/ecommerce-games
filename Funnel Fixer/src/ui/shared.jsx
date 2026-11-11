@@ -74,13 +74,6 @@ export function TermsHint() {
   );
 }
 
-/* ---- learning outcomes ---------------------------------------------
-   The 2026/27 module specification's wording (as Data Detective's
-   engine/outcomes.js). Funnel Fixer serves LO3: judging which changes to
-   a store are worth making, in money. */
-export const LOS = {
-  LO3: "Critically evaluate advanced eCommerce functionalities to enhance user experience and increase conversions.",
-};
 export function Eyebrow({ children }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

@@ -6,7 +6,7 @@ import { T, presetBtn } from "./theme.js";
    focus moves in on open, Tab cycles inside, Escape or the backdrop closes
    it, and focus returns to whatever opened it. The debrief is written from
    each run's own numbers, so it stays true under any of these settings. */
-export default function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
+export default function InstructorPanel({ cfg, setCfg, defaults, onClose, onOpenPage }) {
   const set = (patch) => setCfg((c) => ({ ...c, ...patch }));
   const setRate = (k, v) => setCfg((c) => ({ ...c, rates: { ...c.rates, [k]: v } }));
   const A = T.instructor;
@@ -43,6 +43,15 @@ export default function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
             <button type="button" onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1, padding: "2px 6px", minWidth: 32, minHeight: 32 }}>×</button>
           </div>
           <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, marginTop: 0 }}>Budget and unit economics apply from the <b style={{ color: T.text }}>next quarter resolved</b>; the seed, the number of quarters and the starting rates apply to a <b style={{ color: T.text }}>new game</b>. A shared seed gives the whole cohort the same funnel and outcomes, so the debrief is about decisions.</p>
+
+          {onOpenPage && (
+            <PanelGroup title="For the seminar">
+              <div style={{ display: "grid", gap: 8 }}>
+                <button type="button" onClick={() => onOpenPage("tally")} style={presetBtn}>Cohort tally — paste students' result codes</button>
+                <button type="button" onClick={() => onOpenPage("guide")} style={presetBtn}>Tutor's guide — running and debriefing the game</button>
+              </div>
+            </PanelGroup>
+          )}
 
           <PanelGroup title="Classroom">
             <div style={{ marginBottom: 12 }}>
