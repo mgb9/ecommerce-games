@@ -228,7 +228,7 @@ Lab's files of the same names; the unit is a **client brief** (one game), where 
   recommendations; a skills record (communication counts only written recommendations; self-assessment carries
   its score); CV lines; LOs (LO2 "not covered", LO4 "assessed through the group Website Build"); assessment use;
   the self-rating; and a **result code**
-  `MT1|seed|brief:platform:fitRank:finalRank:hits/weeks:i|s[:rN],…|S:before/after`.
+  `MT1|seed|brief:platform:fitRank:finalRank:hits/weeks:i|s[:rN][:@seed],…|S:before/after`.
 - **Instructor only** (behind `?instructor`, lazy-loaded as separate chunks): **cohort tally**
   (`InstructorTally.jsx`: per brief — played, platforms chosen, how many chose the top fit, mean final place, ran
   out of cash, prediction hit rate, recommendations; skills ratings before / after) and the **tutor's guide**
@@ -258,9 +258,25 @@ recommendation, the log (also at 375px — no page overflow), the code pasted in
 panel. **Not checked:** inside the built site with the WMG shell, the printed PDF itself, a screen reader.
 
 Open:
-- "eCommerce technology selection" is this file's name for the LO1 subject skill; it follows the syllabus heading
-  (eCommerce Technology), but was not checked against the specification's own list of subject-specific skills.
-- The result code carries one seed (the first brief's); briefs played on different seeds are not distinguished.
+- **Checked 2026-11-11 (later pass):** a full game from a `?seed=` link with Simpler English on, through the
+  recommendation, the decision log, a re-rating, the tally (with a mixed-seed code) and the tutor's guide;
+  axe reports nothing on any of them. The log, tally and guide were printed to PDF with headless Chrome from
+  the built site: A4, tagged, screen-only controls gone, tables intact. The print bar and the name label now
+  have Simpler English wording too. Still not checked: a screen reader.
+- **Skill names against the specification (checked 2026-11-11, module catalogue 2026/27).** Subject-specific
+  skills there: eCommerce, web development, conversion optimisation, eCommerce design, operations for
+  eCommerce. Transferable: presentation skills, research, teamwork and working effectively with others,
+  software development, critical thinking, problem solving, communication, professionalism, organisational
+  awareness. The LO1 skill was "eCommerce technology selection" (not in the list); it is now
+  "eCommerce: choosing technology for a use-case" — the specification's skill, then what it means here.
+  Two transferable names were also off in all four games and were renamed the same day, in the same form:
+  "Research and data analysis" is now "Research: analysing data"; "Independent learning: judging your own
+  confidence" is now "Professionalism: judging your own confidence". "Independent learning" is not in the
+  specification's list; professionalism is the nearest skill it does name, and that pairing is a judgement,
+  not the specification's wording.
+- **Seeds in the result code (2026-11-11):** the code's seed is the first brief's; a brief played on a
+  different seed carries `:@<seed>` after its fields (old codes read as before). The tally lists every seed
+  played and marks a brief "mixed seeds" when its games were on more than one.
 - **Cohort link (2026-11-11):** `?seed=NAME` opens the game on that market seed, as in Funnel Fixer
   (`urlSeed` / `cohortLink` in `urlConfig.js`; letters, digits, `_ . -`, 40 characters at most, anything else
   is ignored). It is applied once on arrival and never to a game under way. The Instructor panel and the

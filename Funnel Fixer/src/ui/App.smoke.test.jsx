@@ -96,7 +96,7 @@ describe("screens render", () => {
   it("the intro states the learning outcome in the specification's words, and the skills", () => {
     const out = html(<Intro onStart={noop} onLog={noop} cfg={cfg} progress={{}} />);
     expect(out).toContain("Critically evaluate advanced eCommerce functionalities");
-    expect(out).toContain("Research and data analysis");
+    expect(out).toContain("Research: analysing data");
     expect(out).toContain("opens in a new tab");
     expect(out).not.toMatch(/LO1|LO2|LO4/);
   });

@@ -44,24 +44,31 @@ export function runRecord(stores, player, cfg, predictionLog = []) {
    log and gives their tutor, who pastes a batch into the instructor tally.
    Only scores — no name, no free text.
 
-     MT1|<seed>|<brief>:<platform>:<fit rank>:<final rank>:<hits>/<weeks>:<i|s>[:r<checks>],…|S:<before>/<after>
+     MT1|<seed>|<brief>:<platform>:<fit rank>:<final rank>:<hits>/<weeks>:<i|s>[:r<checks>][:@<seed>],…|S:<before>/<after>
 
    Per brief, the FIRST completed game: the platform chosen and where the
    fit model ranks it for that brief (1 = top fit), the final leaderboard
    place, how many weekly place predictions were right, whether the store
    ever ran out of cash (i) or stayed solvent (s), and `:r<checks>` if a
    recommendation was written (0–4 self-checks). Skills ratings are one
-   digit each, in SKILL_STATEMENTS order; `-` for anything not done. */
+   digit each, in SKILL_STATEMENTS order; `-` for anything not done.
+   The seed at the front is the first brief's; a brief played on a
+   different seed says so with `:@<seed>`, so the tally never compares
+   two markets as one. (Codes without it read as before.) */
 export const CODE_VERSION = "MT1";
 
+const safeSeed = (s) => String(s).replace(/[|,:@\s]/g, "_");
+
 export function resultCode(progress = {}, skills = {}, seed = "") {
+  const head = safeSeed(seed);
   const games = SCENARIOS.filter((s) => progress[s.id]).map((s) => {
     const p = progress[s.id];
+    const own = p.seed && safeSeed(p.seed) !== head ? `:@${safeSeed(p.seed)}` : "";
     const rec = p.recommendation?.text?.trim() ? `:r${p.recommendation.checks || 0}` : "";
-    return `${s.id}:${p.platformId}:${p.fitRank}:${p.rank}:${p.predHits}/${p.weeks}:${p.insolvent ? "i" : "s"}${rec}`;
+    return `${s.id}:${p.platformId}:${p.fitRank}:${p.rank}:${p.predHits}/${p.weeks}:${p.insolvent ? "i" : "s"}${rec}${own}`;
   });
   const digits = (r) => (r ? SKILL_STATEMENTS.map((s) => r[s.id] || "-").join("") : "-");
-  return [CODE_VERSION, String(seed).replace(/[|,:]/g, "_"), games.join(","), `S:${digits(skills.before)}/${digits(skills.after)}`].join("|");
+  return [CODE_VERSION, head, games.join(","), `S:${digits(skills.before)}/${digits(skills.after)}`].join("|");
 }
 
 // A parsed code, or {error} when it can't be read. Tolerant of whitespace.
@@ -73,11 +80,11 @@ export function parseResultCode(line) {
   const [, seed, gamePart, sPart] = parts;
   const games = [];
   for (const chunk of gamePart.split(",").map((c) => c.trim()).filter(Boolean)) {
-    const m = chunk.match(/^([a-z0-9]+):([a-z0-9]+):(\d):(\d):(\d+)\/(\d+):([is])(?::r(\d))?$/);
+    const m = chunk.match(/^([a-z0-9]+):([a-z0-9]+):(\d):(\d):(\d+)\/(\d+):([is])(?::r(\d))?(?::@([^:,|\s]+))?$/);
     if (!m) return { error: `can't read "${chunk}"`, text };
     if (!SCMAP[m[1]]) return { error: `no brief "${m[1]}"`, text };
     if (!PMAP[m[2]]) return { error: `no platform "${m[2]}"`, text };
-    games.push({ brief: m[1], platformId: m[2], fitRank: Number(m[3]), rank: Number(m[4]), predHits: Number(m[5]), weeks: Number(m[6]), insolvent: m[7] === "i", recommendation: m[8] === undefined ? null : { checks: Number(m[8]) } });
+    games.push({ brief: m[1], platformId: m[2], fitRank: Number(m[3]), rank: Number(m[4]), predHits: Number(m[5]), weeks: Number(m[6]), insolvent: m[7] === "i", recommendation: m[8] === undefined ? null : { checks: Number(m[8]) }, seed: m[9] || seed });
   }
   const sm = sPart.match(/^S:([1-5-]+)\/([1-5-]+)$/);
   const ratings = (d) => (d === "-" ? null : Object.fromEntries(SKILL_STATEMENTS.map((s, i) => [s.id, !d[i] || d[i] === "-" ? null : Number(d[i])])));
@@ -93,12 +100,13 @@ const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : nu
 
 export function tally(results) {
   const ok = results.filter((r) => r && !r.error);
-  const seeds = [...new Set(ok.map((r) => r.seed))];
+  // every market anyone played in: each game's own seed, or the code's if nothing was played
+  const seeds = [...new Set(ok.flatMap((r) => (r.games.length ? r.games.map((g) => g.seed) : [r.seed])))];
   const briefs = SCENARIOS.map((s) => {
     const played = ok.map((r) => r.games.find((g) => g.brief === s.id)).filter(Boolean);
     const recs = played.filter((p) => p.recommendation);
     return {
-      id: s.id, name: s.name, short: s.short, played: played.length,
+      id: s.id, name: s.name, short: s.short, played: played.length, seeds: [...new Set(played.map((g) => g.seed))],
       picks: PLATFORMS.map((p) => ({ id: p.id, short: p.short, n: played.filter((g) => g.platformId === p.id).length })),
       topFit: played.filter((g) => g.fitRank === 1).length,
       meanRank: mean(played.map((g) => g.rank)),

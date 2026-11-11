@@ -59,7 +59,7 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
           <h1 id="mt-log-title" style={{ fontFamily: T.display, fontWeight: 700, fontSize: "clamp(24px, 4.4vw, 31px)", lineHeight: 1.15, margin: "10px 0 6px" }}>Your decision log</h1>
           <div style={{ fontSize: 14, color: T.body2 }}>{[longDate(), `${played.length} of ${SCENARIOS.length} client briefs`, seeds.length ? `seed ${seeds.join(", ")}` : null].filter(Boolean).join(" · ")}</div>
           <div className="mt-noprint" style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <label htmlFor={nameId} style={{ fontSize: 14.5, fontWeight: 600 }}>Your name (optional, for the PDF)</label>
+            <label htmlFor={nameId} style={{ fontSize: 14.5, fontWeight: 600 }}>{plain ? "Your name (you can leave this empty; it is printed on the PDF)" : "Your name (optional, for the PDF)"}</label>
             <input id={nameId} value={name} onChange={(e) => setName(e.target.value)} style={{ padding: "7px 10px", border: `1px solid ${T.muted}`, borderRadius: 8, font: `15px ${T.body}`, minWidth: 200, maxWidth: "100%" }} />
           </div>
           {name.trim() && <p className="mt-print-only" style={{ margin: "8px 0 0", fontSize: 14 }}>{name.trim()}</p>}

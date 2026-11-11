@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { T, btn } from "./theme.js";
+import { usePlain } from "./shared.jsx";
 
 /* Printable pages (the decision log, the cohort tally, the tutor's guide) are saved as PDFs
    with the browser's own "Save as PDF" — in Chrome a tagged, screen-reader-
@@ -34,11 +35,12 @@ export function useFocusOnMount() {
 }
 // The screen-only bar above a printable page: a way back, and Save as PDF.
 export function PrintBar({ onBack, backLabel = "← Back" }) {
+  const plain = usePlain();
   return (
     <div className="mt-noprint" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, maxWidth: 900, margin: "0 auto 14px" }}>
       <button type="button" onClick={onBack} style={{ background: "none", border: "none", color: T.body2, cursor: "pointer", fontSize: 15.5, fontFamily: T.body }}>{backLabel}</button>
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 14, color: T.body2, maxWidth: 330, lineHeight: 1.45 }}>Opens your browser's print window — choose <b style={{ color: T.text }}>Save as PDF</b> as the destination.</span>
+        <span style={{ fontSize: 14, color: T.body2, maxWidth: 330, lineHeight: 1.45 }}>{plain ? <>This button opens the print window of your browser. In that window, choose <b style={{ color: T.text }}>Save as PDF</b>.</> : <>Opens your browser's print window — choose <b style={{ color: T.text }}>Save as PDF</b> as the destination.</>}</span>
         <button type="button" onClick={() => window.print()} style={{ ...btn(T.playerBtn), padding: "12px 22px", fontSize: 16 }}>Save as PDF</button>
       </div>
     </div>

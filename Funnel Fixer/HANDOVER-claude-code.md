@@ -140,8 +140,17 @@ numbers changed.
 - Checked in the browser on the dev server: rating → full run → recommendation → log → code pasted into the
   tally → guide; `?instructor=off` on a staff page falls back to the game; log at 375px (table scrolls in its
   region, no page overflow). On the built site inside the WMG shell: the lazy tutor's guide loads and takes
-  focus on its h1, no console errors. Not checked: the printed PDF itself, axe on the new pages, a screen
-  reader.
+  focus on its h1, no console errors.
+- **Checked 2026-11-11 (later pass):** axe (WCAG 2.0–2.2 A/AA + best practice) reports nothing on the rating
+  screen, the end screen, the diagnosis log (including the open re-rating form), the instructor panel, the
+  tally and the tutor's guide — run during a full game from a `?seed=` link with Simpler English on. The
+  log, tally and guide were printed to PDF with headless Chrome from the built site: A4, tagged, the game
+  frame and screen-only controls gone, tables intact. Still not checked: a screen reader.
+- **Skill names against the specification (checked 2026-11-11):** "Digital marketing for eCommerce" is a
+  syllabus heading, not one of the specification's subject-specific skills (eCommerce, web development,
+  conversion optimisation, eCommerce design, operations for eCommerce), so the skill is now
+  "eCommerce: digital marketing". The syllabus line keeps the heading. See Marketplace Tycoon's handover
+  for the two transferable names that differ from the specification in all four games.
 - **Simpler English** on these screens (2026-11-11): the rating screen, the recommendation, "What this
   develops", "Skills you practised" and the diagnosis log's guidance follow the switch. The wording lives
   with the data — `plain` on each `SKILL_STATEMENTS`, `SKILLS` and `LEARNING_OUTCOMES` entry,

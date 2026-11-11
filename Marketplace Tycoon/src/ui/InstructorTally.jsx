@@ -38,7 +38,7 @@ export default function InstructorTally({ onBack }) {
           <div style={{ fontSize: 12.5, fontWeight: 900, letterSpacing: 1.6, textTransform: "uppercase", color: T.playerText }}>Marketplace Tycoon · Cohort tally</div>
           <h1 id="mt-tally-title" ref={headRef} tabIndex={-1} style={{ fontFamily: T.display, fontWeight: 700, fontSize: "clamp(24px, 4.4vw, 30px)", margin: "10px 0 4px" }}>{t.students} student{t.students === 1 ? "" : "s"}{t.seeds.length ? ` · seed${t.seeds.length === 1 ? "" : "s"} ${t.seeds.join(", ")}` : ""}</h1>
           {t.errors.length > 0 && <p role="alert" style={{ margin: "6px 0 0", color: T.neg, fontSize: 14 }}>{t.errors.length} line{t.errors.length === 1 ? "" : "s"} couldn't be read: {t.errors.map((e) => e.error).join("; ")}.</p>}
-          {t.seeds.length > 1 && <p style={{ margin: "6px 0 0", color: T.amber, fontSize: 14 }}>More than one seed: students faced different markets, so compare with care.</p>}
+          {t.seeds.length > 1 && <p style={{ margin: "6px 0 0", color: T.amber, fontSize: 14 }}>More than one seed: students faced different markets, so compare with care. A brief marked “mixed seeds” below was played on more than one.</p>}
         </header>
         {t.students === 0 ? <Section title="Nothing to tally yet"><p style={{ margin: 0, color: T.body2 }}>Paste codes above.</p></Section> : (
           <>
@@ -50,7 +50,7 @@ export default function InstructorTally({ onBack }) {
                     {t.briefs.map((b) => (
                       <tr key={b.id}>
                         <th scope="row" style={{ ...cell, fontWeight: 600 }}>{b.name}<div style={{ fontWeight: 400, color: T.body2, fontSize: 13.5 }}>top fit: {topFitOf(b.id)}</div></th>
-                        <td style={cell}>{b.played}</td>
+                        <td style={cell}>{b.played}{b.seeds.length > 1 && <div style={{ color: T.amber, fontSize: 13.5 }}>mixed seeds: {b.seeds.join(", ")}</div>}</td>
                         <td style={cell}>{b.played ? b.picks.filter((p) => p.n).map((p) => `${p.short} ${p.n}`).join(", ") : "—"}</td>
                         <td style={cell}>{b.played ? `${b.topFit} of ${b.played}` : "—"}</td>
                         <td style={cell}>{one(b.meanRank)}</td>

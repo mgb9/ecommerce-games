@@ -67,6 +67,18 @@ describe("result code", () => {
   it("carries no name and none of the writing", () => {
     expect(resultCode(progress, skills, "WMG-2026")).not.toContain("Use Shopify");
   });
+  it("says so when a brief was played on a different seed from the first", () => {
+    const mixed = { fashion: { ...progress.fashion, seed: "WMG-2026" }, grocer: { ...progress.grocer, seed: "GROUP B:2" }, digital: { ...progress.digital, seed: "WMG-2026" } };
+    const code = resultCode(mixed, skills, "WMG-2026");
+    expect(code.match(/:@/g)).toHaveLength(1);
+    expect(code).toContain(":@GROUP_B_2");
+    const back = parseResultCode(code);
+    expect(back.games.map((g) => g.seed)).toEqual(["WMG-2026", "GROUP_B_2", "WMG-2026"]);
+    const t = tally([back, parseResultCode("MT1|WMG-2026|grocer:woo:3:4:2/10:i|S:-/-")]);
+    expect(t.seeds).toEqual(["WMG-2026", "GROUP_B_2"]);
+    expect(t.briefs.find((x) => x.id === "grocer").seeds).toEqual(["GROUP_B_2", "WMG-2026"]);
+    expect(t.briefs.find((x) => x.id === "fashion").seeds).toEqual(["WMG-2026"]);
+  });
   it("copes with nothing played, a skipped rating and awkward seeds", () => {
     const code = resultCode({}, { before: null }, "a|b,c:d");
     expect(code).toBe("MT1|a_b_c_d||S:-/-");

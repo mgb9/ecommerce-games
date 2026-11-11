@@ -35,12 +35,12 @@ export const LEARNING_OUTCOMES = {
    the size before any data) and communication (the recommendation to the
    team) are practised in EVERY experiment, so experiments don't list them. */
 export const SKILLS = {
-  research: { name: "Research and data analysis", kind: "Transferable", how: "Designing a test: choosing the metric, sizing the sample from a baseline and the smallest effect worth finding, and reading the result with its uncertainty." },
+  research: { name: "Research: analysing data", kind: "Transferable", how: "Designing a test: choosing the metric, sizing the sample from a baseline and the smallest effect worth finding, and reading the result with its uncertainty." },
   critical: { name: "Critical thinking", kind: "Transferable", how: "Telling a real effect from noise, and a sound conclusion from a lucky one." },
   problem: { name: "Problem solving", kind: "Transferable", how: "Deciding what is worth testing, and what to do when a test can't give a clear answer." },
   organisation: { name: "Organisational awareness", kind: "Transferable", how: "Judging a change by what matters to the business — profit, loyal customers, sales — and knowing who has to decide." },
   communication: { name: "Communication", kind: "Transferable", how: "Writing a recommendation someone who isn't an analyst can act on: what the test found, how sure we can be, and what to do next." },
-  selfassessment: { name: "Independent learning: judging your own confidence", kind: "Transferable", how: "Predicting the winner and the size of the effect before seeing any data, then checking the prediction against the result." },
+  selfassessment: { name: "Professionalism: judging your own confidence", kind: "Transferable", how: "Predicting the winner and the size of the effect before seeing any data, then checking the prediction against the result." },
   conversion: { name: "Conversion optimisation", kind: "Subject specific", how: "Testing changes to pages and messages, and judging them by the conversion they really cause." },
   operations: { name: "Operations for eCommerce", kind: "Subject specific", how: "Counting the operational cost a change moves onto the business, such as delivery." },
 };

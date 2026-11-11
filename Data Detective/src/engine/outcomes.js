@@ -35,12 +35,12 @@ export const LEARNING_OUTCOMES = {
    reply to the ticket's sender (in the case report) and the confidence
    question before submitting — so cases don't list them. */
 export const SKILLS = {
-  research: { name: "Research and data analysis", kind: "Transferable", how: "Gathering evidence from data: choosing which report, cross-tab or ground-truth number would confirm or rule out an explanation." },
+  research: { name: "Research: analysing data", kind: "Transferable", how: "Gathering evidence from data: choosing which report, cross-tab or ground-truth number would confirm or rule out an explanation." },
   critical: { name: "Critical thinking", kind: "Transferable", how: "Weighing evidence: telling a real signal from noise, and a cause from something that merely happened at the same time." },
   problem: { name: "Problem solving", kind: "Transferable", how: "Turning a vague complaint into a specific diagnosis: where, what, and since when." },
   organisation: { name: "Organisational awareness", kind: "Transferable", how: "Knowing which team owns the fix — engineering, marketing, operations or finance — and what each needs to hear." },
   communication: { name: "Communication", kind: "Transferable", how: "Explaining a finding to someone who isn't an analyst: what happened, how sure you are, and what should happen next." },
-  selfassessment: { name: "Independent learning: judging your own confidence", kind: "Transferable", how: "Saying how sure you are before you see the answer, then checking whether that confidence was earned." },
+  selfassessment: { name: "Professionalism: judging your own confidence", kind: "Transferable", how: "Saying how sure you are before you see the answer, then checking whether that confidence was earned." },
   conversion: { name: "Conversion optimisation", kind: "Subject specific", how: "Finding where and why conversion — or the value of each order — changed." },
   operations: { name: "Operations for eCommerce", kind: "Subject specific", how: "Recognising payment, stock, pricing and order-system problems in the data." },
 };

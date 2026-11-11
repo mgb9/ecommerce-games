@@ -155,7 +155,7 @@ describe("inbox and case file render", () => {
     globalThis.localStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = v; }, removeItem: (k) => { delete store[k]; } };
     try {
       const out = html(<CaseFile cfg={{ seed: "DD-2026" }} onBack={noop} />);
-      for (const s of ["Skills record", "Research and data analysis", "For your CV or an interview", CASES[0].outcomes.cv, "Learning outcomes", "played 2 of 12", "Using this in your assessment", "Well calibrated", "Overconfident",
+      for (const s of ["Skills record", "Research: analysing data", "For your CV or an interview", CASES[0].outcomes.cv, "Learning outcomes", "played 2 of 12", "Using this in your assessment", "Well calibrated", "Overconfident",
         "How you rate yourself", "Share your results with your tutor", "DD3|DD-2026|1:4/4@90:-,9:2/3@90:-|S:-/-"]) expect(out, s).toContain(s);
     } finally { delete globalThis.localStorage; }
   });

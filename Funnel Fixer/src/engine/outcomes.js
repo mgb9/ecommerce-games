@@ -35,7 +35,7 @@ export const LEARNING_OUTCOMES = {
    self-assessment through the calls made before the £ sizing is shown.
    `plain` is `how` in Simpler English. */
 export const SKILLS = {
-  research: { name: "Research and data analysis", kind: "Transferable", how: "Reading a funnel's rates and volumes, and sizing each stage's loss in pounds from sessions, order value and margin.",
+  research: { name: "Research: analysing data", kind: "Transferable", how: "Reading a funnel's rates and volumes, and sizing each stage's loss in pounds from sessions, order value and margin.",
     plain: "You read the rates and visitor numbers in a funnel. You worked out, in pounds, how much each step loses." },
   critical: { name: "Critical thinking", kind: "Transferable", how: "Telling the biggest percentage-point gap from the biggest money leak, and a purchase's return in one quarter from its return over the plan.",
     plain: "You saw that the biggest percentage gap is not always the biggest loss of money. You saw that a purchase can pay back slowly, over the whole plan." },
@@ -45,11 +45,11 @@ export const SKILLS = {
     plain: "You judged spending by what the business keeps: profit after spending, margin, and the cost to win a customer compared with what that customer is worth." },
   communication: { name: "Communication", kind: "Transferable", how: "Writing a spending recommendation someone who isn't an analyst can act on: where to spend, what it should return, and over what period.",
     plain: "You wrote advice that a person who does not work with data can use: where to spend, what it should bring back, and by when." },
-  selfassessment: { name: "Independent learning: judging your own confidence", kind: "Transferable", how: "Calling the biggest money leak and the best-returning purchase before the figures are shown, then checking each call.",
+  selfassessment: { name: "Professionalism: judging your own confidence", kind: "Transferable", how: "Calling the biggest money leak and the best-returning purchase before the figures are shown, then checking each call.",
     plain: "You guessed the biggest loss and the best purchase before you saw the numbers. Then you checked each guess." },
   conversion: { name: "Conversion optimisation", kind: "Subject specific", how: "Choosing checkout, product-page and mobile fixes by the stage they act on and the money that stage is losing.",
     plain: "You chose fixes for the checkout, the product page and mobile by the step each one improves and the money that step loses." },
-  marketing: { name: "Digital marketing for eCommerce", kind: "Subject specific", how: "Weighing bought traffic, which is paid for again every quarter, against fixes that stay — using acquisition cost and lifetime value.",
+  marketing: { name: "eCommerce: digital marketing", kind: "Subject specific", how: "Weighing bought traffic, which is paid for again every quarter, against fixes that stay — using acquisition cost and lifetime value.",
     plain: "You compared paid visitors, which you must pay for again every quarter, with fixes that stay. You used the cost to win a customer and what a customer is worth over time." },
 };
 export const BY_DOING = ["communication", "selfassessment"];
