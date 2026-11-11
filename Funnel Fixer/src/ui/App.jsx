@@ -1,568 +1,97 @@
-import React, { useState, useMemo } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  DEFAULT_CFG, INTERVENTIONS, IMAP, STAGES, STAGE_KEYS, GLOSSARY, initialState, resolveQuarter,
-  previewSingles, leaks, bottleneckOf, volumes, gbp, gbpK, pct, pp, clamp,
-  buildCSV, buildMarkdown, downloadFile,
+  DEFAULT_CFG, IMAP, initialState, resolveQuarter, previewSingles, leaks, bottleneckOf, buildRecord, gbpK,
 } from "../engine/engine.js";
+import { T, GLOBAL_CSS } from "./theme.js";
+import { PlainModeProvider, Frame, InstructorButton } from "./shared.jsx";
+import { useSessionState } from "./session.js";
+import { loadProgress, recordRun } from "./progress.js";
+import { instructorMode, urlSeed } from "./urlConfig.js";
+import InstructorPanel from "./InstructorPanel.jsx";
+import { Intro, Diagnose, Allocate, ResultView, EndView } from "./screens.jsx";
 
-const FONT_IMPORT = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap');
-`;
-/* Light WMG redesign (2026-07): page #F5F5F6, white cards, shared red
-   primary #EE3124, dark #211F25 header band. Text tokens are AA on the
-   light surfaces; *Fill tokens are for bars/dots/lines only (3:1 class),
-   never for small text. FF's secondary accent is the olive #7F8F1E — the
-   light-bg-safe reading of its old lime #C1D82F. */
-const T = {
-  ink: "#F5F5F6", panel: "#FFFFFF", panel2: "#F4F3F5", border: "#E4E4E7",
-  text: "#211F25", body2: "#454B50", muted: "#616265", faint: "#8A8A8E",
-  pos: "#2F7D33", neg: "#B3271E", amber: "#946A11",
-  posFill: "#3A9E3A", negFill: "#E2654E", amberFill: "#FBB034",
-  player: "#EE3124", playerText: "#D6261B", second: "#7F8F1E",
-  instructor: "#8A6D45", sel: "#FDEBE9", track: "#E7E6E9", onAccent: "#FFFFFF",
-  hdrBg: "#211F25", hdrText: "#F5F4F6", hdrMuted: "#9A9A9E", hdrBorder: "#3B3843",
-  shadow: "0 12px 30px -26px rgba(0,0,0,0.5)",
-  display: "'Fraunces', 'Lato', serif", body: "'Lato', 'Helvetica Neue', sans-serif", mono: "'JetBrains Mono', monospace",
-};
-const PLAYER = T.player;
-
-function Term({ term, children }) {
-  const [open, setOpen] = useState(false);
-  const def = GLOSSARY[term];
-  if (!def) return <span>{children}</span>;
-  return (
-    <span style={{ position: "relative", display: "inline-block" }}>
-      <span onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} style={{ borderBottom: `1px dotted ${T.muted}`, cursor: "help" }}>{children}</span>
-      {open && <span onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: "135%", left: 0, zIndex: 60, width: 240, fontWeight: 400, background: T.hdrBg, border: `1px solid ${T.hdrBorder}`, borderRadius: 8, padding: "9px 11px", fontSize: 13, color: T.hdrText, lineHeight: 1.5, boxShadow: "0 10px 28px #0005", fontFamily: T.body }}>{def}</span>}
-    </span>
-  );
-}
-function TermsHint() {
-  return (
-    <div style={{ marginTop: 16, fontSize: 14, color: T.muted, display: "flex", alignItems: "center", gap: 7 }}>
-      <span style={{ fontSize: 15.5 }}>💡</span>
-      <span>Tip: any word with a <span style={{ borderBottom: `1px dotted ${T.muted}` }}>dotted underline</span> is clickable — tap it for a plain-English definition.</span>
-    </div>
-  );
-}
-// Plain-language mode — a "Simpler English" toggle for the ESL cohort.
-const PlainCtx = React.createContext(false);
-function PT({ rich, plain }) { return React.useContext(PlainCtx) ? plain : rich; }
-function usePlainMode() {
-  const [plain, setPlain] = useState(() => { try { return localStorage.getItem("ff-plain") === "1"; } catch { return false; } });
-  const toggle = () => setPlain((v) => { const nv = !v; try { localStorage.setItem("ff-plain", nv ? "1" : "0"); } catch {} return nv; });
-  return [plain, toggle];
-}
-/* ---- LEARNING-OUTCOME BADGES (⑦) ---------------------------- */
-const LOS = {
-  LO1: { title: "Technology → solution", full: "LO1 — Select appropriate technologies and turn them into a solution for specific e-commerce use-cases." },
-  LO2: { title: "Design patterns & implementation", full: "LO2 — Apply design patterns and best practice, and implement the solution." },
-  LO3: { title: "Enhance UX & conversion", full: "LO3 — Evaluate functionalities to enhance user experience and conversions." },
-  LO4: { title: "Collaborative analysis & build", full: "LO4 — Collaboratively analyse, and build a live e-commerce site." },
-};
-// LO context now rides on the intro Eyebrow's title tooltip; LOS is the
-// single source for the full outcome wording.
-// Lives on the dark header band, so it styles against hdr* tokens.
-function PlainToggle({ plain, toggle }) {
-  return (
-    <button onClick={toggle} title="Switch to simpler English" style={{ background: plain ? PLAYER : "transparent", border: `1px solid ${plain ? PLAYER : T.hdrBorder}`, color: plain ? T.onAccent : T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 5 }}>
-      <span style={{ fontSize: 15.5 }}>🗣️</span> Simpler English
-    </button>
-  );
-}
+/* Root: which screen is on show and the state behind it, mirrored to the
+   tab's session so a refresh resumes where the student was. A quarter's
+   result is never stored — `last` keeps the funnel it started from, the
+   basket and the settings it ran under, and the result is recomputed from
+   them (the engine is seeded, so it comes back identical). Settings
+   changed mid-game apply from the next quarter resolved. `nav` counts
+   screen changes, so focus moves to each new screen's heading (not on
+   first load). */
+const VERSION = 1;
+const START = { v: VERSION, phase: "intro", state: initialState(DEFAULT_CFG), predLeak: null, predBest: null, chosen: [], last: null, records: [], nav: 0 };
+const startCfg = () => { const seed = urlSeed(); return seed ? { ...DEFAULT_CFG, seed } : DEFAULT_CFG; };
 
 export default function App() {
-  const [phase, setPhase] = useState("intro");
-  const [cfg, setCfg] = useState(DEFAULT_CFG);
-  const [state, setState] = useState(() => initialState(DEFAULT_CFG));
-  const [predLeak, setPredLeak] = useState(null);
-  const [predBest, setPredBest] = useState(null);
-  const [chosen, setChosen] = useState([]);
-  const [result, setResult] = useState(null);
-  const [records, setRecords] = useState([]);
+  const [saved, setApp] = useSessionState("app", START);
+  const [cfg, setCfg] = useSessionState("cfg", startCfg);
+  const [instructor] = useState(() => instructorMode());
   const [showInstructor, setShowInstructor] = useState(false);
-  const [plain, togglePlain] = usePlainMode();
+  const [progress, setProgress] = useState(loadProgress);
+  const app = saved?.v === VERSION ? saved : START;
+  const { phase, state, predLeak, predBest, chosen, last, records, nav } = app;
+  const go = (patch) => setApp((a) => { const cur = a?.v === VERSION ? a : START; return { ...cur, ...patch, nav: (cur.nav || 0) + 1 }; });
+  const set = (patch) => setApp((a) => ({ ...(a?.v === VERSION ? a : START), ...patch }));
 
-  const curLeaks = useMemo(() => leaks(state.rates, cfg.sessions, cfg), [state, cfg]);
-  const curBottleneck = useMemo(() => bottleneckOf(curLeaks), [curLeaks]);
+  // a cohort link (?seed=NAME) sets the seed whenever no game is under way
+  useEffect(() => {
+    const seed = urlSeed();
+    if (seed && phase === "intro" && cfg.seed !== seed) setCfg((c) => ({ ...c, seed }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const curLeaks = useMemo(() => leaks(state.rates, cfg.sessions, cfg, state.marginCut), [state, cfg]);
   const singles = useMemo(() => previewSingles(state, cfg), [state, cfg]);
+  // the quarter just resolved, rebuilt from what it started with
+  const result = useMemo(() => (last ? resolveQuarter(last.state, last.chosen, last.cfg) : null), [last]);
+  const lastSingles = useMemo(() => (last ? previewSingles(last.state, last.cfg) : []), [last]);
 
-  function start() { const s = initialState(cfg); setState(s); setRecords([]); resetQuarter(); setPhase("diagnose"); }
-  function resetQuarter() { setPredLeak(null); setPredBest(null); setChosen([]); setResult(null); }
-  function restart() { setRecords([]); setPhase("intro"); }
-
-  function toAllocate() { setPhase("allocate"); }
-  function toggleChoice(id) {
-    setChosen((c) => {
-      if (c.includes(id)) return c.filter((x) => x !== id);
-      const cost = IMAP[id].cost;
-      const spent = c.reduce((a, x) => a + IMAP[x].cost, 0);
-      if (spent + cost > cfg.budget) return c;
-      return [...c, id];
-    });
-  }
+  const start = () => go({ phase: "diagnose", state: initialState(cfg), predLeak: null, predBest: null, chosen: [], last: null, records: [] });
+  // works from the latest basket, so two quick presses can't overwrite each other
+  const toggleChoice = (id) => setApp((a) => {
+    const c = a.chosen;
+    if (c.includes(id)) return { ...a, chosen: c.filter((x) => x !== id) };
+    const spent = c.reduce((sum, x) => sum + IMAP[x].cost, 0);
+    return spent + IMAP[id].cost > cfg.budget ? a : { ...a, chosen: [...c, id] };
+  });
   function runQuarter() {
     const r = resolveQuarter(state, chosen, cfg);
-    const bestActual = singles[0];
-    const wasted = r.perInterventionROI.filter((x) => x.roi < 0.5).reduce((a, x) => a + x.cost, 0);
-    const rec = {
-      quarter: state.quarter,
-      predLeak: STAGES.find((s) => s.key === predLeak)?.label || "—",
-      actualLeak: curBottleneck.label, leakCorrect: predLeak === curBottleneck.stage,
-      predBest: IMAP[predBest]?.name || "—", bestActual: bestActual?.name || "—", roiCorrect: predBest === bestActual?.id,
-      allocations: chosen.map((id) => IMAP[id].name),
-      spend: r.spend, purchases: r.purchases, revenue: r.revenue, grossProfit: r.grossProfit,
-      cac: r.cac, ltvCac: r.ltvCac, wasted,
-    };
-    setRecords((p) => [...p, rec]);
-    setResult(r); setState(r.newState); setPhase("result");
+    const rec = buildRecord(state, cfg, { predLeak, predBest, chosen }, r);
+    go({ phase: "result", last: { state, chosen, cfg }, state: r.newState, records: [...records, rec] });
   }
   function nextQuarter() {
-    if (state.quarter > cfg.quarters) { setPhase("end"); return; }
-    resetQuarter(); setPhase("diagnose");
+    if (state.quarter > cfg.quarters) {
+      setProgress(recordRun({ seed: cfg.seed, quarters: records.length, profit: state.cumProfit, leakHits: records.filter((r) => r.leakCorrect).length, betHits: records.filter((r) => r.roiCorrect).length }));
+      go({ phase: "end" });
+      return;
+    }
+    go({ phase: "diagnose", predLeak: null, predBest: null, chosen: [] });
   }
+  const restart = () => go({ phase: "intro", last: null, records: [], state: initialState(cfg), predLeak: null, predBest: null, chosen: [] });
 
-  return (
-   <PlainCtx.Provider value={plain}>
-    <div style={{ minHeight: "100vh", background: T.ink, color: T.text, fontFamily: T.body }}>
-      <style>{FONT_IMPORT + `
-        * { box-sizing: border-box; }
-        input[type=range]{ -webkit-appearance:none; appearance:none; height:6px; border-radius:6px; background:${T.track}; outline:none; }
-        input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; box-shadow:0 0 0 3px var(--accent-soft); }
-        input[type=range]::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; cursor:pointer; background:var(--accent); border:2px solid #FFFFFF; }
-        @keyframes rise { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
-        @keyframes slideIn { from{transform:translateX(100%)} to{transform:none} }
-        .rise{ animation:rise .5s cubic-bezier(.2,.7,.3,1) both; }
-        @media (max-width:720px){ .cols2{ grid-template-columns:minmax(0,1fr) !important; } }
-        .fbar{ transition: width .7s cubic-bezier(.2,.7,.3,1); }
-        .recharts-cartesian-axis-tick text{ fill:${T.muted}; font-family:${T.mono}; font-size:12.5px; }
-      `}</style>
-
-      <Header phase={phase} state={state} cfg={cfg} records={records} plain={plain} togglePlain={togglePlain} onToggleInstructor={() => setShowInstructor((v) => !v)} />
-
-      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "0 20px 64px" }}>
-        {phase === "intro" && <Intro onStart={start} cfg={cfg} />}
-        {phase === "diagnose" && <Diagnose state={state} cfg={cfg} leaksArr={curLeaks} bottleneck={curBottleneck} predLeak={predLeak} setPredLeak={setPredLeak} predBest={predBest} setPredBest={setPredBest} singles={singles} onNext={toAllocate} />}
-        {phase === "allocate" && <Allocate state={state} cfg={cfg} leaksArr={curLeaks} bottleneck={curBottleneck} predLeak={predLeak} chosen={chosen} toggleChoice={toggleChoice} onRun={runQuarter} />}
-        {phase === "result" && result && <ResultView result={result} cfg={cfg} record={records[records.length - 1]} bestActual={singles[0]} onNext={nextQuarter} lastQuarter={state.quarter > cfg.quarters} />}
-        {phase === "end" && <EndView records={records} state={state} cfg={cfg} restart={restart} />}
-      </div>
-
-      {showInstructor && <InstructorPanel cfg={cfg} setCfg={setCfg} defaults={DEFAULT_CFG} onClose={() => setShowInstructor(false)} />}
-    </div>
-   </PlainCtx.Provider>
-  );
-}
-
-/* ---- HEADER ------------------------------------------------- */
-function Header({ phase, state, cfg, records, plain, togglePlain, onToggleInstructor }) {
-  const show = phase !== "intro";
+  const playing = phase !== "intro";
   const spent = records.reduce((a, r) => a + r.spend, 0);
+  const stats = playing ? [
+    ["QUARTER", `${Math.min(phase === "result" || phase === "end" ? state.quarter - 1 : state.quarter, cfg.quarters)}/${cfg.quarters}`, T.hdrPlayer],
+    ["PROFIT SO FAR", gbpK(state.cumProfit), state.cumProfit >= 0 ? T.hdrPos : T.hdrPlayer],
+    ["SPENT", gbpK(spent), T.hdrInstructor],
+    ["SEED", cfg.seed, T.hdrMuted],
+  ] : [];
+
   return (
-    <div style={{ background: T.hdrBg, color: T.hdrText, position: "sticky", top: 0, zIndex: 30 }}>
-      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 22, letterSpacing: -0.5 }}>Funnel <span style={{ color: PLAYER }}>Fixer</span></span>
-          <span style={{ color: T.hdrMuted, fontSize: 14.5, fontFamily: T.mono }}>Chrichton · <Term term="cro">CRO</Term> diagnosis</span>
-        </div>
-        <div style={{ display: "flex", gap: "10px 16px", alignItems: "center", flexWrap: "wrap", fontFamily: T.mono, fontSize: 14.5 }}>
-          {show && <Stat label="QUARTER" value={`${Math.min(state.quarter, cfg.quarters)}/${cfg.quarters}`} accent="#FF5A4A" />}
-          {show && <Stat label="CUM PROFIT" value={gbpK(state.cumProfit)} accent={state.cumProfit >= 0 ? "#7DCB6A" : "#FF5A4A"} />}
-          {show && <Stat label="SPENT" value={gbpK(spent)} accent="#C4A578" />}
-          <PlainToggle plain={plain} toggle={togglePlain} />
-          <button onClick={onToggleInstructor} title="Instructor controls" style={{ background: "transparent", border: `1px solid ${T.hdrBorder}`, color: T.hdrText, borderRadius: 999, padding: "7px 12px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5, display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 16.5 }}>⚙</span> Instructor</button>
-        </div>
+    <PlainModeProvider>
+      <div style={{ minHeight: "100vh", background: T.ink, color: T.text, fontFamily: T.body }}>
+        <style>{GLOBAL_CSS}</style>
+        <Frame screenKey={`${phase}:${state.quarter}`} autoFocus={nav > 0} subtitle="Chrichton · funnel diagnosis" stats={stats}
+          actions={instructor && <InstructorButton onClick={() => setShowInstructor(true)} />}>
+          {phase === "intro" && <Intro onStart={start} cfg={cfg} progress={progress} />}
+          {phase === "diagnose" && <Diagnose state={state} cfg={cfg} leaksArr={curLeaks} singles={singles} predLeak={predLeak} predBest={predBest}
+            setPredLeak={(v) => set({ predLeak: v })} setPredBest={(v) => set({ predBest: v })} onNext={() => go({ phase: "allocate" })} />}
+          {phase === "allocate" && <Allocate state={state} cfg={cfg} leaksArr={curLeaks} bottleneck={bottleneckOf(curLeaks)} predLeak={predLeak} chosen={chosen} toggleChoice={toggleChoice} onRun={runQuarter} />}
+          {phase === "result" && result && records.length > 0 && <ResultView result={result} cfg={last.cfg} record={records[records.length - 1]} singles={lastSingles} onNext={nextQuarter} lastQuarter={state.quarter > cfg.quarters} />}
+          {phase === "end" && <EndView records={records} state={state} cfg={cfg} restart={restart} progress={progress} />}
+        </Frame>
+        {showInstructor && instructor && <InstructorPanel cfg={cfg} setCfg={setCfg} defaults={DEFAULT_CFG} onClose={() => setShowInstructor(false)} />}
       </div>
-    </div>
+    </PlainModeProvider>
   );
 }
-// Header-only: values sit on the dark band, so accents are the bright
-// (dark-bg) palette, not the light-surface text tokens.
-function Stat({ label, value, accent }) {
-  return <div style={{ textAlign: "right" }}><div style={{ color: T.hdrMuted, fontSize: 11.5, letterSpacing: 1 }}>{label}</div><div style={{ color: accent || T.hdrText, fontWeight: 700, fontSize: 16.5 }}>{value}</div></div>;
-}
-
-/* ---- INTRO (light redesign: eyebrow + serif H1 + numbered step cards) */
-function Eyebrow({ children, title }) {
-  return (
-    <div title={title} style={{ display: "flex", alignItems: "center", gap: 10, cursor: title ? "help" : "default" }}>
-      <span aria-hidden="true" style={{ width: 26, height: 3, background: PLAYER, borderRadius: 3 }} />
-      <span style={{ color: T.playerText, fontSize: 14.5, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{children}</span>
-    </div>
-  );
-}
-function Intro({ onStart, cfg }) {
-  return (
-    <div className="rise" style={{ maxWidth: 820, margin: "48px auto 0" }}>
-      <Eyebrow title={`${LOS.LO1.full}\n${LOS.LO3.full}`}>Funnel economics · LO1 · LO3</Eyebrow>
-      <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 50, lineHeight: 1.04, letterSpacing: -1.2, margin: "16px 0 0" }}>
-        <PT rich={<>The funnel is leaking.<br /><span style={{ color: PLAYER }}>Where do you spend?</span></>}
-            plain={<>Your checkout funnel is losing customers.<br /><span style={{ color: PLAYER }}>Choose where to invest.</span></>} />
-      </h1>
-      <p style={{ color: T.body2, fontSize: 19, lineHeight: 1.6, marginTop: 18 }}>
-        Chrichton's e-commerce <Term term="funnel">funnel</Term> loses people at every step. You have a fixed budget each quarter and a menu of fixes.{" "}
-        <PT rich={<>The trap: the biggest <i>percentage</i> gap is rarely the biggest <i>money</i> leak.</>}
-            plain={<>The key point: the stage with the biggest percentage gap is usually NOT the stage that loses the most money.</>} />{" "}
-        Diagnose with <Term term="opportunitysizing">opportunity sizing</Term>, spend where the £ is, and watch the <Term term="bottleneck">bottleneck</Term> move.
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(185px,1fr))", gap: 14, marginTop: 26 }}>
-        {[["01", "Diagnose", "Read the funnel and predict the biggest money leak — before you see the £ sizing."],
-        ["02", "Allocate", "Spend the quarter's budget across fixes. You can't afford everything."],
-        ["03", "Run", <>See purchases, profit, <Term term="cac">CAC</Term>, <Term term="ltvcac">LTV/CAC</Term> and the <Term term="roi">ROI</Term> of each spend.</>],
-        ["04", "Move on", "The bottleneck jumps to a new stage. Re-diagnose. Repeat."]].map(([n, t, d]) => (
-          <div key={t} style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: "16px 17px", boxShadow: T.shadow }}>
-            <div style={{ color: T.second, fontFamily: T.mono, fontSize: 14.5, fontWeight: 700 }}>{n}</div>
-            <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, margin: "4px 0 5px" }}>{t}</div>
-            <div style={{ color: T.body2, fontSize: 15, lineHeight: 1.5 }}>{d}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: 14, alignItems: "center", marginTop: 28, flexWrap: "wrap" }}>
-        <button onClick={onStart} style={btn(PLAYER)}>Open the dashboard →</button>
-        <span style={{ color: T.muted, fontSize: 15.5 }}>{cfg.quarters} quarters · {gbp(cfg.budget)}/quarter · seed <b style={{ color: T.text, fontFamily: T.mono }}>{cfg.seed}</b></span>
-      </div>
-      <TermsHint />
-    </div>
-  );
-}
-
-/* ---- THE FUNNEL VISUAL -------------------------------------- */
-function FunnelViz({ rates, sessions, leaksArr, bottleneckKey, showLeaks, predKey, compact }) {
-  const vols = volumes(rates, sessions);
-  const max = vols[0].count;
-  const widthPct = (c) => Math.max(8, Math.sqrt(c / max) * 100);
-  const leakByStage = Object.fromEntries(leaksArr.map((l) => [l.stage, l]));
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: compact ? 3 : 5 }}>
-      {vols.map((v, i) => {
-        const leak = i > 0 ? leakByStage[v.key] : null;
-        const isBott = leak && leak.stage === bottleneckKey;
-        const isPred = leak && leak.stage === predKey;
-        const border = isBott ? T.negFill : isPred ? PLAYER : T.border;
-        return (
-          <div key={v.key}>
-            {leak && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 12.5, color: T.muted, fontFamily: T.mono, padding: "1px 0" }}>
-                <span style={{ color: leak.rate >= leak.bench ? T.pos : T.amber }}>↓ {pct(leak.rate, 0)}</span>
-                <span style={{ color: T.muted }}>bench {pct(leak.bench, 0)}</span>
-                <span style={{ color: leak.gap > 0 ? T.neg : T.pos }}>{pp(leak.rate - leak.bench, 0)}</span>
-                {showLeaks && leak.leak > 0 && <span style={{ color: isBott ? T.neg : T.muted, fontWeight: 700 }}>· {gbpK(leak.leak)} leak/qtr</span>}
-              </div>
-            )}
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <div className="fbar" style={{ width: `${widthPct(v.count)}%`, minWidth: "max-content", maxWidth: "100%", background: i === 0 ? "#ECEBEE" : isBott ? "#FBE9E7" : T.panel2, border: `1.5px solid ${border}`, borderRadius: 10, padding: compact ? "7px 14px" : "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                <span style={{ fontWeight: 700, fontSize: compact ? 14 : 15, whiteSpace: "nowrap" }}>{v.label}{isBott && <span style={{ color: T.neg, fontSize: 12.5, marginLeft: 6 }}>● bottleneck</span>}</span>
-                <span style={{ fontFamily: T.mono, fontSize: compact ? 13.5 : 14.5, color: T.text }}>{Math.round(v.count).toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ---- DIAGNOSE (predict) ------------------------------------- */
-function Diagnose({ state, cfg, leaksArr, bottleneck, predLeak, setPredLeak, predBest, setPredBest, singles, onNext }) {
-  const available = singles; // already filtered to non-deployed
-  const ready = predLeak != null && predBest != null;
-  return (
-    <div className="rise" style={{ marginTop: 22 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 14.5, fontWeight: 700 }}>QUARTER {state.quarter}</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Diagnose the funnel</h2>
-      </div>
-      <p style={{ color: T.muted, fontSize: 16, lineHeight: 1.55, marginTop: 8, maxWidth: 820 }}>
-        Here's where Chrichton stands against benchmark. Before you see the £ sizing, back your read: which stage is the biggest <b style={{ color: T.text }}>money</b> leak, and which single fix has the best <Term term="roi">ROI</Term>?
-      </p>
-      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.15fr) minmax(0,1fr)", gap: 18, marginTop: 12 }}>
-        <div style={card()}>
-          <SectionTitle>Chrichton funnel — this quarter</SectionTitle>
-          <FunnelViz rates={state.rates} sessions={cfg.sessions} leaksArr={leaksArr} bottleneckKey={null} predKey={predLeak} showLeaks={false} />
-          <p style={{ color: T.muted, fontSize: 13.5, marginTop: 12, lineHeight: 1.5 }}>Each band's width is its volume. The arrows show the conversion rate into that stage vs benchmark. <b style={{ color: T.text }}>The £ leak is hidden</b> — that's your job to predict.</p>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={card()}>
-            <SectionTitle>1 · Biggest money leak?</SectionTitle>
-            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-              {STAGES.map((s) => {
-                const l = leaksArr.find((x) => x.stage === s.key);
-                return <button key={s.key} onClick={() => setPredLeak(s.key)} style={{ ...pickRow(predLeak === s.key), display: "flex", justifyContent: "space-between" }}><span>{s.label}</span><span style={{ fontFamily: T.mono, fontSize: 13.5, color: T.muted }}>{pct(l.rate, 0)} vs {pct(l.bench, 0)}</span></button>;
-              })}
-            </div>
-          </div>
-          <div style={card()}>
-            <SectionTitle>2 · Best-ROI single fix?</SectionTitle>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 230, overflowY: "auto" }}>
-              {available.map((p) => <button key={p.id} onClick={() => setPredBest(p.id)} style={{ ...pickRow(predBest === p.id), display: "flex", justifyContent: "space-between", gap: 8 }}><span>{IMAP[p.id].icon} {p.name}</span><span style={{ fontFamily: T.mono, fontSize: 13.5, color: T.muted }}>{gbp(p.cost)}</span></button>)}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style={{ textAlign: "right", marginTop: 18 }}>
-        <button onClick={onNext} disabled={!ready} style={{ ...btn(PLAYER), opacity: ready ? 1 : 0.45, cursor: ready ? "pointer" : "not-allowed" }}>{ready ? "Reveal the money leaks & allocate →" : "Make both predictions to continue"}</button>
-      </div>
-    </div>
-  );
-}
-
-/* ---- ALLOCATE ----------------------------------------------- */
-function Allocate({ state, cfg, leaksArr, bottleneck, predLeak, chosen, toggleChoice, onRun }) {
-  const spent = chosen.reduce((a, id) => a + IMAP[id].cost, 0);
-  const remaining = cfg.budget - spent;
-  const predHit = predLeak === bottleneck.stage;
-  return (
-    <div className="rise" style={{ marginTop: 22 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 14.5, fontWeight: 700 }}>QUARTER {state.quarter}</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 28, letterSpacing: -0.5, margin: 0 }}>Allocate the budget</h2>
-      </div>
-      <div style={{ marginTop: 10, background: predHit ? "#EAF4E5" : "#FBF3DF", border: `1px solid ${predHit ? T.posFill : T.amberFill}`, borderRadius: 11, padding: "12px 15px", fontSize: 15, lineHeight: 1.5 }}>
-        {predHit ? "✓" : "✗"} The biggest <Term term="opportunitysizing">money leak</Term> is <b style={{ color: T.neg }}>{bottleneck.label}</b> ({gbpK(bottleneck.leak)}/quarter) — you predicted <b>{STAGES.find((s) => s.key === predLeak)?.label}</b>. Notice it's not always the biggest % gap.
-      </div>
-      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1.1fr)", gap: 18, marginTop: 14 }}>
-        <div style={card()}>
-          <SectionTitle>The money leak per stage</SectionTitle>
-          <FunnelViz rates={state.rates} sessions={cfg.sessions} leaksArr={leaksArr} bottleneckKey={bottleneck.stage} showLeaks={true} />
-        </div>
-        <div style={card()}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <SectionTitle>Choose your fixes</SectionTitle>
-            <div style={{ textAlign: "right" }}><div style={{ fontSize: 12.5, color: T.muted }}>budget left</div><div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 18.5, color: remaining < 0 ? T.neg : remaining < cfg.budget * 0.2 ? T.amber : T.pos }}>{gbp(remaining)}</div></div>
-          </div>
-          <div style={{ height: 7, background: T.track, borderRadius: 7, overflow: "hidden", marginBottom: 14 }}><div style={{ width: `${Math.min(100, (spent / cfg.budget) * 100)}%`, height: "100%", background: PLAYER, transition: "width .3s" }} /></div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {INTERVENTIONS.map((iv) => {
-              const deployed = iv.type === "rate" && state.deployed.includes(iv.id);
-              const on = chosen.includes(iv.id);
-              const afford = on || spent + iv.cost <= cfg.budget;
-              const disabled = deployed || (!on && !afford);
-              return (
-                <button key={iv.id} onClick={() => !deployed && toggleChoice(iv.id)} disabled={disabled} style={{ textAlign: "left", cursor: disabled ? "not-allowed" : "pointer", background: on ? T.sel : T.panel2, border: `1.5px solid ${on ? PLAYER : T.border}`, opacity: disabled && !on ? 0.5 : 1, borderRadius: 12, padding: "11px 13px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontWeight: 700, fontSize: 15 }}>{iv.icon} {iv.name} {deployed && <span style={{ color: T.pos, fontSize: 12.5 }}>✓ deployed</span>}{iv.type === "acq" && <span style={{ color: T.amber, fontSize: 11.5, fontFamily: T.mono }}> ongoing</span>}{iv.marginCut && <span style={{ color: T.neg, fontSize: 11.5, fontFamily: T.mono }}> margin cut</span>}</span>
-                    <span style={{ fontFamily: T.mono, fontSize: 14, color: on ? PLAYER : T.muted }}>{gbp(iv.cost)}</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: T.muted, marginTop: 3, lineHeight: 1.4 }}>{iv.blurb}</div>
-                </button>
-              );
-            })}
-          </div>
-          <button onClick={onRun} disabled={chosen.length === 0} style={{ ...btn(PLAYER), width: "100%", marginTop: 14, opacity: chosen.length ? 1 : 0.45, cursor: chosen.length ? "pointer" : "not-allowed" }}>{chosen.length ? `Run quarter ${state.quarter} ▸` : "Pick at least one fix"}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---- RESULT ------------------------------------------------- */
-function ResultView({ result, cfg, record, bestActual, onNext, lastQuarter }) {
-  const r = result;
-  const dPurch = r.purchases - r.purchasesBefore;
-  const roiSorted = [...r.perInterventionROI].sort((a, b) => b.roi - a.roi);
-  const maxRoi = Math.max(1, ...roiSorted.map((x) => Math.abs(x.roi)));
-  return (
-    <div className="rise" style={{ marginTop: 22 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: T.mono, color: T.playerText, fontSize: 14.5, fontWeight: 700 }}>QUARTER {record.quarter} RESULT</span>
-        <h2 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 26, letterSpacing: -0.5, margin: 0 }}>{dPurch >= 0 ? `+${Math.round(dPurch)}` : Math.round(dPurch)} purchases this quarter</h2>
-      </div>
-
-      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 18, marginTop: 14 }}>
-        <div style={card()}>
-          <SectionTitle>The funnel after your fixes</SectionTitle>
-          <FunnelViz rates={r.afterRates} sessions={r.sessions} leaksArr={r.leaks} bottleneckKey={r.bottleneck.stage} showLeaks={true} compact />
-          <div style={{ marginTop: 12, background: T.panel2, borderRadius: 10, padding: "11px 13px", fontSize: 14, lineHeight: 1.5 }}>
-            🔧 The bottleneck is now <b style={{ color: T.neg }}>{r.bottleneck.label}</b> ({gbpK(r.bottleneck.leak)}/qtr). <Term term="theoryofconstraints">Fix one stage and the constraint moves</Term> — re-diagnose next quarter.
-          </div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={card()}>
-            <SectionTitle>Quarter P&L</SectionTitle>
-            {[["Purchases", Math.round(r.purchases).toLocaleString(), T.text],
-            ["Revenue", gbp(r.revenue), T.text],
-            [`Gross margin (${pct(r.effMargin, 0)})`, gbp(r.revenue * r.effMargin), r.effMargin < cfg.margin ? T.neg : T.muted],
-            ["– Spend", "-" + gbp(r.spend), T.muted]].map(([k, v, c]) => <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${T.border}`, fontSize: 15 }}><span style={{ color: T.muted }}>{k}</span><span style={{ fontFamily: T.mono, color: c }}>{v}</span></div>)}
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "11px 0 2px", fontSize: 17.5, fontWeight: 700 }}><span>Gross profit</span><span style={{ fontFamily: T.mono, color: r.grossProfit >= 0 ? T.pos : T.neg }}>{gbp(r.grossProfit)}</span></div>
-            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-              <MiniStat label={<Term term="cac">CAC</Term>} value={r.cac > 0 ? gbp(r.cac) : "—"} sub={r.acqSpend > 0 ? "per acquired customer" : "no paid acquisition"} accent={T.instructor} />
-              <MiniStat label={<Term term="ltvcac">LTV / CAC</Term>} value={isFinite(r.ltvCac) ? r.ltvCac.toFixed(1) + "×" : "organic"} sub={isFinite(r.ltvCac) ? (r.ltvCac >= 3 ? "healthy" : "below 3 — unhealthy") : "all organic"} accent={!isFinite(r.ltvCac) ? T.pos : r.ltvCac >= 3 ? T.pos : T.neg} />
-            </div>
-          </div>
-          <div style={card()}>
-            <SectionTitle>ROI of each spend</SectionTitle>
-            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-              {roiSorted.map((x) => (
-                <div key={x.id}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 3 }}><span>{x.icon} {x.name}</span><span style={{ fontFamily: T.mono, color: x.roi >= 1 ? T.pos : x.roi >= 0.3 ? T.amber : T.neg }}>{x.roi.toFixed(2)}× · {gbp(x.incrProfit)}</span></div>
-                  <div style={{ height: 8, background: T.track, borderRadius: 8, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (Math.max(0, x.roi) / maxRoi) * 100)}%`, height: "100%", background: x.roi >= 1 ? T.posFill : x.roi >= 0.3 ? T.amberFill : T.negFill }} /></div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <ScoreChip ok={record.leakCorrect} label="Biggest leak" you={record.predLeak} truth={record.actualLeak} />
-              <ScoreChip ok={record.roiCorrect} label="Best-ROI bet" you={record.predBest} truth={bestActual?.name} />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style={{ textAlign: "center", marginTop: 20 }}>
-        <button onClick={onNext} style={btn(PLAYER)}>{lastQuarter ? "See the full debrief →" : `Plan quarter ${record.quarter + 1} →`}</button>
-      </div>
-    </div>
-  );
-}
-function ScoreChip({ ok, label, you, truth }) {
-  return (
-    <div style={{ background: ok ? "#EAF4E5" : "#FBF3DF", border: `1px solid ${ok ? T.posFill : T.amberFill}`, borderRadius: 10, padding: "9px 11px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: T.muted, marginBottom: 3 }}><span>{label}</span><span style={{ color: ok ? T.pos : T.amber, fontWeight: 700 }}>{ok ? "✓" : "✗"}</span></div>
-      <div style={{ fontSize: 13.5 }}>You: <b>{you}</b></div>
-      {!ok && <div style={{ fontSize: 13, color: T.muted }}>Actual: {truth}</div>}
-    </div>
-  );
-}
-
-/* ---- END / DEBRIEF ------------------------------------------ */
-function EndView({ records, state, cfg, restart }) {
-  const leakHits = records.filter((r) => r.leakCorrect).length;
-  const roiHits = records.filter((r) => r.roiCorrect).length;
-  const chartData = records.map((r) => ({ q: "Q" + r.quarter, profit: Math.round(r.grossProfit), ltvCac: isFinite(r.ltvCac) ? +r.ltvCac.toFixed(2) : null }));
-  const cards = [
-    { t: "Size it in money, not %", b: `You called the biggest money leak ${leakHits}/${records.length} times. The biggest percentage gap (checkout→purchase) is a smaller £ leak than the high-volume add-to-cart stage — opportunity sizing, not gut, finds the real fix.` },
-    { t: "The moving bottleneck", b: `Every fix shifts the binding constraint to the next stage (Theory of Constraints). A good quarter two looks nothing like quarter one — you re-diagnosed each round rather than repeating the same bet.` },
-    { t: "The leaky bucket", b: `Buying traffic before fixing conversion just pours more sessions through the holes — CAC climbs and LTV/CAC sinks below 3. Acquisition only pays once the funnel converts.` },
-    { t: "The margin trap", b: `Free shipping lifts conversion but cuts margin on every order, for good. A “winning” quarter on purchases can still shrink profit — always read the P&L, not just the funnel.` },
-  ];
-  return (
-    <div className="rise" style={{ marginTop: 24 }}>
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{ color: T.muted, fontFamily: T.mono, fontSize: 13.5, letterSpacing: 2 }}>CHRICHTON · SEED {cfg.seed}</div>
-        <h1 style={{ fontFamily: T.display, fontWeight: 700, fontSize: 38, margin: "6px 0", letterSpacing: -0.5 }}>{gbp(state.cumProfit)} cumulative profit</h1>
-        <div style={{ color: T.muted }}>Over {records.length} quarters · biggest-leak called <b style={{ color: T.playerText }}>{leakHits}/{records.length}</b> · best-ROI bet <b style={{ color: T.playerText }}>{roiHits}/{records.length}</b></div>
-      </div>
-      <div className="cols2" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 18 }}>
-        <div style={card()}>
-          <SectionTitle>Profit per quarter</SectionTitle>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -6 }}>
-              <CartesianGrid stroke={T.border} strokeDasharray="3 3" /><XAxis dataKey="q" tickLine={false} /><YAxis tickFormatter={(v) => gbpK(v)} tickLine={false} width={50} />
-              <Tooltip contentStyle={tip} formatter={(v) => gbp(v)} /><ReferenceLine y={0} stroke={T.faint} />
-              <Line type="monotone" dataKey="profit" stroke={PLAYER} strokeWidth={3} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        <div style={card()}>
-          <SectionTitle><Term term="ltvcac">LTV / CAC</Term> trajectory</SectionTitle>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
-              <CartesianGrid stroke={T.border} strokeDasharray="3 3" /><XAxis dataKey="q" tickLine={false} /><YAxis tickLine={false} width={36} domain={[0, "auto"]} />
-              <Tooltip contentStyle={tip} formatter={(v) => v + "×"} /><ReferenceLine y={3} stroke={T.posFill} strokeDasharray="5 4" label={{ value: "healthy ≥3", fill: T.pos, fontSize: 11.5, position: "insideTopRight" }} />
-              <Line type="monotone" dataKey="ltvCac" stroke={T.instructor} strokeWidth={3} dot={{ r: 3 }} connectNulls />
-            </LineChart>
-          </ResponsiveContainer>
-          <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>Quarters with no paid acquisition are organic (no CAC) and omitted from the line.</div>
-        </div>
-      </div>
-
-      <div style={{ ...card(), marginTop: 18 }}>
-        <SectionTitle>What this taught</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 12 }}>
-          {cards.map((c) => <div key={c.t} style={{ background: T.panel2, borderRadius: 11, padding: "14px 15px", border: `1px solid ${T.border}` }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 16.5, marginBottom: 6, color: T.playerText }}>{c.t}</div><div style={{ fontSize: 14.5, color: T.text, lineHeight: 1.5 }}>{c.b}</div></div>)}
-        </div>
-      </div>
-
-      <div style={{ ...card(), marginTop: 18, textAlign: "center" }}>
-        <SectionTitle>Take your diagnosis log into class</SectionTitle>
-        <p style={{ color: T.muted, fontSize: 14.5, lineHeight: 1.5, maxWidth: 580, margin: "0 auto 16px" }}>Per quarter: diagnosis & prediction, allocations, before/after, purchases/revenue/profit, CAC, LTV/CAC, per-intervention ROI and wasted spend — plus reflection prompts.</p>
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={() => downloadFile(`funnel-fixer-${cfg.seed}.csv`, buildCSV(records, cfg), "text/csv")} style={btn(T.instructor)}>⬇ Download CSV</button>
-          <button onClick={() => downloadFile(`funnel-fixer-${cfg.seed}.md`, buildMarkdown(records, cfg, state.cumProfit), "text/markdown")} style={{ ...btn("transparent"), color: T.text, border: `1px solid ${T.border}` }}>⬇ Download Markdown</button>
-        </div>
-      </div>
-      <div style={{ textAlign: "center", marginTop: 22 }}><button onClick={restart} style={btn(PLAYER)}>Run it again ↺</button></div>
-    </div>
-  );
-}
-
-/* ---- INSTRUCTOR PANEL --------------------------------------- */
-function InstructorPanel({ cfg, setCfg, defaults, onClose }) {
-  const set = (patch) => setCfg((c) => ({ ...c, ...patch }));
-  const setRate = (k, v) => setCfg((c) => ({ ...c, rates: { ...c.rates, [k]: v } }));
-  const A = T.instructor;
-  const preset = (label, patch) => <button key={label} onClick={() => set(patch)} style={presetBtn}>{label}</button>;
-  return (
-    <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "#00000066", zIndex: 40 }} />
-      <div style={{ position: "fixed", top: 0, right: 0, height: "100%", width: 350, maxWidth: "92vw", background: T.panel, borderLeft: `1px solid ${T.border}`, zIndex: 50, overflowY: "auto", animation: "slideIn .25s ease both", boxShadow: "-20px 0 50px #00000030" }}>
-        <div style={{ padding: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 19, color: A }}>⚙ Instructor</span>
-            <button onClick={onClose} style={{ background: "none", border: "none", color: T.muted, fontSize: 22, cursor: "pointer", lineHeight: 1 }}>×</button>
-          </div>
-          <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.5, marginTop: 0 }}>Economic settings apply to the next quarter resolved; starting rates and seed apply on a <b style={{ color: T.text }}>new game</b>. A shared seed gives the cohort an identical run.</p>
-
-          <PanelGroup title="Classroom">
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 500, marginBottom: 6 }}>Seed</div>
-              <div style={{ display: "flex", gap: 6 }}>
-                <input value={cfg.seed} onChange={(e) => set({ seed: e.target.value })} style={{ flex: 1, background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 8, padding: "8px 10px", fontFamily: T.mono, fontSize: 14.5, outline: "none" }} />
-                <button onClick={() => set({ seed: "FNL-" + Math.random().toString(36).slice(2, 7).toUpperCase() })} style={{ ...presetBtn, padding: "8px 10px" }}>🎲</button>
-              </div>
-            </div>
-            <ISlide label="Budget / quarter" A={A} v={cfg.budget} min={4000} max={40000} step={1000} fmt={gbp} on={(v) => set({ budget: v })} ch={cfg.budget !== defaults.budget} />
-            <ISlide label="Quarters" A={A} v={cfg.quarters} min={2} max={8} step={1} fmt={(v) => v} on={(v) => set({ quarters: v })} ch={cfg.quarters !== defaults.quarters} />
-          </PanelGroup>
-
-          <PanelGroup title="Unit economics">
-            <ISlide label="Sessions / quarter" A={A} v={cfg.sessions} min={20000} max={200000} step={5000} fmt={(v) => (v / 1000) + "k"} on={(v) => set({ sessions: v })} ch={cfg.sessions !== defaults.sessions} />
-            <ISlide label={<Term term="aov">AOV</Term>} A={A} v={cfg.aov} min={15} max={120} step={1} fmt={gbp} on={(v) => set({ aov: v })} ch={cfg.aov !== defaults.aov} />
-            <ISlide label="Gross margin" A={A} v={cfg.margin} min={0.15} max={0.8} step={0.01} fmt={(v) => pct(v, 0)} on={(v) => set({ margin: v })} ch={cfg.margin !== defaults.margin} />
-            <ISlide label="Repeat factor (LTV)" A={A} v={cfg.repeat} min={0} max={2} step={0.1} fmt={(v) => v.toFixed(1) + "×"} on={(v) => set({ repeat: v })} ch={cfg.repeat !== defaults.repeat} />
-            <ISlide label="Mobile share" A={A} v={cfg.mobileShare} min={0.2} max={0.9} step={0.05} fmt={(v) => pct(v, 0)} on={(v) => set({ mobileShare: v })} ch={cfg.mobileShare !== defaults.mobileShare} />
-          </PanelGroup>
-
-          <PanelGroup title="Starting funnel rates" note="Applies on a new game. Benchmarks stay fixed as the diagnostic target.">
-            {STAGES.map((s) => <ISlide key={s.key} label={s.label} A={A} v={cfg.rates[s.key]} min={0.03} max={cfg.benchmarks[s.key]} step={0.01} fmt={(v) => pct(v, 0)} on={(v) => setRate(s.key, v)} ch={cfg.rates[s.key] !== defaults.rates[s.key]} />)}
-          </PanelGroup>
-
-          <PanelGroup title="Teaching presets — one tap">
-            <div style={{ display: "grid", gap: 8 }}>
-              {preset("🔝 Top-heavy leak", { rates: { ...defaults.rates, view: 0.42, atc: 0.06 } })}
-              {preset("🛒 Abandonment crisis", { rates: { ...defaults.rates, checkout: 0.36, purchase: 0.42 } })}
-              {preset("💷 Tight budget (£8k)", { budget: 8000 })}
-              {preset("📣 Cheap-traffic temptation", { aov: 70, margin: 0.58 })}
-              {preset("🎲 Low noise (clean signal)", { noise: 0.02 })}
-              {preset("↺ Reset funnel & economics", { rates: { ...defaults.rates }, budget: defaults.budget, aov: defaults.aov, margin: defaults.margin, sessions: defaults.sessions, noise: defaults.noise })}
-            </div>
-          </PanelGroup>
-
-          <button onClick={() => setCfg(defaults)} style={{ width: "100%", marginTop: 12, background: "transparent", color: T.muted, border: `1px solid ${T.border}`, borderRadius: 10, padding: "11px", cursor: "pointer", fontFamily: T.body, fontWeight: 600, fontSize: 14.5 }}>↺ Reset all to defaults</button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-/* ---- atoms -------------------------------------------------- */
-function SectionTitle({ children }) { return <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, marginBottom: 13, letterSpacing: -0.2 }}>{children}</div>; }
-function MiniStat({ label, value, sub, accent }) {
-  return <div style={{ flex: 1, background: T.panel2, borderRadius: 10, padding: "11px 12px" }}><div style={{ color: T.muted, fontSize: 12.5 }}>{label}</div><div style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 19.5, color: accent, margin: "2px 0" }}>{value}</div><div style={{ color: T.muted, fontSize: 12, lineHeight: 1.3 }}>{sub}</div></div>;
-}
-function PanelGroup({ title, note, children }) {
-  return <div style={{ marginTop: 18 }}><div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14.5, letterSpacing: 0.3, textTransform: "uppercase", color: T.muted, marginBottom: 10 }}>{title}</div>{note && <div style={{ fontSize: 13, color: T.muted, marginTop: -4, marginBottom: 10, lineHeight: 1.4 }}>{note}</div>}{children}</div>;
-}
-function ISlide({ label, v, min, max, step, fmt, on, A, ch }) {
-  return (
-    <div style={{ marginBottom: 13 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><span style={{ fontSize: 14.5, fontWeight: 500 }}>{label}{ch && <span style={{ color: A, marginLeft: 5 }}>•</span>}</span><span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 14.5, color: A }}>{fmt(v)}</span></div>
-      <input type="range" min={min} max={max} step={step} value={v} onChange={(e) => on(Number(e.target.value))} style={{ width: "100%", marginTop: 7, "--accent": A, "--accent-soft": A + "30" }} />
-    </div>
-  );
-}
-const presetBtn = { textAlign: "left", background: T.panel2, border: `1px solid ${T.border}`, color: T.text, borderRadius: 9, padding: "9px 11px", cursor: "pointer", fontFamily: T.body, fontSize: 14, lineHeight: 1.3 };
-const tip = { background: T.panel, border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: T.mono, fontSize: 13.5, boxShadow: T.shadow };
-const card = () => ({ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20, boxShadow: T.shadow });
-// Redesign CTA: pill, heavy weight, white on the accent.
-const btn = (c) => ({ background: c, color: c === "transparent" ? T.text : T.onAccent, border: "none", borderRadius: 999, padding: "14px 24px", fontFamily: T.body, fontWeight: 900, fontSize: 17, cursor: "pointer", letterSpacing: 0.2 });
-const pickRow = (on) => ({ textAlign: "left", cursor: "pointer", color: T.text, background: on ? T.sel : T.panel2, border: `1.5px solid ${on ? PLAYER : T.border}`, borderRadius: 10, padding: "10px 12px", fontSize: 14.5, fontWeight: 600 });

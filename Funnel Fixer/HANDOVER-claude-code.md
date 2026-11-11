@@ -8,7 +8,7 @@ Third game in the suite — same architecture as Marketplace Tycoon and Conversi
 ```bash
 npm install
 npm run dev      # http://localhost:5174 (port 5174 to sit alongside Conversion Lab on 5173)
-npm test         # 14 tests
+npm test         # 38 tests
 npm run build
 ```
 (From the repo root the dev server is wired in `.claude/launch.json` as `funnel-fixer`.)
@@ -53,3 +53,63 @@ mobile share and the starting funnel rates. Seed shared across a cohort → debr
 - Verified end-to-end in the browser: diagnose → reveal → allocate → 4 quarters → debrief → CSV export.
 - House tokens match the suite (Bricolage/Hanken/JetBrains Mono; amber `#F2A93B` = act, gold `#C9A06A` =
   instructor; green/red = outcome).
+
+
+---
+
+## Rigour and release pass (2026-11-11)
+
+Brought towards the Data Detective / Conversion Lab standard: scoring that is right, a debrief written from
+the run, staff-only settings, saved progress, accessibility. **Not yet done** (DD/CL have them): the
+skills record, self-rating, written task, printable log, cohort result code/tally and tutor's guide.
+
+### What was wrong, and what it is now
+- **One-quarter ROI judged durable fixes as wasted money.** A one-off fix stays for the rest of the game,
+  but its ROI was reported for one quarter: "More payment options" showed 0.5× (red, counted as *wasted
+  spend*) though it returns ~2× over four quarters and is in the profit-maximising plan. The "best-ROI"
+  answer in quarter 2 was *Paid traffic* (1.0× in the quarter) over *Faster page load* (0.9× × 3
+  quarters). Now every purchase has a **return over the plan** (`planValue`: a rate fix earns this
+  quarter's gain, then its gain at base traffic in each later quarter, everything else held; bought
+  traffic earns only its own quarter). The best-bet question, its scoring, the results table and "spend
+  not paid back" all use it; the quarter's figure is shown beside it.
+- **A "bottleneck" worth £0.** Once no stage was below benchmark, `bottleneckOf` still named Product view
+  and the diagnosis question had no right answer. `bottleneckOf` now returns `null`; both questions have a
+  **"none"** option (no stage below benchmark / nothing earns back its cost) that is correct when true.
+- **The debrief was fixed text** — it said the biggest gap (checkout→purchase) was a smaller leak than
+  add-to-cart (false under the *Abandonment crisis* preset), that "you re-diagnosed each round", and that
+  CAC climbed, whatever the student did. `buildDebrief(records, cfg)` now writes five cards from the
+  records: sizing, the moving bottleneck, bought traffic (or what it would have cost at the start and end
+  funnels), free shipping (or what it would have done), payback. `debrief.test.js` checks each claim
+  against the run over 8 presets × 5 ways of playing × 12 seeds.
+- **The student couldn't reason about the best bet** — a fix's strength and the stage ceilings were
+  hidden. Each fix now shows what it acts on and how strongly (`actsOn`: strong ≥40% of the remaining
+  headroom, moderate ≥20%, light), and the funnel shows best-in-class beside the benchmark. A pick within
+  5% of the best counts (outcome noise is ±8%).
+- **Had to buy something every quarter.** Spending nothing is allowed, and is the right call when nothing
+  pays back.
+- **Leaks ignored a free-shipping margin cut** (`leaks(rates, sessions, cfg, marginCut)` now values an
+  order at the margin in force). **`ltvCac`** is `null`, not `Infinity`, when no traffic was bought
+  (records are JSON). "Gross profit" was profit after spend and is labelled so. LO claim is now LO3 only
+  (the hub card still tags Funnel Fixer LO1 · LO3).
+- Engine numbers for a given seed and basket are unchanged except leak values after a margin cut.
+
+### Structure
+`src/ui/` now follows Conversion Lab: `App.jsx` (state, saved to the tab's session), `screens.jsx`
+(Intro, Diagnose, Allocate, ResultView, EndView, FunnelViz), `InstructorPanel.jsx`, `shared.jsx`,
+`theme.js`, `session.js`, `progress.js`, `urlConfig.js`.
+
+### Staff settings, links, saved progress
+- The instructor dialog appears only after `?instructor` (remembered; `?instructor=off` forgets).
+- `?seed=NAME` starts on a shared seed (the dialog shows the link to give students).
+- `sessionStorage` `ff-session:*`: screen, funnel, calls, basket, records, settings — a refresh resumes;
+  a quarter's result is recomputed from what it started with. `localStorage` `ff-progress`: the first
+  finished run, the best and the count; finishing sets the hub's `wmg-games-progress.ff`.
+
+### Accessibility (the suite's patterns)
+Glossary terms are disclosure buttons; both calls are labelled groups of `aria-pressed` buttons; the
+basket is toggle buttons with a `role="status"` budget; one h1 per screen, cards h2, scorecards h3; focus
+moves to each new screen's heading; the funnel is a list with a plain sentence per stage; charts are
+`role="img"` with their values; results are scored in words; contrast tokens from CL (`playerBtn`,
+`selText`, darker olive and instructor brown); the header no longer sticks; reduced motion respected;
+Simpler English follows the WMG shell's switch (the click-bridge script is gone). Checked at 375px.
+**Not run:** axe on the built page, a screen reader.
