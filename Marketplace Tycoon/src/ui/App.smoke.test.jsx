@@ -141,4 +141,24 @@ describe("decision log, tally and tutor's guide render", () => {
     expect(out).toContain("Cohort tally");
     expect(out).toContain("Tutor&#x27;s guide");
   });
+  it("Simpler English reaches the rating screen, the end screen and the log", () => {
+    const store = { "mt-plain": "1" };
+    const real = globalThis.localStorage;
+    globalThis.localStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
+    try {
+      const rate = html(<RateFirst onSave={noop} onSkip={noop} onBack={noop} />);
+      expect(rate).toContain("How sure are you that you can…");
+      for (const s of SKILL_STATEMENTS) { expect(rate).toContain(s.plain.replace(/'/g, "&#x27;")); expect(rate).not.toContain(s.text.replace(/'/g, "&#x27;")); }
+      expect(rate).toContain("Fully confident");
+      const g = game("grocer", 10);
+      const end = html(<EndView stores={g.stores} ranked={g.ranked} restart={noop} player={g.player} cfg={g.cfg} predictionLog={g.predictionLog} />);
+      expect(end).toContain("It uses simple words");
+      expect(end).toContain("Unsold goods go bad");
+      const log = html(<DecisionLog progress={{ grocer: { ...runRecord(g.stores, g.player, g.cfg, g.predictionLog), seed: g.cfg.seed, at: "2026-11-11" } }} cfg={g.cfg} onBack={noop} />);
+      expect(log).toContain("In simpler words:");
+      expect(log).toContain("Demonstrate a comprehensive understanding"); // the specification's wording stays
+      expect(log).not.toMatch(/undefined|NaN/);
+    } finally { globalThis.localStorage = real; }
+    expect(html(<RateFirst onSave={noop} onSkip={noop} onBack={noop} />)).toContain("How confident are you that you can…");
+  });
 });

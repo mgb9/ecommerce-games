@@ -141,4 +141,13 @@ numbers changed.
   tally → guide; `?instructor=off` on a staff page falls back to the game; log at 375px (table scrolls in its
   region, no page overflow). On the built site inside the WMG shell: the lazy tutor's guide loads and takes
   focus on its h1, no console errors. Not checked: the printed PDF itself, axe on the new pages, a screen
-  reader. The new screens' text has no Simpler English variants.
+  reader.
+- **Simpler English** on these screens (2026-11-11): the rating screen, the recommendation, "What this
+  develops", "Skills you practised" and the diagnosis log's guidance follow the switch. The wording lives
+  with the data — `plain` on each `SKILL_STATEMENTS`, `SKILLS` and `LEARNING_OUTCOMES` entry,
+  `RATING_LABELS_PLAIN`, `REC_CHECKS_PLAIN` — and components pick with `usePlain()` (the log's `say(rich,
+  plain)`). The specification's LO wording always stays; plain mode adds an "In simpler words:" gloss under
+  it (the same four glosses as Marketplace Tycoon). Unchanged on purpose: skill names, syllabus headings,
+  the CV line, table headings, the run's own debrief cards, the result code, and the staff pages (tally,
+  tutor's guide, instructor panel). `cohort.test.js` fails if a statement, skill or outcome has no plain
+  wording; the smoke test renders the screens with the switch on.

@@ -31,7 +31,15 @@ describe("outcomes", () => {
     for (const id of EVERY_BRIEF_SKILLS) expect(SKILLS[id]).toBeTruthy();
   });
   it("never mentions the skills survey to students", () => {
-    expect(JSON.stringify({ SKILLS, OUTCOMES })).not.toMatch(/PTES|survey/i);
+    expect(JSON.stringify({ SKILLS, OUTCOMES, LEARNING_OUTCOMES })).not.toMatch(/PTES|survey/i);
+  });
+  it("has a Simpler English wording for every outcome, skill and brief line, different from the original", () => {
+    for (const lo of Object.values(LEARNING_OUTCOMES)) { expect(lo.plain).toBeTruthy(); expect(lo.plain).not.toBe(lo.text); }
+    for (const s of Object.values(SKILLS)) { expect(s.plain).toBeTruthy(); expect(s.plain).not.toBe(s.how); expect(s.plain).toMatch(/\.$/); }
+    for (const o of Object.values(OUTCOMES)) {
+      expect(Object.keys(o.skillsPlain)).toEqual(Object.keys(o.skills));
+      for (const id of Object.keys(o.skills)) { expect(o.skillsPlain[id]).toBeTruthy(); expect(o.skillsPlain[id]).not.toBe(o.skills[id]); }
+    }
   });
 });
 

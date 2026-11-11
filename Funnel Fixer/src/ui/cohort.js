@@ -3,16 +3,18 @@
    SKILL_STATEMENTS are what a student rates, 1–5, before their first game
    and again from the diagnosis log. They mirror the module's skills survey
    in the game's own words (Data Detective and Conversion Lab ask the same
-   six things about their own subject). */
+   six things about their own subject). `plain` is the same statement in
+   Simpler English; the tally and the result code use neither wording. */
 export const SKILL_STATEMENTS = [
-  { id: "size", text: "Work out which stage of a sales funnel is losing the most money" },
-  { id: "value", text: "Judge an improvement by the profit it returns over time, not by the size of the gap it closes" },
-  { id: "acquire", text: "Tell when buying more traffic is worth its cost, using acquisition cost and lifetime value" },
-  { id: "explain", text: "Explain a spending recommendation, with its figures, to someone who isn't an analyst" },
-  { id: "calibrate", text: "Predict where the money is before seeing the figures, and be about right" },
-  { id: "career", text: "Describe this kind of work in a job application or interview" },
+  { id: "size", text: "Work out which stage of a sales funnel is losing the most money", plain: "Find the step in a sales funnel that loses the most money" },
+  { id: "value", text: "Judge an improvement by the profit it returns over time, not by the size of the gap it closes", plain: "Judge an improvement by the profit it brings back over time, not by how big the gap is" },
+  { id: "acquire", text: "Tell when buying more traffic is worth its cost, using acquisition cost and lifetime value", plain: "Decide when it is worth paying for more visitors, using the cost to win a customer and what a customer is worth over time" },
+  { id: "explain", text: "Explain a spending recommendation, with its figures, to someone who isn't an analyst", plain: "Explain where to spend money, with the numbers, to a person who does not work with data" },
+  { id: "calibrate", text: "Predict where the money is before seeing the figures, and be about right", plain: "Guess where the money is lost before you see the numbers, and be close" },
+  { id: "career", text: "Describe this kind of work in a job application or interview", plain: "Describe this kind of work when you apply for a job" },
 ];
 export const RATING_LABELS = ["Not at all confident", "Slightly", "Moderately", "Very", "Completely confident"];
+export const RATING_LABELS_PLAIN = ["Not confident", "A little", "Fairly", "Very", "Fully confident"];
 
 /* The result code: a short string a student copies from their diagnosis
    log and gives their tutor, who pastes a batch into the instructor tally.

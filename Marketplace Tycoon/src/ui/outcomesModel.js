@@ -19,11 +19,11 @@ export const losLabel = (o) => [...o.los, ...o.partly.map((c) => `${c} (partly)`
 
 // The skills a brief practises: its own, each with what practising it
 // looked like there, then the two every brief practises.
-export function skillsOf(o) {
-  return [
-    ...Object.entries(o.skills).map(([id, did]) => ({ id, ...SKILLS[id], did })),
-    ...EVERY_BRIEF_SKILLS.map((id) => ({ id, ...SKILLS[id], did: SKILLS[id].how })),
-  ];
+// `plain` picks the Simpler English wording.
+export const didOf = (o, id, plain = false) =>
+  (plain && (o.skillsPlain?.[id] || (!o.skills[id] && SKILLS[id].plain))) || o.skills[id] || SKILLS[id].how;
+export function skillsOf(o, plain = false) {
+  return [...Object.keys(o.skills), ...EVERY_BRIEF_SKILLS].map((id) => ({ id, ...SKILLS[id], did: didOf(o, id, plain) }));
 }
 export const skillNamesOf = (o) => [...Object.keys(o.skills), ...EVERY_BRIEF_SKILLS].map((id) => SKILLS[id].name);
 

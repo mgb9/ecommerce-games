@@ -26,6 +26,7 @@ export function PlainModeProvider({ children }) {
   return <PlainCtx.Provider value={{ plain, toggle, shell }}>{children}</PlainCtx.Provider>;
 }
 export function PT({ rich, plain }) { return useContext(PlainCtx).plain ? plain : rich; }
+export const usePlain = () => useContext(PlainCtx).plain;
 function PlainToggle() {
   const { plain, toggle, shell } = useContext(PlainCtx);
   if (shell) return null; // the shell bar's switch drives the game

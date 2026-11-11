@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { DEFAULT_CFG, SCMAP, SCENARIOS, initialStores, makeRng, botDecide, leaderDecisionOf, resolveRound } from "../engine/engine.js";
 import { evaluatePlatforms } from "../engine/platformfit.js";
-import { SKILL_STATEMENTS, CODE_VERSION, runRecord, resultCode, parseResultCode, tally } from "./cohort.js";
+import { REC_CHECKS, REC_CHECKS_PLAIN } from "./Recommendation.jsx";
+import { RATING_LABELS, RATING_LABELS_PLAIN, SKILL_STATEMENTS, CODE_VERSION, runRecord, resultCode, parseResultCode, tally } from "./cohort.js";
 
 function game(scenarioId, platformId = "woo", fulfilId = "inhouse", hitEvery = 2) {
   const cfg = { ...DEFAULT_CFG, scenarioId }; const sc = SCMAP[scenarioId];
@@ -108,5 +109,17 @@ describe("tally", () => {
     const t = tally([]);
     expect(t.students).toBe(0);
     expect(t.briefs.every((b) => b.played === 0)).toBe(true);
+  });
+});
+
+describe("Simpler English wording", () => {
+  it("every skill statement has a plain wording, different from the original", () => {
+    for (const s of SKILL_STATEMENTS) { expect(s.plain, s.id).toBeTruthy(); expect(s.plain).not.toBe(s.text); }
+    expect(JSON.stringify(SKILL_STATEMENTS)).not.toMatch(/PTES|survey/i);
+  });
+  it("the plain scale and self-checks line up with the originals", () => {
+    expect(RATING_LABELS_PLAIN).toHaveLength(RATING_LABELS.length);
+    expect(REC_CHECKS_PLAIN).toHaveLength(REC_CHECKS.length);
+    REC_CHECKS_PLAIN.forEach((c, i) => expect(c).not.toBe(REC_CHECKS[i]));
   });
 });

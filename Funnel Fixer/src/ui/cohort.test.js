@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { SKILL_STATEMENTS, resultCode, parseResultCode, tally, CODE_VERSION } from "./cohort.js";
+import { SKILL_STATEMENTS, RATING_LABELS, RATING_LABELS_PLAIN, resultCode, parseResultCode, tally, CODE_VERSION } from "./cohort.js";
 import { summariseRun } from "./progress.js";
+import { REC_CHECKS, REC_CHECKS_PLAIN } from "./Recommendation.jsx";
 import { LEARNING_OUTCOMES, OUTCOMES, SKILLS, BY_DOING, losOf, skillsOf } from "../engine/outcomes.js";
 import { DEFAULT_CFG, initialState, resolveQuarter, buildRecord, buildDebrief } from "../engine/engine.js";
 
@@ -86,6 +87,15 @@ describe("outcomes", () => {
     for (const id of [...OUTCOMES.skills, ...BY_DOING]) expect(SKILLS[id].how.length).toBeGreaterThan(20);
     expect(skillsOf().slice(-2).map((s) => s.id)).toEqual(BY_DOING);
     expect(OUTCOMES.cv).toMatch(/simulated/);
+  });
+  it("has a Simpler English wording for every statement, skill, outcome and check", () => {
+    for (const x of [...SKILL_STATEMENTS, ...Object.values(SKILLS), ...Object.values(LEARNING_OUTCOMES)]) {
+      expect(x.plain.length).toBeGreaterThan(20);
+      expect(x.plain).not.toBe(x.text ?? x.how);
+      expect(x.plain).not.toMatch(/PTES|survey|—/i);
+    }
+    expect(REC_CHECKS_PLAIN).toHaveLength(REC_CHECKS.length);
+    expect(RATING_LABELS_PLAIN).toHaveLength(RATING_LABELS.length);
   });
   it("asks six ratings and never names a survey", () => {
     expect(SKILL_STATEMENTS).toHaveLength(6);

@@ -1,6 +1,7 @@
 import React, { useId } from "react";
 import { T, card } from "./theme.js";
 import { MODULE, losOf, losLabel, skillsOf, skillNamesOf } from "./outcomesModel.js";
+import { usePlain } from "./shared.jsx";
 
 /* "What this develops", on screen: the module's learning outcomes in the
    specification's words (visible text, not a tooltip), the syllabus topic
@@ -18,13 +19,15 @@ export function ModuleLink({ children = "All the module's learning outcomes" }) 
   );
 }
 
+// The specification's wording, always; with Simpler English on, a gloss under it.
 export function LOList({ outcomes, size = 15 }) {
+  const plain = usePlain();
   return (
     <ul role="list" style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
       {losOf(outcomes).map((lo) => (
         <li key={lo.code} style={{ display: "flex", gap: 10, alignItems: "baseline", fontSize: size, lineHeight: 1.5 }}>
           <span style={loTag}>{lo.code}{lo.partly && <span style={{ fontWeight: 500, color: T.body2 }}> · partly</span>}</span>
-          <span style={{ color: lo.partly ? T.body2 : T.text }}>{lo.text}</span>
+          <span style={{ color: lo.partly ? T.body2 : T.text }}>{lo.text}{plain && <span style={{ display: "block", color: T.body2 }}>In simpler words: {lo.plain}</span>}</span>
         </li>
       ))}
     </ul>
@@ -49,11 +52,12 @@ export function WhatThisDevelops({ outcomes, title = "What this brief develops",
 
 // The end screen: each skill, and what practising it looked like on this brief.
 export function SkillsPractised({ outcomes, style }) {
+  const plain = usePlain();
   return (
     <section aria-labelledby="mt-skills-practised" style={{ ...card(), ...style }}>
       <h2 id="mt-skills-practised" style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, margin: "0 0 10px" }}>Skills you practised</h2>
       <ul role="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
-        {skillsOf(outcomes).map((s) => (
+        {skillsOf(outcomes, plain).map((s) => (
           <li key={s.id} style={{ padding: "8px 0", borderBottom: `1px solid ${T.border}`, fontSize: 15, lineHeight: 1.5 }}>
             <b>{s.name}</b> <span style={{ color: T.body2, fontSize: 13.5 }}>({s.kind.toLowerCase()})</span>
             <div style={{ color: T.body2 }}>{s.did}</div>
@@ -61,7 +65,7 @@ export function SkillsPractised({ outcomes, style }) {
         ))}
       </ul>
       <p style={{ margin: "10px 0 0", fontSize: 14, color: T.body2, lineHeight: 1.5 }}>
-        Learning outcomes: <b style={{ color: T.text }}>{losLabel(outcomes)}</b>. Your decision log records these skills, with a line you can use on a CV.
+        Learning outcomes: <b style={{ color: T.text }}>{losLabel(outcomes)}</b>. {plain ? "Your decision log lists these skills. It also gives you a sentence you can use on a CV." : "Your decision log records these skills, with a line you can use on a CV."}
       </p>
     </section>
   );

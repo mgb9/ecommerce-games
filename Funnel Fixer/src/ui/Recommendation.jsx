@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useState } from "react";
 import { T, card } from "./theme.js";
 import { loadProgress, recordRecommendation } from "./progress.js";
+import { usePlain } from "./shared.jsx";
 
 /* The writing task: a short spending recommendation to the person who holds
    the budget, and a four-point self-check. It practises the skill the module
@@ -15,6 +16,13 @@ export const REC_CHECKS = [
   "It names something not to fund, or to stop funding, and why.",
   "It's in plain English that someone who isn't an analyst could act on.",
 ];
+// The same four checks in Simpler English, in the same order.
+export const REC_CHECKS_PLAIN = [
+  "It says where to spend. It gives the reason in pounds, not in percentage points.",
+  "It says what the spending should bring back, and by when.",
+  "It names one thing not to pay for, or to stop paying for, and says why.",
+  "It uses clear words. A person who does not work with data could follow it.",
+];
 
 export default function Recommendation({ onChange, style }) {
   const [saved] = useState(() => loadProgress().recommendation);
@@ -23,25 +31,28 @@ export default function Recommendation({ onChange, style }) {
   const id = useId();
   const count = checks.filter(Boolean).length;
   const wrote = !!text.trim();
+  const plain = usePlain();
   useEffect(() => { recordRecommendation({ text, checks: wrote ? count : 0, ticks: checks }); }, [text, checks, wrote]); // eslint-disable-line react-hooks/exhaustive-deps -- count follows checks
   useEffect(() => { onChange?.(wrote); }, [wrote]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <section aria-labelledby={`${id}-h`} style={{ ...card(), ...style }}>
       <h2 id={`${id}-h`} style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, margin: "0 0 6px" }}>Your recommendation to {REC_READER}</h2>
-      <p style={{ margin: "0 0 10px", fontSize: 15, color: T.body2, lineHeight: 1.5 }}>In three or four sentences: where should next year's budget go, what should it return and by when, and what would you not fund? Your diagnosis log prints it.</p>
+      <p style={{ margin: "0 0 10px", fontSize: 15, color: T.body2, lineHeight: 1.5 }}>{plain
+        ? "Write three or four sentences. Where should next year's budget go? What should it bring back, and by when? What would you not pay for? Your writing is printed in your diagnosis log."
+        : "In three or four sentences: where should next year's budget go, what should it return and by when, and what would you not fund? Your diagnosis log prints it."}</p>
       <label htmlFor={`${id}-t`} className="sr-only">Your recommendation to {REC_READER}</label>
       <textarea id={`${id}-t`} value={text} onChange={(e) => setText(e.target.value)} rows={4}
         style={{ width: "100%", padding: "10px 12px", border: `1px solid ${T.border}`, borderRadius: 10, background: T.panel2, font: `15px/1.5 ${T.body}`, color: T.text, resize: "vertical" }} />
       <fieldset style={{ border: "none", padding: 0, margin: "12px 0 0" }}>
-        <legend style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Check your recommendation</legend>
+        <legend style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{plain ? "Check what you wrote" : "Check your recommendation"}</legend>
         {REC_CHECKS.map((c, i) => (
-          <label key={c} style={{ display: "flex", gap: 9, alignItems: "flex-start", fontSize: 14.5, lineHeight: 1.45, padding: "4px 0", cursor: "pointer" }}>
+          <label key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", fontSize: 14.5, lineHeight: 1.45, padding: "4px 0", cursor: "pointer" }}>
             <input type="checkbox" checked={checks[i]} onChange={(e) => setChecks((cs) => cs.map((v, j) => (j === i ? e.target.checked : v)))} style={{ marginTop: 3, width: 18, height: 18, flexShrink: 0 }} />
-            <span>{c}</span>
+            <span>{plain ? REC_CHECKS_PLAIN[i] : c}</span>
           </label>
         ))}
       </fieldset>
-      <p role="status" style={{ margin: "8px 0 0", fontSize: 13.5, color: T.body2, minHeight: 18 }}>{wrote ? `Saved in this browser · ${count} of 4 checks ticked.` : ""}</p>
+      <p role="status" style={{ margin: "8px 0 0", fontSize: 13.5, color: T.body2, minHeight: 18 }}>{wrote ? (plain ? `Saved in this browser. You ticked ${count} of 4 checks.` : `Saved in this browser · ${count} of 4 checks ticked.`) : ""}</p>
     </section>
   );
 }

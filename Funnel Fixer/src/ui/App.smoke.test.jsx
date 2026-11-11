@@ -144,3 +144,33 @@ describe("screens render", () => {
     }
   });
 });
+
+/* Simpler English: the standalone game reads its own switch from
+   localStorage, so a stub turns it on for these renders. */
+describe("Simpler English on the skills screens", () => {
+  const plainHtml = (el) => {
+    const had = globalThis.localStorage;
+    globalThis.localStorage = { getItem: (k) => (k === "ff-plain" ? "1" : null), setItem: noop, removeItem: noop };
+    try { return html(el); } finally { if (had === undefined) delete globalThis.localStorage; else globalThis.localStorage = had; }
+  };
+  it("rewords the rating screen", () => {
+    const rich = html(<BeforeYouStart onSave={noop} onSkip={noop} />), plain = plainHtml(<BeforeYouStart onSave={noop} onSkip={noop} />);
+    expect(rich).toContain("How confident are you that you can");
+    expect(plain).toContain("How sure are you that you can");
+    expect(plain).toContain("Find the step in a sales funnel that loses the most money");
+    expect(plain).not.toContain("Work out which stage of a sales funnel");
+  });
+  it("keeps the outcome's wording and adds a gloss", () => {
+    const plain = plainHtml(<Intro onStart={noop} cfg={cfg} />);
+    expect(plain).toContain("Critically evaluate advanced eCommerce functionalities");
+    expect(plain).toContain("In simpler words:");
+    expect(html(<Intro onStart={noop} cfg={cfg} />)).not.toContain("In simpler words:");
+  });
+  it("rewords the log's guidance but not its record", () => {
+    const first = { seed: "X", quarters: 4, profit: 1, leakHits: 1, betHits: 2 };
+    const plain = plainHtml(<DiagnosisLog progress={{ first }} onBack={noop} />);
+    expect(plain).toContain("You have not written one yet");
+    expect(plain).toContain("1 of 4");
+    expect(plain).toContain("In simpler words:");
+  });
+});

@@ -2,7 +2,8 @@ import React, { useId, useMemo, useState } from "react";
 import { SCENARIOS, SCMAP, PMAP, FMAP, DIGITAL_FULFIL, gbp } from "../engine/engine.js";
 import { T, btn } from "./theme.js";
 import { PrintBar, Section, articleStyle, subHead, useDocumentTitle, useStudentName } from "./report.jsx";
-import { OUTCOMES, LEARNING_OUTCOMES, SKILLS, suiteCoverage, labelOf } from "./outcomesModel.js";
+import { OUTCOMES, LEARNING_OUTCOMES, suiteCoverage, labelOf, didOf } from "./outcomesModel.js";
+import { usePlain } from "./shared.jsx";
 import { ModuleLink } from "./Outcomes.jsx";
 import SkillsRating, { RatingsTable } from "./SkillsRating.jsx";
 import { REC_CHECKS, clientOf } from "./Recommendation.jsx";
@@ -27,6 +28,7 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
   const [skills, setSkills] = useState(loadSkills);
   const [rating, setRating] = useState(false);
   const nameId = useId();
+  const plain = usePlain();
   const played = SCENARIOS.filter((s) => progress[s.id]);
   const P = (s) => progress[s.id];
   const recs = played.filter((s) => P(s).recommendation?.text?.trim());
@@ -64,7 +66,7 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
         </header>
 
         {played.length === 0 ? (
-          <Section title="Nothing here yet"><p style={{ margin: 0 }}>Run a store for its ten weeks and this log fills in: your platform choice, how the store did, your predictions, and what the brief developed.</p></Section>
+          <Section title="Nothing here yet"><p style={{ margin: 0 }}>{plain ? "Run a store for its ten weeks. This log will then show your platform choice, the store's results, your predictions, and the skills the brief developed." : "Run a store for its ten weeks and this log fills in: your platform choice, how the store did, your predictions, and what the brief developed."}</p></Section>
         ) : (
           <>
             <Section title="Brief by brief (your first completed game on each)">
@@ -91,16 +93,16 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
 
             <Section title="How your judgement held up">
               <ul style={{ margin: 0, paddingLeft: 22 }}>
-                <li>You chose the platform the fit model rates top in <b>{topFit.length} of {played.length}</b> {played.length === 1 ? "brief" : "briefs"}.{offFit.length > 0 && <> Elsewhere: {offFit.map((s) => `${PMAP[P(s).platformId]?.short} for ${s.short} (${P(s).fitRank} of ${P(s).fitTotal}; ${PMAP[P(s).topFit]?.short} was top)`).join("; ")}. That can be defended — say what you were trading for.</>}</li>
-                <li>Leaderboard place predicted right in <b>{hits} of {weeks}</b> weeks.{Math.abs(bias) >= 0.5 ? ` On average you expected to finish ${bias < 0 ? "higher" : "lower"} than you did.` : weeks ? " No steady lean towards optimism or pessimism." : ""}</li>
-                <li>{deployed ? <>Of <b>{plural(deployed, "conversion tier", "conversion tiers")}</b> deployed, <b>{deployed - untested}</b> {deployed - untested === 1 ? "was" : "were"} A/B tested first{untested ? ` and ${untested} went in on the estimate alone` : ""}.</> : "You deployed no conversion upgrades, so there was no test-or-trust decision to judge."}</li>
+                <li>You chose the platform the fit model rates top in <b>{topFit.length} of {played.length}</b> {played.length === 1 ? "brief" : "briefs"}.{offFit.length > 0 && <> Elsewhere: {offFit.map((s) => `${PMAP[P(s).platformId]?.short} for ${s.short} (${P(s).fitRank} of ${P(s).fitTotal}; ${PMAP[P(s).topFit]?.short} was top)`).join("; ")}. {plain ? "That can be a good choice. Say what you gained from it and what you gave up." : "That can be defended — say what you were trading for."}</>}</li>
+                <li>Leaderboard place predicted right in <b>{hits} of {weeks}</b> weeks.{Math.abs(bias) >= 0.5 ? ` On average you expected to finish ${bias < 0 ? "higher" : "lower"} than you did.` : weeks ? (plain ? " Your predictions were not usually too high or too low." : " No steady lean towards optimism or pessimism.") : ""}</li>
+                <li>{deployed ? <>Of <b>{plural(deployed, "conversion tier", "conversion tiers")}</b> deployed, <b>{deployed - untested}</b> {deployed - untested === 1 ? "was" : "were"} A/B tested first{untested ? (plain ? ` and ${untested} ${untested === 1 ? "was" : "were"} deployed without a test, using only the estimate` : ` and ${untested} went in on the estimate alone`) : ""}.</> : plain ? "You deployed no conversion upgrades, so you never had to choose between testing an upgrade and trusting its estimate." : "You deployed no conversion upgrades, so there was no test-or-trust decision to judge."}</li>
                 <li>{broke.length ? <>You ran out of cash on: {broke.map((s) => s.short).join(", ")}. A real store would have stopped trading there.</> : "You never ran out of cash."}</li>
               </ul>
-              <p style={{ margin: "8px 0 0", color: T.body2 }}>Judge the platform choice by the argument you can make for it, not only by the profit: in this simulation the top-fit platform helps a well-run store by a few per cent, and pricing, stock, advertising and conversion work move the result far more.</p>
+              <p style={{ margin: "8px 0 0", color: T.body2 }}>{plain ? "Judge your platform choice by the reasons you can give for it, not only by the profit. In this simulation the top-fit platform helps a well-run store by a few per cent. Pricing, stock, advertising and conversion work change the result much more." : "Judge the platform choice by the argument you can make for it, not only by the profit: in this simulation the top-fit platform helps a well-run store by a few per cent, and pricing, stock, advertising and conversion work move the result far more."}</p>
             </Section>
 
             <Section title="Your recommendations">
-              {recs.length === 0 ? <p style={{ margin: 0, color: T.body2 }}>None written yet — the final results screen of each game asks for one.</p> : recs.map((s) => {
+              {recs.length === 0 ? <p style={{ margin: 0, color: T.body2 }}>{plain ? "You have not written one yet. The final results screen of each game asks you to write one." : "None written yet — the final results screen of each game asks for one."}</p> : recs.map((s) => {
                 const r = P(s).recommendation;
                 return (
                   <div key={s.id} style={{ marginBottom: 14, breakInside: "avoid" }}>
@@ -113,7 +115,7 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
             </Section>
 
             <Section title="Skills record">
-              {skillLines(cov, progress, played, recs).map((s) => (
+              {skillLines(cov, progress, played, recs, plain).map((s) => (
                 <div key={s.id} style={{ marginBottom: 12, breakInside: "avoid" }}>
                   <h3 style={{ ...subHead, color: T.text }}>{s.name} <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: T.body2 }}>({s.kind.toLowerCase()})</span></h3>
                   <ul style={{ margin: 0, paddingLeft: 22, fontSize: 14.5 }}>
@@ -130,7 +132,7 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
                 {cov.los.map((lo) => (
                   <li key={lo.code} style={{ marginBottom: 6 }}>
                     <b>{lo.code}</b> — {LEARNING_OUTCOMES[lo.code].text}{" "}
-                    <span style={{ color: T.body2 }}>{lo.in.length ? `You worked on it in: ${lo.in.map((a) => labelOf(a.id)).join("; ")}.` : lo.code === "LO4" ? "Assessed through the group Website Build, not this simulation." : "Not covered by this simulation."}</span>
+                    <span style={{ color: T.body2 }}>{lo.in.length ? `You worked on it in: ${lo.in.map((a) => labelOf(a.id)).join("; ")}.` : lo.code === "LO4" ? (plain ? "This is assessed in the group Website Build, not in this simulation." : "Assessed through the group Website Build, not this simulation.") : (plain ? "This simulation does not cover it." : "Not covered by this simulation.")}</span>{plain && <span style={{ display: "block", color: T.body2 }}>In simpler words: {LEARNING_OUTCOMES[lo.code].plain}</span>}
                   </li>
                 ))}
               </ul>
@@ -138,8 +140,13 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
             </Section>
             <Section title="Using this in your assessment">
               <ul style={{ margin: 0, paddingLeft: 22 }}>
-                <li style={{ marginBottom: 6 }}><b>Business Report (70%)</b> — when your report recommends a platform, argue from the client's requirements (running cost, performance ceiling, organic reach, time to launch, stability), name the trade-off you are accepting, and back it with unit economics: contribution per unit after returns and fees, and the volume needed to break even.</li>
-                <li><b>Website Build presentation (30%, LO4)</b> — justify your group's own platform choice against your client's brief in the same way, and say what you would move to if the business grew.</li>
+                {plain ? <>
+                  <li style={{ marginBottom: 6 }}><b>Business Report (70%)</b> — when your report recommends a platform, start from what the client needs: running cost, the best performance the platform can reach, organic reach, time to launch, and stability. Say what the client gives up with your choice. Support it with unit economics: contribution per unit after returns and fees, and the volume needed to break even.</li>
+                  <li><b>Website Build presentation (30%, LO4)</b> — explain your group's own platform choice in the same way, against your client's brief. Say which platform you would move to if the business grew.</li>
+                </> : <>
+                  <li style={{ marginBottom: 6 }}><b>Business Report (70%)</b> — when your report recommends a platform, argue from the client's requirements (running cost, performance ceiling, organic reach, time to launch, stability), name the trade-off you are accepting, and back it with unit economics: contribution per unit after returns and fees, and the volume needed to break even.</li>
+                  <li><b>Website Build presentation (30%, LO4)</b> — justify your group's own platform choice against your client's brief in the same way, and say what you would move to if the business grew.</li>
+                </>}
               </ul>
             </Section>
           </>
@@ -149,12 +156,12 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
           {skills.before || skills.after ? (
             <>
               <div role="region" aria-label="Your self-ratings (table)" tabIndex={0} style={{ overflowX: "auto" }}><RatingsTable before={skills.before} after={skills.after} /></div>
-              <p style={{ margin: "8px 0 0", fontSize: 14, color: T.body2 }}>{skills.before ? `Rated before your first game${skills.beforeAt ? ` (${skills.beforeAt})` : ""}` : "You skipped the rating before your first game"}{skills.after ? `, and again on ${skills.afterAt}` : ""}. Compare it with the skills record above: confidence should follow the evidence.</p>
+              <p style={{ margin: "8px 0 0", fontSize: 14, color: T.body2 }}>{skills.before ? `Rated before your first game${skills.beforeAt ? ` (${skills.beforeAt})` : ""}` : "You skipped the rating before your first game"}{skills.after ? `, and again on ${skills.afterAt}` : ""}. {plain ? "Compare these ratings with the skills record above. Your confidence should match what you actually did." : "Compare it with the skills record above: confidence should follow the evidence."}</p>
             </>
-          ) : <p style={{ margin: 0, color: T.body2 }}>You haven't rated yourself yet.</p>}
+          ) : <p style={{ margin: 0, color: T.body2 }}>{plain ? "You have not rated yourself yet." : "You haven't rated yourself yet."}</p>}
           {rating ? (
             <SkillsRating style={{ marginTop: 14 }} title={skills.after ? "Rate yourself again" : "Rate yourself now"} initial={skills.after || skills.before} saveLabel="Save" onSkip={() => setRating(false)}
-              intro="The same six statements. Answer for how you feel now, not how you think you should."
+              intro={plain ? "These are the same six statements. Answer for how you feel now, not how you think you should feel." : "The same six statements. Answer for how you feel now, not how you think you should."}
               onSave={(r) => { setSkills(saveSkills({ after: r, afterAt: new Date().toISOString().slice(0, 10) })); setRating(false); onProgress?.(); }} />
           ) : (
             <button type="button" className="mt-noprint" onClick={() => setRating(true)} style={{ ...btn("transparent"), border: `1.5px solid ${T.muted}`, color: T.text, padding: "10px 18px", fontSize: 15.5, marginTop: 12 }}>{skills.before || skills.after ? "Rate yourself again" : "Rate yourself now"}</button>
@@ -174,15 +181,15 @@ export default function DecisionLog({ progress, cfg, onBack, onProgress }) {
    what that looked like there. Two are practised by doing rather than by
    playing: a recommendation counts as communication only if one was
    written, and the weekly place predictions are summed up with their score. */
-function skillLines(cov, progress, played, recs) {
+function skillLines(cov, progress, played, recs, plain) {
   return cov.skills.map((s) => {
     let lines;
     if (s.id === "communication") {
       lines = recs.map((b) => [b.name, `your recommendation to ${clientOf(b.id)}, checked against ${progress[b.id].recommendation.checks} of ${REC_CHECKS.length} points.`]);
     } else if (s.id === "selfassessment") {
-      lines = played.map((b) => [b.name, `you predicted your leaderboard place before each week resolved — right in ${progress[b.id].predHits} of ${progress[b.id].weeks} weeks.`]);
+      lines = played.map((b) => [b.name, plain ? `each week you said which place you would finish before you saw the result. You were right in ${progress[b.id].predHits} of ${progress[b.id].weeks} weeks.` : `you predicted your leaderboard place before each week resolved — right in ${progress[b.id].predHits} of ${progress[b.id].weeks} weeks.`]);
     } else {
-      lines = s.in.filter((a) => OUTCOMES[a.id].skills[s.id]).map((a) => [labelOf(a.id), OUTCOMES[a.id].skills[s.id] || SKILLS[s.id].how]);
+      lines = s.in.filter((a) => OUTCOMES[a.id].skills[s.id]).map((a) => [labelOf(a.id), didOf(OUTCOMES[a.id], s.id, plain)]);
     }
     return { ...s, lines };
   }).filter((s) => s.lines.length);
@@ -191,6 +198,7 @@ function skillLines(cov, progress, played, recs) {
 function ResultCode({ code }) {
   const id = useId();
   const [copied, setCopied] = useState(false);
+  const plain = usePlain();
   async function copy(e) {
     const input = e.currentTarget.previousSibling;
     try { await navigator.clipboard.writeText(code); setCopied(true); }
@@ -198,7 +206,7 @@ function ResultCode({ code }) {
   }
   return (
     <>
-      <p style={{ margin: "0 0 8px", fontSize: 14.5, color: T.body2 }}>Your tutor may ask for this code. It holds, for each brief, the platform you chose, where you finished, how many predictions were right, whether you ran out of cash, whether you wrote a recommendation, and your self-ratings — no name and none of your writing.</p>
+      <p style={{ margin: "0 0 8px", fontSize: 14.5, color: T.body2 }}>{plain ? "Your tutor may ask you for this code. For each brief it records the platform you chose, your final place, how many predictions were right, if you ran out of cash, if you wrote a recommendation, and your self-ratings. It does not contain your name or anything you wrote." : "Your tutor may ask for this code. It holds, for each brief, the platform you chose, where you finished, how many predictions were right, whether you ran out of cash, whether you wrote a recommendation, and your self-ratings — no name and none of your writing."}</p>
       <label htmlFor={id} style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Your result code</label>
       <div style={{ display: "flex", gap: 6 }}>
         <input id={id} readOnly value={code} onFocus={(e) => e.target.select()} style={{ flex: 1, minWidth: 0, padding: "8px 10px", border: `1px solid ${T.muted}`, borderRadius: 8, background: T.panel2, font: `13.5px ${T.mono}`, color: T.text }} />

@@ -8,7 +8,7 @@ import { T, PLAYER, card, btn, ghostBtn, gatedBtn, tipStyle, td } from "./theme.
 import { WhatThisDevelops, SkillsPractised } from "./Outcomes.jsx";
 import SkillsRating from "./SkillsRating.jsx";
 import Recommendation from "./Recommendation.jsx";
-import { PT, Term, TermsHint, Eyebrow, SectionTitle, ChoiceGroup, QuestionLabel, ScoreCard, Chart, useReducedMotion } from "./shared.jsx";
+import { PT, usePlain, Term, TermsHint, Eyebrow, SectionTitle, ChoiceGroup, QuestionLabel, ScoreCard, Chart, useReducedMotion } from "./shared.jsx";
 
 const times = (n) => (n < 0 ? "−" : "") + Math.abs(n).toFixed(2) + "×";
 const signed = (n) => (n < 0 ? "−" : "+") + gbp(Math.abs(n));
@@ -86,11 +86,14 @@ export function Intro({ onStart, onLog, cfg, progress }) {
 
 /* ---- BEFORE THE FIRST GAME: the skills self-rating ------------ */
 export function BeforeYouStart({ onSave, onSkip }) {
+  const plain = usePlain();
   return (
     <div className="rise" style={{ maxWidth: 760, margin: "32px auto 0" }}>
-      <ScreenHead kicker="BEFORE YOU START">How confident are you now?</ScreenHead>
-      <SkillsRating style={{ marginTop: 16 }} title="Rate yourself" saveLabel="Save and open the dashboard" onSave={onSave} onSkip={onSkip}
-        intro="Six quick ratings, asked once. After you have played, your diagnosis log asks again, so you can set your confidence against what you actually did." />
+      <ScreenHead kicker="BEFORE YOU START">{plain ? "How sure are you now?" : "How confident are you now?"}</ScreenHead>
+      <SkillsRating style={{ marginTop: 16 }} title={plain ? "Rate your skills" : "Rate yourself"} saveLabel="Save and open the dashboard" onSave={onSave} onSkip={onSkip}
+        intro={plain
+          ? "Answer six short questions. You are asked only once. After you play, your diagnosis log asks the same questions again. Then you can compare how sure you felt with what you did."
+          : "Six quick ratings, asked once. After you have played, your diagnosis log asks again, so you can set your confidence against what you actually did."} />
     </div>
   );
 }
@@ -402,7 +405,8 @@ export function EndView({ records, state, cfg, restart, progress, onLog }) {
 
       <section style={{ ...card(), marginTop: 18, textAlign: "center" }}>
         <SectionTitle>Take your diagnosis log into class</SectionTitle>
-        <p style={{ color: T.body2, fontSize: 15, lineHeight: 1.5, maxWidth: 620, margin: "0 auto 16px" }}>Your diagnosis log is a document you can save as a PDF: your first run quarter by quarter, your recommendation, a skills record with a line for your CV, and a result code for your tutor. The CSV and Markdown files hold this run's figures: calls, purchases, revenue, profit, CAC and LTV/CAC.</p>
+        <p style={{ color: T.body2, fontSize: 15, lineHeight: 1.5, maxWidth: 620, margin: "0 auto 16px" }}><PT rich="Your diagnosis log is a document you can save as a PDF: your first run quarter by quarter, your recommendation, a skills record with a line for your CV, and a result code for your tutor. The CSV and Markdown files hold this run's figures: calls, purchases, revenue, profit, CAC and LTV/CAC."
+          plain="Your diagnosis log is a document. You can save it as a PDF. It shows your first run for each quarter, your recommendation, the skills you used, a sentence for your CV, and a result code for your tutor. The CSV and Markdown files hold the numbers from this run: your guesses, what you bought, revenue, profit, CAC and LTV/CAC." /></p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button type="button" onClick={onLog} style={{ ...btn(T.playerBtn), padding: "12px 20px", fontSize: 16 }}>Open your diagnosis log</button>
           <button type="button" onClick={() => downloadFile(`funnel-fixer-${cfg.seed}.csv`, buildCSV(records, cfg), "text/csv")} style={ghostBtn}><span aria-hidden="true">⬇ </span>Download CSV</button>

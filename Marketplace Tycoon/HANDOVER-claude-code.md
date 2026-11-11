@@ -239,6 +239,15 @@ Lab's files of the same names; the unit is a **client brief** (one game), where 
   economics, debrief questions, wrong turns and a stretch. Both open from the Instructor panel ("For the
   seminar"). A refresh never lands a student on a staff page (`STAFF_PAGES` guard in `App.jsx`); being lazy, the
   two pages focus their own h1 on mount (`useFocusOnMount`).
+- **Simpler English** on these screens (2026-11-11): the rating screen, the recommendation, "What this brief
+  develops", "Skills you practised" and the decision log follow the switch. The wording lives beside the original
+  as data — `plain` on `SKILL_STATEMENTS`, `SKILLS` and `LEARNING_OUTCOMES`, `skillsPlain` per brief in
+  `OUTCOMES`, `RATING_LABELS_PLAIN`, `REC_CHECKS_PLAIN` (same order; ticks are stored by position) — and
+  components pick with `usePlain()` (`shared.jsx`) or `didOf(o, id, plain)` (`outcomesModel.js`). The
+  specification's LO text is never replaced: plain mode adds "In simpler words: …" under it. Not simplified, on
+  purpose: skill names, syllabus headings, CV lines (words students reuse elsewhere), table headings and the
+  figures. The staff pages (tally, tutor's guide, instructor panel) have no plain variants and the result code
+  is the same in either mode.
 - `progress.js`: `mt-progress` (first game per brief + recommendation), `mt-skills`, `mt-student-name`.
 - Tests: `outcomes.test.js`, `cohort.test.js` (record, code round-trip, parser errors, tally), and smoke renders
   of the rating screen, log (empty / full), tally, guide and panel.

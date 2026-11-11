@@ -1,6 +1,10 @@
 import React, { useId } from "react";
 import { T, card } from "./theme.js";
 import { MODULE, OUTCOMES, losOf, skillsOf } from "../engine/outcomes.js";
+import { usePlain } from "./shared.jsx";
+
+// In Simpler English the specification's wording stays, with a gloss under it.
+export const Gloss = ({ children }) => <span style={{ display: "block", color: T.body2 }}>In simpler words: {children}</span>;
 
 /* "What this develops", on screen: the module's learning outcome in the
    specification's words (visible text, not a tooltip), the syllabus topics
@@ -21,17 +25,20 @@ export function ModuleLink({ children = "All the module's learning outcomes" }) 
 // The intro: what playing develops.
 export function WhatThisDevelops({ style }) {
   const id = useId();
+  const plain = usePlain();
   return (
     <section aria-labelledby={id} style={{ ...card(), padding: "16px 18px", ...style }}>
       <h2 id={id} style={subHead}>What this develops</h2>
       <ul role="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
         {losOf().map((lo) => (
           <li key={lo.code} style={{ display: "flex", gap: 10, alignItems: "baseline", fontSize: 15, lineHeight: 1.5 }}>
-            <span style={loTag}>{lo.code}</span><span>{lo.text}</span>
+            <span style={loTag}>{lo.code}</span><span>{lo.text}{plain && <Gloss>{lo.plain}</Gloss>}</span>
           </li>
         ))}
       </ul>
-      <p style={{ margin: "10px 0 0", fontSize: 15, color: T.body2, lineHeight: 1.55 }}>Here that means judging which store improvements are worth their cost — in profit, over a stated period — rather than by how large a conversion gap looks.</p>
+      <p style={{ margin: "10px 0 0", fontSize: 15, color: T.body2, lineHeight: 1.55 }}>{plain
+        ? "In this game you decide which improvements to a store are worth the money. You judge each one by the profit it brings back over a set time, not by how big the conversion gap looks."
+        : "Here that means judging which store improvements are worth their cost — in profit, over a stated period — rather than by how large a conversion gap looks."}</p>
       <p style={{ margin: "10px 0 0", fontSize: 14.5, color: T.body2, lineHeight: 1.55 }}>
         <b style={{ color: T.text }}>Syllabus:</b> {OUTCOMES.syllabus.join("; ")}.{" "}
         <b style={{ color: T.text }}>Skills:</b> {skillsOf().map((s) => s.name).join(" · ")}.
@@ -43,6 +50,7 @@ export function WhatThisDevelops({ style }) {
 
 // The debrief: each skill, and what practising it looked like here.
 export function SkillsPractised({ wrote, style }) {
+  const plain = usePlain();
   return (
     <section aria-labelledby="ff-skills-practised" style={{ ...card(), ...style }}>
       <h2 id="ff-skills-practised" style={{ fontFamily: T.display, fontWeight: 700, fontSize: 18, margin: "0 0 10px" }}>Skills you practised</h2>
@@ -50,12 +58,14 @@ export function SkillsPractised({ wrote, style }) {
         {skillsOf().filter((s) => s.id !== "communication" || wrote).map((s) => (
           <li key={s.id} style={{ padding: "8px 0", borderBottom: `1px solid ${T.border}`, fontSize: 15, lineHeight: 1.5 }}>
             <b>{s.name}</b> <span style={{ color: T.body2, fontSize: 13.5 }}>({s.kind.toLowerCase()})</span>
-            <div style={{ color: T.body2 }}>{s.how}</div>
+            <div style={{ color: T.body2 }}>{plain ? s.plain : s.how}</div>
           </li>
         ))}
       </ul>
       <p style={{ margin: "10px 0 0", fontSize: 14, color: T.body2, lineHeight: 1.5 }}>
-        Learning outcome: <b style={{ color: T.text }}>{OUTCOMES.los.join(" · ")}</b>. {wrote ? "" : "Write the recommendation above and Communication joins this list. "}Your diagnosis log records these skills, with a line you can use on a CV.
+        Learning outcome: <b style={{ color: T.text }}>{OUTCOMES.los.join(" · ")}</b>. {plain
+          ? `${wrote ? "" : "Write the recommendation above, and Communication is added to this list. "}Your diagnosis log lists these skills. It also gives you a sentence you can use on a CV.`
+          : `${wrote ? "" : "Write the recommendation above and Communication joins this list. "}Your diagnosis log records these skills, with a line you can use on a CV.`}
       </p>
     </section>
   );

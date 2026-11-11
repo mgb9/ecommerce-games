@@ -7,16 +7,20 @@ import { runFacts } from "../engine/debrief.js";
 
    SKILL_STATEMENTS are what a student rates, 1–5, before their first game
    and again from the decision log. They ask the same six things as Data
-   Detective's and Conversion Lab's, in this simulation's words. */
+   Detective's and Conversion Lab's, in this simulation's words. `plain`
+   is the Simpler English wording a student sees with that switch on; the
+   tally (staff) and the result code always use `text` and the ids. */
 export const SKILL_STATEMENTS = [
-  { id: "choose", text: "Choose an e-commerce platform for a client's needs, and justify the trade-offs" },
-  { id: "economics", text: "Work out whether a store makes money on each sale, after returns and fees" },
-  { id: "value", text: "Judge whether a conversion, fulfilment or retention investment is worth its cost" },
-  { id: "explain", text: "Explain a platform and strategy recommendation to a client who isn't a technologist" },
-  { id: "calibrate", text: "Predict how a decision will turn out before seeing the result, and be about right" },
-  { id: "career", text: "Describe this kind of work in a job application or interview" },
+  { id: "choose", text: "Choose an e-commerce platform for a client's needs, and justify the trade-offs", plain: "Choose an e-commerce platform that fits what a client needs, and give reasons for what you gain and what you give up" },
+  { id: "economics", text: "Work out whether a store makes money on each sale, after returns and fees", plain: "Work out if a store makes money on each sale, after you take away returns and fees" },
+  { id: "value", text: "Judge whether a conversion, fulfilment or retention investment is worth its cost", plain: "Decide if spending on conversion, fulfilment or keeping customers brings back more money than it costs" },
+  { id: "explain", text: "Explain a platform and strategy recommendation to a client who isn't a technologist", plain: "Explain your advice on platform and strategy to a client who is not a technology expert" },
+  { id: "calibrate", text: "Predict how a decision will turn out before seeing the result, and be about right", plain: "Say what a decision will do before you see the result, and be close" },
+  { id: "career", text: "Describe this kind of work in a job application or interview", plain: "Describe this kind of work when you apply for a job or in an interview" },
 ];
 export const RATING_LABELS = ["Not at all confident", "Slightly", "Moderately", "Very", "Completely confident"];
+// Simpler English: the same five points in more common words.
+export const RATING_LABELS_PLAIN = ["Not confident", "A little", "Quite", "Very", "Fully confident"];
 
 /* What a finished game leaves behind for the decision log: the setup, how
    it ended, and the judgements made along the way. Built from the same

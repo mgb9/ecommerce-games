@@ -13,13 +13,13 @@ import { evaluatePlatforms, rationaleFor, fitOf, CRITERIA } from "../engine/plat
 import { debriefCards } from "../engine/debrief.js";
 import { T, PLAYER, GLOBAL_CSS, card, btn, ghostBtn, gatedBtn, pickCard, croBtn, tipStyle, backBtn } from "./theme.js";
 import {
-  PlainModeProvider, PT, Term, TermsHint, LOS, Eyebrow, Frame, InstructorButton, Chart,
+  PlainModeProvider, PT, usePlain, Term, TermsHint, LOS, Eyebrow, Frame, InstructorButton, Chart,
   SectionTitle, SubHead, ChoiceGroup, Slider, MiniStat, Banner,
 } from "./shared.jsx";
 import { useSessionState } from "./session.js";
 import { loadProgress, loadSkills, saveSkills, recordGame } from "./progress.js";
 import { runRecord } from "./cohort.js";
-import { OUTCOMES } from "./outcomesModel.js";
+import { OUTCOMES, LEARNING_OUTCOMES } from "./outcomesModel.js";
 import { WhatThisDevelops, SkillsPractised } from "./Outcomes.jsx";
 import SkillsRating from "./SkillsRating.jsx";
 import Recommendation from "./Recommendation.jsx";
@@ -163,9 +163,9 @@ export function RateFirst({ onSave, onSkip, onBack }) {
   return (
     <div className="rise" style={{ maxWidth: 820, margin: "32px auto 0" }}>
       <ScreenHead title="Before you start: where are you now?" onBack={onBack} />
-      <p style={{ color: T.muted, fontSize: 16.5, lineHeight: 1.55, margin: "8px 0 16px" }}>One minute, once. You will rate yourself again after playing, and your decision log sets the two side by side.</p>
+      <p style={{ color: T.muted, fontSize: 16.5, lineHeight: 1.55, margin: "8px 0 16px" }}><PT rich="One minute, once. You will rate yourself again after playing, and your decision log sets the two side by side." plain="This takes one minute, and you do it once. After you play, you rate yourself again. Your decision log shows the two ratings next to each other." /></p>
       <SkillsRating title="Rate yourself" saveLabel="Save and choose a client brief →" onSave={onSave} onSkip={onSkip}
-        intro="There are no right answers, and nobody sees this unless you choose to share your result code." />
+        intro={<PT rich="There are no right answers, and nobody sees this unless you choose to share your result code." plain="There are no right or wrong answers. Nobody sees your answers unless you choose to share your result code." />} />
     </div>
   );
 }
@@ -173,6 +173,8 @@ export function RateFirst({ onSave, onSkip, onBack }) {
 export function Intro({ name, setName, onNext, progress = {}, onLog }) {
   const played = SCENARIOS.filter((s) => progress[s.id]);
   const nameId = useId();
+  const plain = usePlain();
+  const gloss = (code) => plain && <span style={{ display: "block" }}>In simpler words: {LEARNING_OUTCOMES[code].plain}</span>;
   return (
     <div className="rise" style={{ maxWidth: 820, margin: "48px auto 0" }}>
       <Eyebrow>Strategy simulation · LO1 · LO3</Eyebrow>
@@ -196,16 +198,16 @@ export function Intro({ name, setName, onNext, progress = {}, onLog }) {
       <section aria-labelledby="mt-develops" style={{ ...card(), marginTop: 26, padding: "16px 18px" }}>
         <h2 id="mt-develops" style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, margin: "0 0 8px" }}>What this develops</h2>
         <ul style={{ margin: 0, paddingLeft: 20, color: T.body2, fontSize: 15, lineHeight: 1.55 }}>
-          <li><b style={{ color: T.text }}>LO1.</b> {LOS.LO1} <span style={{ color: T.muted }}>— you choose and justify a platform for a client brief.</span></li>
-          <li><b style={{ color: T.text }}>LO3.</b> {LOS.LO3} <span style={{ color: T.muted }}>— you decide which conversion, fulfilment and retention work is worth its cost.</span></li>
+          <li><b style={{ color: T.text }}>LO1.</b> {LOS.LO1} <span style={{ color: T.muted }}>— {plain ? "you choose a platform for a client and give your reasons." : "you choose and justify a platform for a client brief."}</span>{gloss("LO1")}</li>
+          <li><b style={{ color: T.text }}>LO3.</b> {LOS.LO3} <span style={{ color: T.muted }}>— {plain ? "you decide which work on conversion, fulfilment and keeping customers is worth the money." : "you decide which conversion, fulfilment and retention work is worth its cost."}</span>{gloss("LO3")}</li>
         </ul>
-        <p style={{ margin: "10px 0 0", color: T.body2, fontSize: 15, lineHeight: 1.55 }}>Each game ends with a short recommendation to your client. Your <b style={{ color: T.text }}>decision log</b> keeps a record of the skills you practised, with lines you can use on a CV.</p>
+        <p style={{ margin: "10px 0 0", color: T.body2, fontSize: 15, lineHeight: 1.55 }}>{plain ? <>At the end of each game you write a short recommendation to your client. Your <b style={{ color: T.text }}>decision log</b> lists the skills you used. It also gives you sentences you can use on a CV.</> : <>Each game ends with a short recommendation to your client. Your <b style={{ color: T.text }}>decision log</b> keeps a record of the skills you practised, with lines you can use on a CV.</>}</p>
       </section>
       {onLog && (
         <section aria-labelledby="mt-sofar" style={{ ...card(), marginTop: 14, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
           <div>
             <h2 id="mt-sofar" style={{ fontFamily: T.display, fontWeight: 700, fontSize: 17, margin: "0 0 4px" }}>Your decision log</h2>
-            <p style={{ margin: 0, color: T.body2, fontSize: 15, lineHeight: 1.5 }}>{played.length ? `In this browser you have finished a game on ${played.length} of ${SCENARIOS.length} client briefs: ${played.map((s) => s.short).join(", ")}.` : "Nothing in it yet — it fills in when you finish a game."}</p>
+            <p style={{ margin: 0, color: T.body2, fontSize: 15, lineHeight: 1.5 }}>{played.length ? `In this browser you have finished a game on ${played.length} of ${SCENARIOS.length} client briefs: ${played.map((s) => s.short).join(", ")}.` : (plain ? "It is empty now. It fills in when you finish a game." : "Nothing in it yet — it fills in when you finish a game.")}</p>
           </div>
           <button type="button" onClick={onLog} style={{ ...ghostBtn, border: `1.5px solid ${T.muted}`, padding: "11px 20px", fontSize: 15.5 }}>Open your decision log</button>
         </section>
